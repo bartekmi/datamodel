@@ -3,28 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace datamodel.datadict.html {
-    public class HtmlTr : HtmlEntity {
-        private List<HtmlTd> _tds = new List<HtmlTd>();
+    public class HtmlTr : HtmlElement {
+
+        public HtmlTr() : base("tr") { }
 
         // Create a row with single Td
-        public HtmlTr(string htmlText) {
-            AddTd(new HtmlTd(htmlText));
+        public HtmlTr(string htmlText) : this(new HtmlTd(htmlText)) {
+            // Do nothing
         }
 
-        public HtmlTr(params HtmlTd[] tds) {
+        public HtmlTr(params HtmlTd[] tds) : base("tr") {
             foreach (HtmlTd td in tds)
-                AddTd(td);
+                Add(td);
         }
 
-        public void AddTd(HtmlTd td) {
-            _tds.Add(td);
-        }
-
-        override public void ToHtml(TextWriter writer) {
-            WriteOpeningTag(writer, "tr");
-            foreach (HtmlTd td in _tds)
-                td.ToHtml(writer);
-            WriteClosingTag(writer, "tr");
+        public HtmlTr(params HtmlTh[] tds) : base("tr") {
+            foreach (HtmlTh td in tds)
+                Add(td);
         }
     }
 }

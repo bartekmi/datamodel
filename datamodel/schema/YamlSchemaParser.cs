@@ -22,28 +22,30 @@ namespace datamodel.schema {
                 };
 
                 // Columns
-                YamlSequenceNode columns = YamlUtils.GetSequence(tableData, "columns");
-                if (columns == null)
+                YamlSequenceNode yamlColumns = YamlUtils.GetSequence(tableData, "columns");
+                if (yamlColumns == null)
                     continue;           // No columns means ??? - things like 'session' whatever that is
 
-                foreach (YamlMappingNode columnData in columns) {
+                List<Column> columns = new List<Column>();
+
+                foreach (YamlMappingNode columnData in yamlColumns) {
+                    Column column = null;
                     string dbName = YamlUtils.GetString(columnData, "name");
-                    bool isNullable = YamlUtils.GetBoolean(columnData, "null");
-                    DataType type = ToDbType(YamlUtils.GetString(columnData, "type"));
 
                     if (dbName.EndsWith(FkColumn.ID_SUFFIX))
-                        table.AllColumns.Add(new FkColumn(table) {
-                            DbName = dbName,
-                            IsNullable = isNullable,
-                            DbType = type,
-                        });
+                        column = new FkColumn(table);
                     else
-                        table.AllColumns.Add(new Column(table) {
-                            DbName = dbName,
-                            IsNullable = isNullable,
-                            DbType = type,
-                        });
+                        column = new Column(table);
+
+                    column.DbName = dbName;
+                    column.DbTypeString = YamlUtils.GetString(columnData, "type");
+                    column.DbType = ToDbType(YamlUtils.GetString(columnData, "type"));
+                    column.IsNullable = YamlUtils.GetBoolean(columnData, "null");
+
+                    columns.Add(column);
                 }
+
+                table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
 
                 // Associations
                 YamlSequenceNode associations = YamlUtils.GetSequence(tableData, "associations");
@@ -61,6 +63,7 @@ namespace datamodel.schema {
         private DataType ToDbType(string typeString) {
             switch (typeString) {
                 case "integer": return DataType.Integer;
+                // TODO - currently not used
                 default: return DataType.Inet;
             }
         }

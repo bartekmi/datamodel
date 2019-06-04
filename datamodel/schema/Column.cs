@@ -30,6 +30,7 @@ namespace datamodel.schema {
     public class Column : IDbElement {
         public string DbName { get; set; }
         public DataType DbType { get; set; }
+        public string DbTypeString { get; set; }
         public string Team { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }

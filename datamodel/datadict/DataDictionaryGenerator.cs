@@ -22,8 +22,11 @@ namespace datamodel.datadict {
         }
 
         private static void GenerateForTable(Table table, string path) {
-            HtmlTag html = new HtmlTag("html");
-            HtmlTag body = html.Add(new HtmlTag("body"));
+            HtmlElement html = new HtmlElement("html");
+            HtmlElement body = html.Add(new HtmlElement("body"));
+            body.Add(new HtmlElement("link")
+                .Attr("rel", "stylesheet")
+                .Attr("href", "styles.css"));
 
             GenerateHeader(body, table);
             GenerateAttribute(body, table);
@@ -33,29 +36,38 @@ namespace datamodel.datadict {
                 html.ToHtml(writer);
         }
 
-        private static void GenerateHeader(HtmlTag body, Table dbTable) {
+        private static void GenerateHeader(HtmlElement body, Table dbTable) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(dbTable.HumanName));
+            table.AddTr(new HtmlTr(
+                 new HtmlTh(dbTable.HumanName).Attr("class", "heading1")
+                ));
 
             if (!string.IsNullOrEmpty(dbTable.Description))
-                table.AddTr(new HtmlTr(dbTable.Description));
+                table.Add(new HtmlTr(dbTable.Description));
         }
 
-        private static void GenerateAttribute(HtmlTag body, Table dbTable) {
+        private static void GenerateAttribute(HtmlElement body, Table dbTable) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr("Attributes"));
+            table.AddTr(new HtmlTr(
+                new HtmlTh("Attributes").Attr("class", "heading2")
+                ));
 
-            foreach (Column column in dbTable.RegularColumns) {
+            foreach (Column column in dbTable.RegularColumns) 
                 if (Schema.IsInteresting(column)) {
-                    table.AddTr(new HtmlTr(column.HumanName).SetAttrHtml("id", column.DbName));
-                    table.AddTr(new HtmlTr(column.Description));
+                    table.AddTr(new HtmlTr(new HtmlTd(
+                        new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
+                        new HtmlElement("span", "(" + column.DbTypeString + ")").Attr("class", "faded gap-left")))
+                        .Attr("id", column.DbName));        // Id for anchor
+                        
+
+                    table.AddTr(new HtmlTr(column.Description)
+                        .Attr("class", "text"));
                 }
-            }
         }
 
-        private static void GenerateAssociations(HtmlTag body, Table dbTable) {
+        private static void GenerateAssociations(HtmlElement body, Table dbTable) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.AddTr(new HtmlTr("Links / Associations"));

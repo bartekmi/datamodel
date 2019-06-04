@@ -21,7 +21,7 @@ namespace datamodel {
 
             Error.Clear();
 
-            CreateGraph();
+            //CreateGraph();
             GenerateDataDictionary();
 
             if (DO_ALL_TESTS) {
