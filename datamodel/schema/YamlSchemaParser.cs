@@ -62,7 +62,7 @@ namespace datamodel.schema {
         }
         #endregion
 
-        #region Parse Relationships (Associations)
+        #region Parse Relationships (Ruby Terminology) or Associations (Generic Terminology)
         public List<Association> ParseAssociations(YamlSequenceNode yamlRelationships) {
             List<Association> associations = new List<Association>();
 

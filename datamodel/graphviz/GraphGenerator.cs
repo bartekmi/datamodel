@@ -7,6 +7,7 @@ using datamodel.schema;
 using datamodel.graphviz.dot;
 
 namespace datamodel.graphviz {
+
     public class GraphGenerator {
         public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = CreateGraph(tables, associations);
@@ -85,10 +86,28 @@ namespace datamodel.graphviz {
 
         #region Edges / Associations
         private Edge ConvertAssociation(Association association) {
-            return new Edge() {
+            Edge edge = new Edge() {
                 Source = TableToNodeId(association.SourceTable),
                 Destination = TableToNodeId(association.DestinationTable),
             };
+
+            edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
+                .SetAttrGraph("arrowsize", 1.5)
+                .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.SourceMultiplicity))
+                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.DestinationMultiplicity));
+
+            return edge;
+        }
+
+        private string MultiplicityToArrowName(Multiplicity multiplicity) {
+            switch (multiplicity) {
+                case Multiplicity.One: return "none";
+                case Multiplicity.Many: return "crow";
+                case Multiplicity.ZeroOrOne: return "odottee";
+                case Multiplicity.Aggregation: return "diamond";
+                default:
+                    throw new Exception("Unexpected multiplicity: " + multiplicity);
+            }
         }
         #endregion
 
