@@ -9,7 +9,7 @@ using datamodel.utils;
 namespace datamodel.schema {
     public enum DataType {
         String,
-        Text,     // Long string, I believe
+        Text,     // Long string
         Integer,
         BigInt,
         Decimal,
@@ -24,13 +24,14 @@ namespace datamodel.schema {
         Citext,
         Hstore,
         Geometry,
-        Inet
+        Inet,
+        Other
     }
 
     public class Column : IDbElement {
         public string DbName { get; set; }
-        public DataType DbType { get; set; }
         public string DbTypeString { get; set; }
+        public DataType DbType { get; set; }
         public string Team { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }

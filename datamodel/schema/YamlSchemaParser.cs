@@ -54,11 +54,7 @@ namespace datamodel.schema {
         }
 
         private DataType ToDbType(string typeString) {
-            switch (typeString) {
-                case "integer": return DataType.Integer;
-                // TODO - currently not used
-                default: return DataType.Inet;
-            }
+            return EnumUtils.TryParse<DataType>(typeString, DataType.Other);
         }
         #endregion
 
@@ -92,6 +88,7 @@ namespace datamodel.schema {
         #endregion
     }
 
+    #region Helper Classes: RubyAssociation / Options
     class RubyAssociation {
         internal enum AssociationKind {
             BelongsTo,
@@ -184,4 +181,5 @@ namespace datamodel.schema {
             return bool.Parse(value);
         }
     }
+    #endregion
 }

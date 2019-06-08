@@ -9,6 +9,7 @@ using datamodel.graphviz.dot;
 namespace datamodel.graphviz {
 
     public class GraphGenerator {
+        #region Top-Level
         public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = CreateGraph(tables, associations);
 
@@ -27,8 +28,9 @@ namespace datamodel.graphviz {
 
             return graph;
         }
+        #endregion
 
-        # region Nodes / Tables
+        #region Nodes / Tables
         private Node ConvertTable(Table table) {
             Node node = new Node() {
                 Name = TableToNodeId(table),
@@ -62,7 +64,9 @@ namespace datamodel.graphviz {
             // Columns
             foreach (Column column in dbTable.RegularColumns) {
                 if (Schema.IsInteresting(column)) {
-                    HtmlTd td = new HtmlTd(HtmlUtils.Bullet() + column.HumanName)
+                    string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
+                    string content = string.Format("{0}{1}{2}", HtmlUtils.Bullet(), column.HumanName, dataType);
+                    HtmlTd td = new HtmlTd(content)
                         .SetAttrHtml("align", "left")
                         .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? "No description provided" : column.Description)
                         .SetAttrHtml("href", CreateLink(dbTable, column));
@@ -71,6 +75,18 @@ namespace datamodel.graphviz {
             }
 
             return table;
+        }
+
+        private string ToShortType(Column column) {
+            switch (column.DbType) {
+                case DataType.Integer: return "int";
+                case DataType.Text: return "txt";
+                case DataType.String: return "str";
+                case DataType.Decimal: return "dec";
+                case DataType.Boolean: return "bool";
+            }
+
+            return column.DbTypeString;
         }
 
         private string CreateLink(Table table, Column column) {
@@ -111,8 +127,10 @@ namespace datamodel.graphviz {
         }
         #endregion
 
+        #region Misc
         private static string TableToNodeId(Table table) {
             return table.DbName;
         }
+        #endregion
     }
 }
