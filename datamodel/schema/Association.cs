@@ -35,12 +35,21 @@ namespace datamodel.schema {
         public Table DestinationTable { get; set; }
 
         // Derived
+
+        // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
         public Multiplicity SourceMultiplicity {
             get {
+                // if the source is mandatory (i.e. the FK is mandatory), mark this end as an aggregation 
+                // - the children cannot exist without a parent
+                if (!SourceOptional)
+                    return Multiplicity.Aggregation;
+
                 bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.one_to_many;
                 return ToMultiplicity(isSingle, SourceOptional);
             }
         }
+
+        // The "Destination" end of the relationship (by the Rails definition) is the end which has the FK
         public Multiplicity DestinationMultiplicity {
             get {
                 bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.many_to_one;

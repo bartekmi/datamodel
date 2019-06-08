@@ -104,7 +104,7 @@ namespace datamodel.graphviz {
                 case Multiplicity.One: return "none";
                 case Multiplicity.Many: return "crow";
                 case Multiplicity.ZeroOrOne: return "odottee";
-                case Multiplicity.Aggregation: return "diamond";
+                case Multiplicity.Aggregation: return "odiamond";
                 default:
                     throw new Exception("Unexpected multiplicity: " + multiplicity);
             }
