@@ -8,32 +8,36 @@ using datamodel.graphviz.dot;
 
 namespace datamodel.graphviz {
     public class GraphGenerator {
-        public void GenerateGraph(string path, IEnumerable<Table> tables) {
-            Graph graph = CreateGraph(tables);
+        public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
+            Graph graph = CreateGraph(tables, associations);
 
             using (TextWriter writer = new StreamWriter(path))
                 graph.ToDot(writer);
         }
 
-        public Graph CreateGraph(IEnumerable<Table> tables) {
+        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = new Graph();
 
             foreach (Table table in tables)
                 graph.AddNode(ConvertTable(table));
 
+            foreach (Association association in associations)
+                graph.AddEdge(ConvertAssociation(association));
+
             return graph;
         }
 
-        private Node ConvertTable(Table dbTable) {
+        # region Nodes / Tables
+        private Node ConvertTable(Table table) {
             Node node = new Node() {
-                Name = dbTable.DbName,
+                Name = TableToNodeId(table),
             };
 
             node.SetAttrGraph("style", "filled")
                 .SetAttrGraph("fillcolor", "pink")
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")
-                .SetAttrGraph("label", CreateLabel(dbTable));
+                .SetAttrGraph("label", CreateLabel(table));
 
             return node;
         }
@@ -76,6 +80,20 @@ namespace datamodel.graphviz {
                 return urlToEntity;
             else
                 return string.Format("{0}#{1}", urlToEntity, column.DbName);
+        }
+        #endregion
+
+        #region Edges / Associations
+        private Edge ConvertAssociation(Association association) {
+            return new Edge() {
+                Source = TableToNodeId(association.SourceTable),
+                Destination = TableToNodeId(association.DestinationTable),
+            };
+        }
+        #endregion
+
+        private static string TableToNodeId(Table table) {
+            return table.DbName;
         }
     }
 }

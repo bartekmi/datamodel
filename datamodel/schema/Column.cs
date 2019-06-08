@@ -36,7 +36,7 @@ namespace datamodel.schema {
         public Visibility Visibility { get; set; }
         public bool IsObsolete { get; set; }
         public string Issue { get; set; }
-        public bool IsNullable { get; set; }
+        public bool IsMandatory { get; set; }
         public string Enum { get; set; }
         public string Group { get; set; }
         public Table Owner { get; private set; }

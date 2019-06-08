@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using datamodel.parser;
+using datamodel.utils;
+using YamlDotNet.RepresentationModel;
 
 namespace datamodel.schema {
     public class Schema {
@@ -24,20 +26,30 @@ namespace datamodel.schema {
         private static Schema _schema;
         public static Schema Singleton {
             get {
-                if (_schema == null) {
-                    string path = "/datamodel/bartek_raw.txt";
-                    YamlSchemaParser _parser = new YamlSchemaParser();
-                    List<Table> tables = _parser.Parse(path, new List<Error>());
-                    _schema = new Schema(tables);
-                    _schema.PostProcess();
-                }
+                if (_schema == null)
+                    _schema = ParseSchema();
                 return _schema;
             }
+        }
+
+        #region Creation
+        private static Schema ParseSchema() {
+            string path = "/datamodel/bartek_raw2.txt";
+            YamlMappingNode root = (YamlMappingNode)YamlUtils.ReadYaml(path).RootNode;
+
+            YamlSchemaParser _parser = new YamlSchemaParser();
+            List<Table> tables = _parser.ParseTables(YamlUtils.GetSequence(root, "entities"));
+            List<Association> associations = _parser.ParseAssociations(YamlUtils.GetSequence(root, "relationships"));
+
+            Schema schema = new Schema(tables, associations);
+            schema.PostProcess();
+            return schema;
         }
 
         private void PostProcess() {
             SetFkTables();
             ResolveSuperClasses();
+            LinkAssociations();
         }
 
         private void SetFkTables() {
@@ -66,14 +78,30 @@ namespace datamodel.schema {
             }
         }
 
-        public List<Table> Tables { get; private set; }
+        private void LinkAssociations() {
+            foreach (Association association in Associations) {
+                if (_byClassName.TryGetValue(association.Source, out Table sourceTable))
+                    association.SourceTable = sourceTable;
+                if (_byClassName.TryGetValue(association.Destination, out Table destinationTable))
+                    association.DestinationTable = destinationTable;
+            }
+        }
+        #endregion
 
-        private Schema(List<Table> tables) {
+        public List<Table> Tables { get; private set; }
+        public List<Association> Associations { get; private set; }
+        private Dictionary<string, Table> _byClassName;
+
+        private Schema(List<Table> tables, List<Association> associations) {
             Tables = tables;
+            Associations = associations;
+            _byClassName = tables.ToDictionary(x => x.ClassName);
         }
 
         public Table FindByClassName(string className) {
-            return Tables.FirstOrDefault(x => x.ClassName == className);
+            if (_byClassName.TryGetValue(className, out Table table))
+                return table;
+            return null;
         }
 
         public Table FindByDbName(string dbName) {

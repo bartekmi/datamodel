@@ -34,7 +34,10 @@ namespace datamodel.utils {
         }
 
         public static bool GetBoolean(YamlMappingNode node, string key) {
-            string value = GetString(node, key, true);
+            string value = GetString(node, key, false);
+            if (value == null)
+                return false;
+
             return bool.Parse(value);
         }
     }

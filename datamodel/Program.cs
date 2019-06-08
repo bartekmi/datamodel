@@ -15,14 +15,16 @@ namespace datamodel {
     class Program {
 
         public const string DATA_DICTIONARY_DIR = @"/TEMP";
+        public const string output = @"/TEMP/bookings_team.dot";
         private const bool DO_ALL_TESTS = false;
 
         static void Main(string[] args) {
 
             Error.Clear();
 
-            //CreateGraph();
+            CreateGraph();
             GenerateDataDictionary();
+            GraphvizRunner.Run(output, @"/TEMP/bookings_team.svg");
 
             if (DO_ALL_TESTS) {
                 CreateGraph();
@@ -44,12 +46,20 @@ namespace datamodel {
             Schema schema = Schema.Singleton;
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
 
-            Table table = schema.FindByDbName("bookings");
-            List<Error> errors = new List<Error>();
-            YamlAnnotationParser.Parse(table, errors);
+            // This is just a sample to prove that we are reading the human comments
+            //Table table = schema.FindByDbName("bookings");
+            //List<Error> errors = new List<Error>();
+            //YamlAnnotationParser.Parse(table, errors);
 
-            string output = @"/TEMP/bookings_team.dot";
-            (new GraphGenerator()).GenerateGraph(output, schema.Tables.Where(x => x.Team == "bookings"));
+            Dictionary<string, Table> tables = schema.Tables
+                .Where(x => x.Team == "bookings")
+                .ToDictionary(x => x.ClassName);
+
+            List<Association> associations = schema.Associations
+                .Where(x => tables.ContainsKey(x.Source) && tables.ContainsKey(x.Destination))
+                .ToList();
+
+            (new GraphGenerator()).GenerateGraph(output, tables.Values, associations);
         }
 
         // First few lines of the YAML file for bookings
