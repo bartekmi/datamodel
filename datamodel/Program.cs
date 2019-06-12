@@ -5,9 +5,10 @@ using System.Linq;
 
 using datamodel.parser;
 using datamodel.schema;
-using datamodel.generator;
+using datamodel.tools;
 using datamodel.graphviz;
 using datamodel.datadict;
+using datamodel.graph;
 
 namespace datamodel {
     // Command line on Windows:
@@ -35,13 +36,6 @@ namespace datamodel {
             }
         }
 
-        private static void GenerateDataDictionary() {
-            Schema schema = Schema.Singleton;
-            ParseMainModelDir();        // Extract teams and find paths of Ruby files
-
-            DataDictionaryGenerator.Generate(DATA_DICTIONARY_DIR, schema.Tables.Where(x => x.Team == "bookings"));
-        }
-
         private static void CreateGraph() {
             Schema schema = Schema.Singleton;
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
@@ -51,15 +45,14 @@ namespace datamodel {
             //List<Error> errors = new List<Error>();
             //YamlAnnotationParser.Parse(table, errors);
 
-            Dictionary<string, Table> tables = schema.Tables
-                .Where(x => x.Team == "bookings")
-                .ToDictionary(x => x.ClassName);
+            GraphGenerator.Generate("bookings", output);
+        }
 
-            List<Association> associations = schema.Associations
-                .Where(x => tables.ContainsKey(x.Source) && tables.ContainsKey(x.Destination))
-                .ToList();
+        private static void GenerateDataDictionary() {
+            Schema schema = Schema.Singleton;
+            ParseMainModelDir();        // Extract teams and find paths of Ruby files
 
-            (new GraphGenerator()).GenerateGraph(output, tables.Values, associations);
+            DataDictionaryGenerator.Generate(DATA_DICTIONARY_DIR, schema.Tables.Where(x => x.Team == "bookings"));
         }
 
         // First few lines of the YAML file for bookings

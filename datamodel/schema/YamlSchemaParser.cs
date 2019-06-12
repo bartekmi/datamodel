@@ -17,6 +17,7 @@ namespace datamodel.schema {
                 Table table = new Table() {
                     ClassName = YamlUtils.GetString(tableData, "entity_name"),
                     SuperClassName = YamlUtils.GetString(tableData, "superclass"),
+                    IsSpecialized = YamlUtils.GetBoolean(tableData, "specialized"),
                     DbName = YamlUtils.GetString(tableData, "table_name"),
                 };
 
@@ -46,7 +47,9 @@ namespace datamodel.schema {
 
                 table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
 
-                if (table.ClassName != null && table.DbName != null)
+                bool isDerived = table.SuperClassName != "ApplicationRecord";
+                if (table.ClassName != null && table.DbName != null &&
+                    !isDerived)       // See Issue 8
                     tables.Add(table);
             }
 

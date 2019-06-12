@@ -53,14 +53,14 @@ namespace datamodel.schema {
         }
 
         private void SetFkTables() {
-            // Temporarily commented out: This blows up when working with table hierarchies which are all stored in same DB table.
-            // Need to re-think in light of more complex relationships than just FK.
+            //Temporarily commented out: This blows up when working with table hierarchies which are all stored in same DB table.
+            // Need to re - think in light of more complex relationships than just FK.
 
-            // foreach (FkColumn fkColumn in Tables.SelectMany(x => x.FkColumns)) {
-            //     Table fkTable = FindByDbName(fkColumn.OtherTableName);
-            //     if (fkTable != null)
-            //         fkColumn.ReferencedTable = fkTable;
-            // }
+            foreach (FkColumn fkColumn in Tables.SelectMany(x => x.FkColumns)) {
+                Table fkTable = FindByDbName(fkColumn.OtherTableName);
+                if (fkTable != null)
+                    fkColumn.ReferencedTable = fkTable;
+            }
         }
 
         private void ResolveSuperClasses() {

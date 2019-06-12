@@ -20,6 +20,7 @@ namespace datamodel.schema {
     public class Table : IDbElement {
         public string ClassName { get; set; }
         public string SuperClassName { get; set; }
+        public bool IsSpecialized { get; set; }
         public string DbName { get; set; }
         public List<Column> AllColumns = new List<Column>();
         public TableType Type { get; set; }
