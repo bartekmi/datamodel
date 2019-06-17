@@ -42,6 +42,7 @@ namespace datamodel.schema {
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
 
         public string DocUrl { get { return HtmlUtils.ToAbsolute(string.Format("{0}/{1}.html", Team, ClassName)); } }
+        public string SvgUrl { get { return HtmlUtils.ToAbsolute(string.Format("{0}.svg", Team)); } }
 
         public string AnnotationFilePath {
             get {

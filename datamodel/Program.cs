@@ -18,6 +18,7 @@ namespace datamodel {
     class Program {
 
         public const string OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
+        public const string TEMP_DIR = @"C:\TEMP";
 
         static void Main(string[] args) {
 
@@ -36,9 +37,7 @@ namespace datamodel {
             //List<Error> errors = new List<Error>();
             //YamlAnnotationParser.Parse(table, errors);
 
-            string dotFilePath = @"C:\TEMP\bookings.dot";
-            GraphGenerator.Generate("bookings", dotFilePath);
-            GraphvizRunner.Run(dotFilePath, Path.Combine(OUTPUT_ROOT_DIR, "bookings.svg"));
+            GraphGenerator.GenerateAll("bookings", "shipment_data");
         }
 
         private static void GenerateDataDictionary() {

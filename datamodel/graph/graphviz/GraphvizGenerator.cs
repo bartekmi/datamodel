@@ -78,16 +78,17 @@ namespace datamodel.graphviz {
                     row.AddTd(columnNameTd);
 
                     if (column.IsFk) {
-                        if (tables.Contains(column.FkInfo.ReferencedTable))
+                        Table referencedTable = column.FkInfo.ReferencedTable;
+                        if (tables.Contains(referencedTable))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
                         else {
                             columnNameTd.Text = columnName;
-                            HtmlTd externalLinkTd = new HtmlTd("<IMG SRC=\"/datamodel/assets/images/external-link-blue.png\"/>")
-                               //HtmlTd externalLinkTd = new HtmlTd("GO")
-                               .SetAttrHtml("tooltip", "Dummy")
-                               .SetAttrHtml("href", "www.google.com")
-                               ;
-                            row.AddTd(externalLinkTd);
+                            if (referencedTable != null) {
+                                HtmlTd externalLinkTd = new HtmlTd("<IMG SRC=\"/datamodel/assets/images/external-link-blue.png\"/>")
+                                   .SetAttrHtml("tooltip", "Jump to the diagram which contains the linked table")
+                                   .SetAttrHtml("href", referencedTable.SvgUrl);
+                                row.AddTd(externalLinkTd);
+                            }
                         }
                     } else {
                         string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
