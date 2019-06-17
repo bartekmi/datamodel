@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using datamodel.utils;
+using datamodel.datadict.html;
 
 namespace datamodel.schema {
     public enum Visibility {
@@ -37,8 +38,10 @@ namespace datamodel.schema {
 
         // Derived
         public string HumanName { get { return ClassName; } }      // May tweak in future - 
-        public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => x.GetType() == typeof(Column)); } }
-        public IEnumerable<FkColumn> FkColumns { get { return AllColumns.OfType<FkColumn>(); } }
+        public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
+        public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
+
+        public string DocUrl { get { return HtmlUtils.ToAbsolute(string.Format("{0}/{1}.html", Team, ClassName)); } }
 
         public string AnnotationFilePath {
             get {

@@ -41,3 +41,8 @@ tr:nth-child(even) {
 .faded {
     color: gray;
 }
+
+.icon {
+    width: 16px;
+    height: 16px;
+}

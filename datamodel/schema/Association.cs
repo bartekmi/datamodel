@@ -29,6 +29,7 @@ namespace datamodel.schema {
         public Cardinality Cardinality { get; set; }
         public bool SourceOptional { get; set; }
         public bool DestinationOptional { get; set; }
+        public List<RailsAssociation> RailsAssociations = new List<RailsAssociation>();
 
         // Hydrated
         public Table SourceTable { get; set; }
@@ -39,11 +40,6 @@ namespace datamodel.schema {
         // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
         public Multiplicity SourceMultiplicity {
             get {
-                // if the source is mandatory (i.e. the FK is mandatory), mark this end as an aggregation 
-                // - the children cannot exist without a parent
-                if (!SourceOptional)
-                    return Multiplicity.Aggregation;
-
                 bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.one_to_many;
                 return ToMultiplicity(isSingle, SourceOptional);
             }

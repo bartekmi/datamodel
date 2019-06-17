@@ -27,29 +27,22 @@ namespace datamodel.schema {
                     continue;           // No columns means ??? - things like 'session' whatever that is
 
                 List<Column> columns = new List<Column>();
+                IEnumerable<string> allColumns = yamlColumns.Select(x => YamlUtils.GetString((YamlMappingNode)x, "name"));
 
-                foreach (YamlMappingNode columnData in yamlColumns) {
-                    Column column = null;
-                    string dbName = YamlUtils.GetString(columnData, "name");
-
-                    if (dbName.EndsWith(FkColumn.ID_SUFFIX))
-                        column = new FkColumn(table);
-                    else
-                        column = new Column(table);
-
-                    column.DbName = dbName;
-                    column.DbTypeString = YamlUtils.GetString(columnData, "type");
-                    column.DbType = ToDbType(YamlUtils.GetString(columnData, "type"));
-                    column.IsMandatory = YamlUtils.GetBoolean(columnData, "mandatory");
-
-                    columns.Add(column);
-                }
+                foreach (YamlMappingNode columnData in yamlColumns) 
+                    columns.Add(new Column(table) {
+                        DbName = YamlUtils.GetString(columnData, "name"),
+                        DbTypeString = YamlUtils.GetString(columnData, "type"),
+                        DbType = ToDbType(YamlUtils.GetString(columnData, "type")),
+                        IsMandatory = YamlUtils.GetBoolean(columnData, "mandatory")
+                    });
 
                 table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
 
-                bool isDerived = table.SuperClassName != "ApplicationRecord";
-                if (table.ClassName != null && table.DbName != null &&
-                    !isDerived)       // See Issue 8
+                bool isDerived = table.SuperClassName != "ApplicationRecord" && table.SuperClassName != "ActiveRecord::Base";
+                if (isDerived)
+                    Console.WriteLine("Warning: skipping table {0} because it is derived from {1}", table.ClassName, table.SuperClassName);
+                else
                     tables.Add(table);
             }
 
@@ -77,47 +70,29 @@ namespace datamodel.schema {
                     DestinationOptional = YamlUtils.GetBoolean(data, "destination_optional"),
                 };
 
-                // Ruby Associations - They are parsed but discarded until we find a use for them
-                // Perhaps Roles???
                 YamlSequenceNode rubyAssociations = YamlUtils.GetSequence(data, "associations");
                 foreach (YamlMappingNode assocData in rubyAssociations)
-                    RubyAssociation.Parse(assocData);
+                    association.RailsAssociations.Add(ParseRailsAssociation(assocData));
 
                 associations.Add(association);
             }
 
             return associations;
         }
-        #endregion
-    }
 
-    #region Helper Classes: RubyAssociation / Options
-    class RubyAssociation {
-        internal enum AssociationKind {
-            BelongsTo,
-            HasOne,
-            HasMany,
-            HasAndBelongsToMany,
-            Through,
-        }
-
-        internal AssociationKind Kind;
-        internal string Name;
-        internal Options Options;
-        internal string Class;
-        internal string PluralName;
-        internal string Type;
-        internal string ForeignType;
-
-        internal static RubyAssociation Parse(YamlMappingNode assocData) {
-            return new RubyAssociation() {
+        private static RailsAssociation ParseRailsAssociation(YamlMappingNode assocData) {
+            return new RailsAssociation() {
                 Kind = ParseKind(YamlUtils.GetString(assocData, "kind")),
                 Name = YamlUtils.GetString(assocData, "name"),
-                Options = Options.Parse(YamlUtils.GetString(assocData, "options")),
-                Class = YamlUtils.GetString(assocData, "klass"),
+                ActiveRecord = YamlUtils.GetString(assocData, "active_record"),
+                ClassName = YamlUtils.GetString(assocData, "class_name"),
+                ForeignKey = YamlUtils.GetString(assocData, "foreign_key"),
+                ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
+                InverseName = YamlUtils.GetString(assocData, "inverse_name"),
+                Klass = YamlUtils.GetString(assocData, "klass"),
                 PluralName = YamlUtils.GetString(assocData, "plural_name"),
                 Type = YamlUtils.GetString(assocData, "type"),
-                ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
+                Options = ParseOptions(YamlUtils.GetString(assocData, "options")),
             };
         }
 
@@ -133,19 +108,8 @@ namespace datamodel.schema {
                     throw new Exception("Unexpected kind: " + kind);
             }
         }
-    }
 
-    class Options {
-        internal bool Polymorphic;
-        internal string ClassName;
-        internal string As;
-        internal bool Destroy;
-        internal string InverseOf;
-        internal string Through;
-        internal string ForeignKey;
-        internal string Source;
-
-        internal static Options Parse(string options) {
+        internal static Options ParseOptions(string options) {
             options = options.Trim();
             options = options.Substring(1, options.Length - 2);
             if (options == "")
@@ -183,6 +147,7 @@ namespace datamodel.schema {
                 return defaultValue;
             return bool.Parse(value);
         }
+
+        #endregion
     }
-    #endregion
 }

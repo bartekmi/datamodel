@@ -32,6 +32,19 @@ namespace datamodel.schema {
             }
         }
 
+        #region Properties and Constructor
+        public List<Table> Tables { get; private set; }
+        public List<Association> Associations { get; private set; }
+        public List<RailsAssociation> RailsAssociations { get; private set; }
+        private Dictionary<string, Table> _byClassName;
+
+        private Schema(List<Table> tables, List<Association> associations) {
+            Tables = tables;
+            Associations = associations;
+            _byClassName = tables.ToDictionary(x => x.ClassName);
+        }
+        #endregion
+
         #region Creation
         private static Schema ParseSchema() {
             string path = "/datamodel/bartek_raw.txt";
@@ -42,24 +55,33 @@ namespace datamodel.schema {
             List<Association> associations = _parser.ParseAssociations(YamlUtils.GetSequence(root, "relationships"));
 
             Schema schema = new Schema(tables, associations);
-            schema.PostProcess();
+            schema.Rehydrate();
             return schema;
         }
 
-        private void PostProcess() {
+        private void Rehydrate() {
             SetFkTables();
             ResolveSuperClasses();
             LinkAssociations();
         }
 
         private void SetFkTables() {
-            //Temporarily commented out: This blows up when working with table hierarchies which are all stored in same DB table.
-            // Need to re - think in light of more complex relationships than just FK.
-
-            foreach (FkColumn fkColumn in Tables.SelectMany(x => x.FkColumns)) {
-                Table fkTable = FindByDbName(fkColumn.OtherTableName);
-                if (fkTable != null)
-                    fkColumn.ReferencedTable = fkTable;
+            foreach (RailsAssociation ra in Associations.SelectMany(x => x.RailsAssociations)) {
+                switch (ra.Kind) {
+                    case AssociationKind.BelongsTo:
+                        if (ra.Options.Polymorphic) {
+                            // TODO
+                        } else {
+                            Column column = FindByClassNameAndColumn(ra.ActiveRecord, ra.ForeignKey);
+                            if (column != null) {
+                                Table referencedTable = FindByClassName(ra.ClassName);
+                                column.FkInfo = new FkInfo() {
+                                    ReferencedTable = referencedTable
+                                };
+                            }
+                        }
+                        break;
+                }
             }
         }
 
@@ -88,16 +110,7 @@ namespace datamodel.schema {
         }
         #endregion
 
-        public List<Table> Tables { get; private set; }
-        public List<Association> Associations { get; private set; }
-        private Dictionary<string, Table> _byClassName;
-
-        private Schema(List<Table> tables, List<Association> associations) {
-            Tables = tables;
-            Associations = associations;
-            _byClassName = tables.ToDictionary(x => x.ClassName);
-        }
-
+        #region Utility Methods
         public Table FindByClassName(string className) {
             if (_byClassName.TryGetValue(className, out Table table))
                 return table;
@@ -107,5 +120,14 @@ namespace datamodel.schema {
         public Table FindByDbName(string dbName) {
             return Tables.SingleOrDefault(x => x.DbName == dbName);
         }
+
+        private Column FindByClassNameAndColumn(string className, string columnName) {
+            Table table = FindByClassName(className);
+            if (table == null)
+                return null;
+            Column column = table.FindColumn(columnName);
+            return column;
+        }
+        #endregion
     }
 }

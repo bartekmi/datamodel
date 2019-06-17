@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.IO;
 
 using datamodel.parser;
 using datamodel.schema;
@@ -9,31 +10,21 @@ using datamodel.tools;
 using datamodel.graphviz;
 using datamodel.datadict;
 using datamodel.graph;
+using datamodel.utils;
 
 namespace datamodel {
     // Command line on Windows:
     // $ "/c/Program Files (x86)/Graphviz2.38/bin/dot" -Tsvg -obookings_team.svg bookings_team.dot
     class Program {
 
-        public const string DATA_DICTIONARY_DIR = @"/TEMP";
-        public const string output = @"/TEMP/bookings_team.dot";
-        private const bool DO_ALL_TESTS = false;
+        public const string OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
 
         static void Main(string[] args) {
 
             Error.Clear();
 
-            CreateGraph();
             GenerateDataDictionary();
-            GraphvizRunner.Run(output, @"/TEMP/bookings_team.svg");
-
-            if (DO_ALL_TESTS) {
-                CreateGraph();
-                ParseYamlAnnotationFile();
-                GenerateYamls();
-                ParseMainModelDir();
-                ParseSchema();
-            }
+            CreateGraph();
         }
 
         private static void CreateGraph() {
@@ -45,16 +36,20 @@ namespace datamodel {
             //List<Error> errors = new List<Error>();
             //YamlAnnotationParser.Parse(table, errors);
 
-            GraphGenerator.Generate("bookings", output);
+            string dotFilePath = @"C:\TEMP\bookings.dot";
+            GraphGenerator.Generate("bookings", dotFilePath);
+            GraphvizRunner.Run(dotFilePath, Path.Combine(OUTPUT_ROOT_DIR, "bookings.svg"));
         }
 
         private static void GenerateDataDictionary() {
             Schema schema = Schema.Singleton;
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
 
-            DataDictionaryGenerator.Generate(DATA_DICTIONARY_DIR, schema.Tables.Where(x => x.Team == "bookings"));
+            DirUtils.CopyDirRecursively(@"C:\datamodel\assets", Path.Combine(OUTPUT_ROOT_DIR, "assets"));
+            DataDictionaryGenerator.Generate(OUTPUT_ROOT_DIR, schema.Tables.Where(x => x.Team == "bookings"));
         }
 
+        #region Old Tests
         // First few lines of the YAML file for bookings
         // description: What's the diffrence between a booking and a quote request?
         // group: booking_core
@@ -86,6 +81,7 @@ namespace datamodel {
         private static void ParseSchema() {
             AreEqual(739, Schema.Singleton.Tables.Count);
         }
+        #endregion
 
         #region Asserts
         private static void AreEqual(object expected, object actual) {

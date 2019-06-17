@@ -13,6 +13,8 @@ namespace datamodel.graphviz {
         public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = CreateGraph(tables, associations);
 
+            graph.SetAttrGraph("margin", "0.5");
+
             using (TextWriter writer = new StreamWriter(path))
                 graph.ToDot(writer);
         }
@@ -57,7 +59,7 @@ namespace datamodel.graphviz {
 
             HtmlTd headerTd = new HtmlTd(headerText)
                 .SetAttrHtml("tooltip", string.IsNullOrEmpty(dbTable.Description) ? "No description provided" : dbTable.Description)
-                .SetAttrHtml("href", CreateLink(dbTable, null));
+                .SetAttrHtml("href", dbTable.DocUrl);
 
             table.AddTr(new HtmlTr(headerTd));
 
@@ -67,9 +69,8 @@ namespace datamodel.graphviz {
                     string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
                     string content = HtmlUtils.Bullet() + column.HumanName;
 
-                    if (column is FkColumn) {
-                        FkColumn fkColumn = (FkColumn)column;
-                        if (tables.Contains(fkColumn.ReferencedTable))
+                    if (column.IsFk) {
+                        if (tables.Contains(column.FkInfo.ReferencedTable))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
                         else
                             content += "***";   // Treat FK's to external tables very much like regular columns but add icon
@@ -79,7 +80,7 @@ namespace datamodel.graphviz {
                     HtmlTd td = new HtmlTd(content)
                         .SetAttrHtml("align", "left")
                         .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? "No description provided" : column.Description)
-                        .SetAttrHtml("href", CreateLink(dbTable, column));
+                        .SetAttrHtml("href", column.DocUrl);
                     table.AddTr(new HtmlTr(td));
                 }
             }
@@ -97,16 +98,6 @@ namespace datamodel.graphviz {
             }
 
             return column.DbTypeString;
-        }
-
-        private string CreateLink(Table table, Column column) {
-            string filename = table.ClassName + ".html";
-            string urlToEntity = Path.Combine(Program.DATA_DICTIONARY_DIR, table.Team, filename);
-
-            if (column == null)
-                return urlToEntity;
-            else
-                return string.Format("{0}#{1}", urlToEntity, column.DbName);
         }
         #endregion
 

@@ -44,8 +44,12 @@ namespace datamodel.schema {
 
         // Derived 
         public string HumanName { get { return NameUtils.SnakeCaseToHuman(DbName); } }
-        public bool IsFk { get { return this is FkColumn; } }
+        public bool IsFk { get { return FkInfo != null; } }
+        public string DocUrl { get { return string.Format("{0}#{1}", Owner.DocUrl, DbName); } }
 
+        // Relationships
+        public FkInfo FkInfo {get;set;}
+        
         public Column(Table owner) {
             Owner = owner;
         }

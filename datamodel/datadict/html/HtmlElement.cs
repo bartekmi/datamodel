@@ -4,11 +4,11 @@ using System.Linq;
 using System.IO;
 
 namespace datamodel.datadict.html {
-    public class HtmlElement {
+    public class HtmlElement : HtmlBase {
 
         private string _tag;
         private string _text;
-        private List<HtmlElement> _children = new List<HtmlElement>();
+        private List<HtmlBase> _children = new List<HtmlBase>();
         private List<HtmlAttribute> _attributes = new List<HtmlAttribute>();
 
         public string ToHtml() {
@@ -23,7 +23,7 @@ namespace datamodel.datadict.html {
             _text = text;
         }
 
-        public HtmlElement(string tag, params HtmlElement[] children) {
+        public HtmlElement(string tag, params HtmlBase[] children) {
             _tag = tag;
             _children = children.ToList();
         }
@@ -37,14 +37,15 @@ namespace datamodel.datadict.html {
             return child;
         }
 
-        public void ToHtml(TextWriter writer) {
+        public override void ToHtml(TextWriter writer) {
             WriteOpeningTag(writer, _tag);
 
             if (_text != null)
                 writer.Write(_text);
 
-            foreach (HtmlElement child in _children)
-                child.ToHtml(writer);
+            foreach (HtmlBase child in _children)
+                if (child != null)
+                    child.ToHtml(writer);
 
             WriteClosingTag(writer, _tag);
         }
