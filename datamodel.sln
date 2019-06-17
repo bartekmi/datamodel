@@ -17,6 +17,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{80F41328-F94
 		assets\css\datadict.css = assets\css\datadict.css
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{3CA051B5-53A5-4AFC-86FC-84491BD44C2F}"
+	ProjectSection(SolutionItems) = preProject
+		assets\images\external-link-blue.png = assets\images\external-link-blue.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +39,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{AEAB1F2E-92E9-4BD5-B43C-14D452298BEA} = {6D59D64B-E35E-4FF1-9858-24E8F707196B}
 		{80F41328-F949-46FC-9744-B062D602C765} = {AEAB1F2E-92E9-4BD5-B43C-14D452298BEA}
+		{3CA051B5-53A5-4AFC-86FC-84491BD44C2F} = {AEAB1F2E-92E9-4BD5-B43C-14D452298BEA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {01BA0B26-ED7D-48A6-87E3-C9501C5AB19F}

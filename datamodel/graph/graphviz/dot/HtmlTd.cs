@@ -5,15 +5,15 @@ using System.IO;
 namespace datamodel.graphviz.dot {
     public class HtmlTd : HtmlEntity {
 
-        private string _text;
+        public string Text;
 
-        public HtmlTd(string text) {
-            _text = text;
+        public HtmlTd(string text = null) {
+            Text = text;
         }
 
         override public void ToHtml(TextWriter writer) {
             WriteOpeningTag(writer, "td");
-            writer.Write(_text);
+            writer.Write(Text);
             WriteClosingTag(writer, "td");
         }
     }

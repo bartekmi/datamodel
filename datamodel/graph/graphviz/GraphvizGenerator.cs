@@ -9,6 +9,7 @@ using datamodel.graphviz.dot;
 namespace datamodel.graphviz {
 
     public class GraphvizGenerator {
+
         #region Top-Level
         public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = CreateGraph(tables, associations);
@@ -21,6 +22,10 @@ namespace datamodel.graphviz {
 
         public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations) {
             Graph graph = new Graph();
+            // Graphviz forces the images to be available on disk, even though they are not needed for SVG
+            // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
+            // I've left the following line commented out in case this is ever needed.
+            //.SetAttrGraph("imagepath", IMAGE_PATH);
 
             foreach (Table table in tables)
                 graph.AddNode(ConvertTable(tables, table));
@@ -66,22 +71,35 @@ namespace datamodel.graphviz {
             // Columns
             foreach (Column column in dbTable.AllColumns) {
                 if (Schema.IsInteresting(column)) {
-                    string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
-                    string content = HtmlUtils.Bullet() + column.HumanName;
+                    HtmlTr row = new HtmlTr();
+
+                    string columnName = HtmlUtils.Bullet() + column.HumanName;
+                    HtmlTd columnNameTd = new HtmlTd();
+                    row.AddTd(columnNameTd);
 
                     if (column.IsFk) {
                         if (tables.Contains(column.FkInfo.ReferencedTable))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
-                        else
-                            content += "***";   // Treat FK's to external tables very much like regular columns but add icon
-                    } else
-                        content += dataType;
+                        else {
+                            columnNameTd.Text = columnName;
+                            HtmlTd externalLinkTd = new HtmlTd("<IMG SRC=\"/datamodel/assets/images/external-link-blue.png\"/>")
+                               //HtmlTd externalLinkTd = new HtmlTd("GO")
+                               .SetAttrHtml("tooltip", "Dummy")
+                               .SetAttrHtml("href", "www.google.com")
+                               ;
+                            row.AddTd(externalLinkTd);
+                        }
+                    } else {
+                        string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
+                        columnNameTd.Text = columnName + dataType;
+                    }
 
-                    HtmlTd td = new HtmlTd(content)
+                    columnNameTd
                         .SetAttrHtml("align", "left")
                         .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? "No description provided" : column.Description)
                         .SetAttrHtml("href", column.DocUrl);
-                    table.AddTr(new HtmlTr(td));
+
+                    table.AddTr(row);
                 }
             }
 
