@@ -76,7 +76,7 @@ namespace datamodel.schema {
                             if (column != null) {
                                 Table referencedTable = FindByClassName(ra.ClassName);
                                 column.FkInfo = new FkInfo() {
-                                    ReferencedTable = referencedTable
+                                    ReferencedTable = referencedTable,
                                 };
                             }
                         }

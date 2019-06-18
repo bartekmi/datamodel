@@ -27,6 +27,20 @@ namespace datamodel.schema {
         internal string PluralName;
         internal string Type;
         internal Options Options;
+
+        // Derived
+        public string UnqualifiedClassName {
+            get {
+                int index = ClassName.IndexOf("::");
+                if (index >= 0)
+                    return ClassName.Substring(index + 2);
+                return ClassName;
+            }
+        }
+
+
+        // Set in post-processing
+        internal Column FkColumn;
     }
 
     public class Options {

@@ -37,7 +37,7 @@ namespace datamodel.schema {
         public Table Superclass { get; set; }
 
         // Derived
-        public string HumanName { get { return ClassName; } }      // May tweak in future - 
+        public string HumanName { get { return NameUtils.MixedCaseToHuman(ClassName); } }
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
 

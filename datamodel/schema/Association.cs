@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace datamodel.schema {
 
@@ -36,6 +37,19 @@ namespace datamodel.schema {
         public Table DestinationTable { get; set; }
 
         // Derived
+        public string InterestingLabel {
+            get {
+                RailsAssociation belongsTo = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.BelongsTo);
+                if (belongsTo == null)
+                    return null;
+
+                if (FkInfo.StripId(belongsTo.ForeignKey).Replace("_", "").ToLower() ==
+                    belongsTo.UnqualifiedClassName.ToLower())
+                    return null;        // The FK name is no different from the entity it points to. Boring.
+
+                return FkInfo.FkColumnToHuman(belongsTo.ForeignKey);
+            }
+        }
 
         // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
         public Multiplicity SourceMultiplicity {

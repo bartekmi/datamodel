@@ -12,9 +12,8 @@ namespace datamodel.graphviz {
 
         #region Top-Level
         public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
-            Graph graph = CreateGraph(tables, associations);
-
-            graph.SetAttrGraph("margin", "0.5");
+            Graph graph = CreateGraph(tables, associations)
+                .SetAttrGraph("margin", "0.5");
 
             using (TextWriter writer = new StreamWriter(path))
                 graph.ToDot(writer);
@@ -46,7 +45,7 @@ namespace datamodel.graphviz {
             node.SetAttrGraph("style", "filled")
                 .SetAttrGraph("fillcolor", "pink")
                 .SetAttrGraph("shape", "Mrecord")
-                .SetAttrGraph("fontname", "Helvetica")
+                .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("label", CreateLabel(tables, table));
 
             return node;
@@ -129,8 +128,13 @@ namespace datamodel.graphviz {
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
                 .SetAttrGraph("arrowsize", 1.5)
+                .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.SourceMultiplicity))
                 .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.DestinationMultiplicity));
+
+            string interestingLabel = association.InterestingLabel;
+            if (interestingLabel != null)
+                edge.SetAttrGraph("headlabel", interestingLabel.Replace(" ", "\n"));
 
             return edge;
         }
