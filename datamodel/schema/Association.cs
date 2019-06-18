@@ -39,6 +39,16 @@ namespace datamodel.schema {
         public Table DestinationTable { get; set; }
 
         // Derived
+        public Column FkColumn { get { return RailsAssociations.Select(x => x.FkColumn).FirstOrDefault(x => x != null); } }
+        public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
+        public string Description {
+            get {
+                if (FkColumn == null)
+                    return "Unknown";
+                return FkColumn.Description == null ? FkColumn.HumanName : FkColumn.Description;
+            }
+        }
+
         public string RoleOppositeFK {
             get {
                 RailsAssociation belongsTo = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.BelongsTo);

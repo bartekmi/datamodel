@@ -22,8 +22,10 @@ namespace datamodel.graphviz.dot {
         protected void WriteOpeningTag(TextWriter writer, string tag) {
             writer.Write("<" + tag);
             foreach (GV_Attribute attribute in _attributes) {
-                writer.Write(" ");
-                attribute.ToDot(writer);
+                if (attribute.Value != null) {
+                    writer.Write(" ");
+                    attribute.ToDot(writer);
+                }
             }
             writer.Write(">");
         }

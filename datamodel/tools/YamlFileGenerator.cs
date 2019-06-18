@@ -39,7 +39,7 @@ namespace datamodel.tools {
 
         private void WriteHeader(TextWriter writer, Table table) {
             writer.WriteLine(
-@"description: 
+@"description: YET_TO_BE_DEFINED
 group:"
             );
         }
@@ -53,7 +53,7 @@ group:"
         private void WriteColumn(TextWriter writer, Column column) {
             writer.WriteLine(string.Format(
 @"  - name: {0}
-    description: ", column.DbName));
+    description: YET_TO_BE_DEFINED", column.DbName));
         }
     }
 }

@@ -78,6 +78,7 @@ namespace datamodel.schema {
                                 column.FkInfo = new FkInfo() {
                                     ReferencedTable = referencedTable,
                                 };
+                                ra.FkColumn = column;
                             }
                         }
                         break;
