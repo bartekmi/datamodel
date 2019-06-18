@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 
+using datamodel.utils;
+
 namespace datamodel.schema {
 
     // Snake case to allow for direct import from Ruby output file without ranslation
@@ -37,7 +39,7 @@ namespace datamodel.schema {
         public Table DestinationTable { get; set; }
 
         // Derived
-        public string InterestingLabel {
+        public string RoleOppositeFK {
             get {
                 RailsAssociation belongsTo = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.BelongsTo);
                 if (belongsTo == null)
@@ -48,6 +50,29 @@ namespace datamodel.schema {
                     return null;        // The FK name is no different from the entity it points to. Boring.
 
                 return FkInfo.FkColumnToHuman(belongsTo.ForeignKey);
+            }
+        }
+        public string RoleByFK {
+            get {
+                RailsAssociation hasOne = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasOne);
+                if (hasOne != null) {
+                    if (hasOne.Name.Replace("_", "").ToLower() ==
+                        hasOne.UnqualifiedClassName.ToLower())
+                        return null;        // Boring
+                    else
+                        return NameUtils.SnakeCaseToHuman(hasOne.Name);
+                }
+
+                RailsAssociation hasMany = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasMany);
+                if (hasMany != null) {
+                    if (hasMany.Name.ToLower() ==
+                        hasMany.PluralName.ToLower())
+                        return null;        // Boring
+                    else
+                        return NameUtils.SnakeCaseToHuman(hasMany.Name);
+                }
+
+                return null;
             }
         }
 

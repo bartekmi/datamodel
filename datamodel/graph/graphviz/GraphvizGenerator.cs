@@ -132,9 +132,13 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.SourceMultiplicity))
                 .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.DestinationMultiplicity));
 
-            string interestingLabel = association.InterestingLabel;
-            if (interestingLabel != null)
-                edge.SetAttrGraph("headlabel", interestingLabel.Replace(" ", "\n"));
+            string oppositeFK = association.RoleOppositeFK;
+            if (oppositeFK != null)
+                edge.SetAttrGraph("taillabel", oppositeFK.Replace(" ", "\n"));
+
+            string byFK = association.RoleByFK;
+            if (byFK != null)
+                edge.SetAttrGraph("headlabel", byFK.Replace(" ", "\n"));
 
             return edge;
         }

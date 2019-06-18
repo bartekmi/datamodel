@@ -19,6 +19,7 @@ namespace datamodel {
 
         public const string OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
         public const string TEMP_DIR = @"C:\TEMP";
+        public static readonly string[] TEAMS = new string[] { "bookings", "shipment_data" };
 
         static void Main(string[] args) {
 
@@ -37,7 +38,7 @@ namespace datamodel {
             //List<Error> errors = new List<Error>();
             //YamlAnnotationParser.Parse(table, errors);
 
-            GraphGenerator.GenerateAll("bookings", "shipment_data");
+            GraphGenerator.GenerateAll(TEAMS);
         }
 
         private static void GenerateDataDictionary() {
@@ -45,7 +46,7 @@ namespace datamodel {
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
 
             DirUtils.CopyDirRecursively(@"C:\datamodel\assets", Path.Combine(OUTPUT_ROOT_DIR, "assets"));
-            DataDictionaryGenerator.Generate(OUTPUT_ROOT_DIR, schema.Tables.Where(x => x.Team == "bookings"));
+            DataDictionaryGenerator.Generate(OUTPUT_ROOT_DIR, schema.Tables.Where(x => TEAMS.Contains(x.Team)));
         }
 
         #region Old Tests
