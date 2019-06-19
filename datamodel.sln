@@ -19,7 +19,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{80F41328-F94
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{3CA051B5-53A5-4AFC-86FC-84491BD44C2F}"
 	ProjectSection(SolutionItems) = preProject
-		assets\images\external-link-blue.png = assets\images\external-link-blue.png
+		assets\images\diagram-small.png = assets\images\diagram-small.png
+		assets\images\diagram.png = assets\images\diagram.png
+		assets\images\doc-small.png = assets\images\doc-small.png
+		assets\images\doc.png = assets\images\doc.png
 	EndProjectSection
 EndProject
 Global

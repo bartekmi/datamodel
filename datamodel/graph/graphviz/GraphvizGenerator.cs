@@ -5,6 +5,7 @@ using System.Linq;
 
 using datamodel.schema;
 using datamodel.graphviz.dot;
+using datamodel.utils;
 
 namespace datamodel.graphviz {
 
@@ -82,11 +83,15 @@ namespace datamodel.graphviz {
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
                         else {
                             columnNameTd.Text = columnName;
+
                             if (referencedTable != null) {
-                                HtmlTd externalLinkTd = new HtmlTd("<IMG SRC=\"/datamodel/assets/images/external-link-blue.png\"/>")
-                                   .SetAttrHtml("tooltip", "Jump to the diagram which contains the linked table")
-                                   .SetAttrHtml("href", referencedTable.SvgUrl);
-                                row.AddTd(externalLinkTd);
+                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
+                                   .SetAttrHtml("tooltip", string.Format("Go to diagram which contains linked table: '{0}'", referencedTable.HumanName))
+                                   .SetAttrHtml("href", referencedTable.SvgUrl));
+
+                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
+                                   .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedTable.HumanName))
+                                   .SetAttrHtml("href", referencedTable.DocUrl));
                             }
                         }
                     } else {
@@ -96,7 +101,9 @@ namespace datamodel.graphviz {
 
                     columnNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? "No description provided" : column.Description)
+                        .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? 
+                            string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName) : 
+                            column.Description)
                         .SetAttrHtml("href", column.DocUrl);
 
                     table.AddTr(row);
@@ -128,7 +135,7 @@ namespace datamodel.graphviz {
             };
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
-                .SetAttrGraph("arrowsize", 1.0)     // I wanted to make this larger but the arrow icons overlap
+                .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.SourceMultiplicity))
                 .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.DestinationMultiplicity))

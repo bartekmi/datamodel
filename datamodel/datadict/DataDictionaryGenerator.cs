@@ -5,6 +5,7 @@ using System.Linq;
 
 using datamodel.schema;
 using datamodel.datadict.html;
+using datamodel.utils;
 
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
@@ -27,7 +28,7 @@ namespace datamodel.datadict {
             html.Add(new HtmlElement("head")
                     .Add(new HtmlElement("link")
                         .Attr("rel", "stylesheet")
-                        .Attr("href", HtmlUtils.ToAbsolute("assets/css/datadict.css"))));
+                        .Attr("href", UrlUtils.ToCssUrl("datadict.css"))));
 
             HtmlElement body = html.Add(new HtmlElement("body"));
 
@@ -42,9 +43,12 @@ namespace datamodel.datadict {
         private static void GenerateHeader(HtmlElement body, Table dbTable) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(
-                 new HtmlTh(dbTable.HumanName).Attr("class", "heading1")
-                ));
+            table.Add(new HtmlElement("tr",
+                 new HtmlElement("th",
+                    new HtmlElement("span", dbTable.HumanName).Attr("class", "heading1"),
+                    new HtmlElement("span").Attr("class", "gap-left-large"),
+                    new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DIAGRAM, dbTable.SvgUrl, "Go to diagram which contains this table", "h1-icon"))
+                )));
 
             if (!string.IsNullOrEmpty(dbTable.Description))
                 table.Add(new HtmlTr(dbTable.Description));
@@ -80,11 +84,24 @@ namespace datamodel.datadict {
             foreach (Column column in dbTable.FkColumns)
                 if (Schema.IsInteresting(column)) {
                     Table referencedTable = column.FkInfo.ReferencedTable;
+
+                    HtmlRaw docIcon = null;
+                    HtmlRaw diagramIcon = null;
+                    if (referencedTable != null) {
+                        string docToolTip = string.Format("Go to Data Dictionary of linked table: {0}", referencedTable.HumanName);
+                        docIcon = new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DOCS, referencedTable.DocUrl, docToolTip));
+
+                        string diagramToolTip = string.Format("Go to diagram which contains linked table: {0}", referencedTable.HumanName);
+                        diagramIcon = new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DIAGRAM, referencedTable.SvgUrl, diagramToolTip));
+                    }
+
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
                             new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
                             new HtmlElement("span").Attr("class", "gap-left"),
-                            referencedTable == null ? null : new HtmlRaw(HtmlUtils.MakeIcon("external-link-blue.png", referencedTable.DocUrl))
+                            docIcon,
+                            new HtmlElement("span").Attr("class", "gap-left"),
+                            diagramIcon
                         )
                       ).Attr("id", column.DbName));        // Id for anchor
 
