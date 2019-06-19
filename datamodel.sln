@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{3CA051
 		assets\images\doc.png = assets\images\doc.png
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "datamodel_test", "datamodel_test\datamodel_test.csproj", "{F7565D16-5CF7-4DAE-9A1C-F46B6D75A0BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{1592355D-A78E-476D-A871-0A29C73EA9FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1592355D-A78E-476D-A871-0A29C73EA9FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1592355D-A78E-476D-A871-0A29C73EA9FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7565D16-5CF7-4DAE-9A1C-F46B6D75A0BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7565D16-5CF7-4DAE-9A1C-F46B6D75A0BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7565D16-5CF7-4DAE-9A1C-F46B6D75A0BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7565D16-5CF7-4DAE-9A1C-F46B6D75A0BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

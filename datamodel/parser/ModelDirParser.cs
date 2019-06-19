@@ -24,34 +24,35 @@ namespace datamodel.parser {
 
         private void ParseFilesInDir(string dirPath) {
             foreach (string path in Directory.GetFiles(dirPath)) {
-                if (!IsActiveRecord(path, out string className, out string team))
-                    continue;
+                using (StreamReader reader = new StreamReader(path)) {
+                    if (!IsActiveRecord(reader, out string className, out string team))
+                        continue;
 
-                Table table = Schema.Singleton.FindByClassName(className);
+                    Table table = Schema.Singleton.FindByClassName(className);
 
-                if (table == null) {
-                    _errors.Add(new Error() {
-                        Path = path,
-                        Message = string.Format("Table '{0}' not found in schema", className)
-                    });
-                    continue;
+                    if (table == null) {
+                        _errors.Add(new Error() {
+                            Path = path,
+                            Message = string.Format("Table '{0}' not found in schema", className)
+                        });
+                        continue;
+                    }
+
+                    table.ModelPath = path;
+                    table.Team = team;
                 }
-
-                table.ModelPath = path;
-                table.Team = team;
             }
         }
 
-        private bool IsActiveRecord(string path, out string className, out string team) {
+        internal static bool IsActiveRecord(TextReader reader, out string className, out string team) {      // internal for testing
             className = null;
             team = null;
 
             string teamPattern = "#\\s*TEAM:\\s*([a-zA-Z0-9_]+)";
-            string classDefPattern = "class ([a-zA-Z0-9_]+)\\s+<\\s+ApplicationRecord";
+            string classDefPattern = "class (([a-zA-Z0-9_]+::)?[a-zA-Z0-9_]+)\\s+<\\s+ApplicationRecord";
 
             string line = null;
 
-            using (StreamReader reader = new StreamReader(path))
                 while ((line = reader.ReadLine()) != null) {
                     string[] matches = RegExUtils.GetCaptureGroups(line, teamPattern, null);
                     if (matches != null)

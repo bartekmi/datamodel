@@ -11,7 +11,9 @@ using datamodel.graphviz;
 using datamodel.datadict;
 using datamodel.graph;
 using datamodel.utils;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("datamodel_test")]
 namespace datamodel {
     // Command line on Windows:
     // $ "/c/Program Files (x86)/Graphviz2.38/bin/dot" -Tsvg -obookings_team.svg bookings_team.dot
@@ -19,7 +21,7 @@ namespace datamodel {
 
         public const string OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
         public const string TEMP_DIR = @"C:\TEMP";
-        public static readonly string[] TEAMS = new string[] { "bookings", "shipment_data" };
+        public static readonly string[] TEAMS = new string[] { "bookings", "shipment_data", "customs" };
 
         static void Main(string[] args) {
 
@@ -74,8 +76,9 @@ namespace datamodel {
         }
 
         private static void ParseMainModelDir() {
-            string modelsDir = "/datamodel/models";
-            new ModelDirParser().ParseDir(modelsDir);
+            ModelDirParser parser = new ModelDirParser();
+            parser.ParseDir("/datamodel/models");
+            parser.ParseDir("/datamodel/customs_models");
         }
 
         private static void ParseSchema() {

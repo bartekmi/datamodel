@@ -40,8 +40,9 @@ namespace datamodel.schema {
         public string HumanName { get { return NameUtils.MixedCaseToHuman(ClassName); } }
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
+        public string SanitizedClassName { get { return FileUtils.SanitizeFilename(ClassName); } }
 
-        public string DocUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", Team, ClassName)); } }
+        public string DocUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", Team, SanitizedClassName)); } }
         public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", Team)); } }
 
         public string AnnotationFilePath {
