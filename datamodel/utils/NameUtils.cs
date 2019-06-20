@@ -25,20 +25,14 @@ namespace datamodel.utils {
         }
 
         public static string MixedCaseToHuman(string text) {
-            bool previousWasLower = false;
             StringBuilder builder = new StringBuilder();
+            char? previous = null;
 
             foreach (char c in text) {
-                if (previousWasLower) {
-                    if (char.IsUpper(c)) {
-                        builder.Append(" ");
-                        previousWasLower = false;
-                    }
-                } else {
-                    if (char.IsLower(c))
-                        previousWasLower = true;
-                }
+                if (previous != null && char.IsLower(previous.Value) && char.IsUpper(c))
+                    builder.Append(" ");
                 builder.Append(c);
+                previous = c;
             }
 
             return builder.ToString();

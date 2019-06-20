@@ -12,6 +12,11 @@ namespace datamodel.datadict {
 
         public static void Generate(string rootDir, IEnumerable<Table> tables) {
             foreach (Table table in tables) {
+                if (string.IsNullOrWhiteSpace(table.Team)) {
+                    Console.WriteLine("Warning: Table '{0}' has no team", table.ClassName);
+                    continue;
+                }
+
                 string dir = Path.Combine(rootDir, table.Team);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);

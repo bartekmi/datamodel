@@ -6,39 +6,52 @@ using System.Linq;
 using datamodel.schema;
 using datamodel.graphviz.dot;
 using datamodel.utils;
+using datamodel.graph;
 
 namespace datamodel.graphviz {
 
     public class GraphvizGenerator {
 
         #region Top-Level
-        public void GenerateGraph(string path, IEnumerable<Table> tables, IEnumerable<Association> associations) {
-            Graph graph = CreateGraph(tables, associations)
-                .SetAttrGraph("margin", "0.5");
+        public void GenerateGraph(GraphDefinition graphDef, string path, IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables) {
+            Graph graph = CreateGraph(tables, associations, extraTables)
+                .SetAttrGraph("margin", "0.5")
+                .SetAttrGraph("notranslate", true);
+
+            if (graphDef.Sep != null)
+                graph.SetAttrGraph("sep", "+" + graphDef.Sep.Value);
+
+            if (graphDef.Len != null)
+                graph.SetAttrGraph("len", graphDef.Len.Value);
 
             using (TextWriter writer = new StreamWriter(path))
                 graph.ToDot(writer);
         }
 
-        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations) {
+        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables) {
             Graph graph = new Graph();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
             // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
             // I've left the following line commented out in case this is ever needed.
             //.SetAttrGraph("imagepath", IMAGE_PATH);
 
+            IEnumerable<Table> allTables = tables.Union(extraTables);
+
             foreach (Table table in tables)
-                graph.AddNode(ConvertTable(tables, table));
+                graph.AddNode(TableToNode(allTables, table));
+
+            foreach (Table table in extraTables)
+                graph.AddNode(ExtraTableToNode(null, table));
 
             foreach (Association association in associations)
-                graph.AddEdge(ConvertAssociation(association));
+                graph.AddEdge(AssociationToEdge(association));
 
             return graph;
         }
         #endregion
 
         #region Tables
-        private Node ConvertTable(IEnumerable<Table> tables, Table table) {
+        private Node TableToNode(IEnumerable<Table> tables, Table table) {
             Node node = new Node() {
                 Name = TableToNodeId(table),
             };
@@ -47,12 +60,30 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fillcolor", "pink")
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("label", CreateLabel(tables, table));
+                .SetAttrGraph("label", CreateLabel(tables, table, true));
 
             return node;
         }
 
-        private HtmlEntity CreateLabel(IEnumerable<Table> tables, Table dbTable) {
+        #endregion
+
+        #region Extra Tables - Not part of graph but added as "glue"
+        private Node ExtraTableToNode(IEnumerable<Table> tables, Table table) {
+            Node node = new Node() {
+                Name = TableToNodeId(table),
+            };
+
+            node.SetAttrGraph("shape", "Mrecord")
+                .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
+                .SetAttrGraph("height", 1.0)                // Minimum height in inches... Allows for more connections
+                .SetAttrGraph("label", CreateLabel(tables, table, false));
+
+            return node;
+        }
+        #endregion
+
+        #region Common Node Creation
+        private HtmlEntity CreateLabel(IEnumerable<Table> tables, Table dbTable, bool includeColumns) {
 
             HtmlTable table = new HtmlTable()
                 .SetAttrHtml("border", 0)
@@ -67,6 +98,9 @@ namespace datamodel.graphviz {
                 .SetAttrHtml("href", dbTable.DocUrl);
 
             table.AddTr(new HtmlTr(headerTd));
+
+            if (!includeColumns)
+                return table;
 
             // Columns
             foreach (Column column in dbTable.AllColumns) {
@@ -101,8 +135,8 @@ namespace datamodel.graphviz {
 
                     columnNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ? 
-                            string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName) : 
+                        .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ?
+                            string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName) :
                             column.Description)
                         .SetAttrHtml("href", column.DocUrl);
 
@@ -127,7 +161,7 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Edges / Associations
-        private Edge ConvertAssociation(Association association) {
+        private Edge AssociationToEdge(Association association) {
             Edge edge = new Edge() {
                 Source = TableToNodeId(association.SourceTable),
                 Destination = TableToNodeId(association.DestinationTable),

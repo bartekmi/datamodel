@@ -8,6 +8,8 @@ using YamlDotNet.RepresentationModel;
 namespace datamodel.schema {
     public class Schema {
 
+        #region Properties and Constructor
+
         // These columns automatically added by Rails and are of no interest
         private static readonly string[] UNINTERESTING_COLUMNS = new string[] {
             "id",
@@ -18,10 +20,6 @@ namespace datamodel.schema {
             "lock_version"
         };
 
-        public static bool IsInteresting(Column column) {
-            return UNINTERESTING_COLUMNS.Contains(column.DbName) ? false : true;
-        }
-
         // This is a singleton
         private static Schema _schema;
         public static Schema Singleton {
@@ -31,12 +29,11 @@ namespace datamodel.schema {
                 return _schema;
             }
         }
-
-        #region Properties and Constructor
         public List<Table> Tables { get; private set; }
         public List<Association> Associations { get; private set; }
         public List<RailsAssociation> RailsAssociations { get; private set; }
         private Dictionary<string, Table> _byClassName;
+        private HashSet<string> _teamNames;
 
         private Schema(List<Table> tables, List<Association> associations) {
             Tables = tables;
@@ -112,6 +109,18 @@ namespace datamodel.schema {
         #endregion
 
         #region Utility Methods
+
+        public static bool IsInteresting(Column column) {
+            return UNINTERESTING_COLUMNS.Contains(column.DbName) ? false : true;
+        }
+
+        public bool TeamExists(string team) {
+            if (_teamNames == null)
+                _teamNames = new HashSet<string>(Tables.Select(x => x.Team));
+
+            return _teamNames.Contains(team);
+        }
+
         public Table FindByClassName(string className) {
             if (_byClassName.TryGetValue(className, out Table table))
                 return table;
