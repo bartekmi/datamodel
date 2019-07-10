@@ -23,13 +23,20 @@ namespace datamodel {
         public static string REPO_ROOT;
         public static string[] MODEL_DIRS;
         public static string SCHEMA_FILE;
+        public static string GRAPHVIZ_BIN_DIR;
+        public static string HTTP_ROOT;
 
         private static void ConfigureMac() {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
             REPO_ROOT = UserPath(@"datamodel");
-            MODEL_DIRS = new string[] { FlexportPath("app/models"), FlexportPath("engines/customs/app/models/customs") };
-            SCHEMA_FILE = UserPath(@"datamodel/bartek_raw.txt");
+            MODEL_DIRS = new string[] {
+                FlexportPath("app/models"),
+                FlexportPath("engines/customs/app/models/customs"),
+                FlexportPath("engines/operational_route/app/models/operational_route") };
+            SCHEMA_FILE = UserPath("datamodel/bartek_raw.txt");
+            GRAPHVIZ_BIN_DIR = "/usr/local/bin";
+            HTTP_ROOT = "/~bmuszynski";
         }
 
         private static string FlexportPath(string path) {
@@ -47,6 +54,8 @@ namespace datamodel {
             REPO_ROOT = @"C:\datamodel";
             MODEL_DIRS = new string[] { "/datamodel/models", "/datamodel/customs_models" };
             SCHEMA_FILE = @"C:\datamodel\bartek_raw.txt";
+            GRAPHVIZ_BIN_DIR = @"C:\Program Files (x86)\Graphviz2.38\bin";
+            HTTP_ROOT = "/datamodel";
         }
         #endregion
 
@@ -79,6 +88,12 @@ namespace datamodel {
                     GenerateYamls();
                     break;
                 case "gendocs":
+                    ParseModelDirs();        // Extract teams and find paths of Ruby files
+
+                    foreach (Table table in Schema.Singleton.Tables)
+                        if (table.ModelPath != null)
+                            YamlAnnotationParser.Parse(table);
+
                     GenerateDataDictionary();
                     CreateGraph();
                     break;
@@ -95,13 +110,13 @@ namespace datamodel {
         }
 
         private static void GenerateYamls() {
-            ParseMainModelDir();
+            ParseModelDirs();
             new YamlFileGenerator().Generate(Schema.Singleton, null);
         }
 
         private static void CreateGraph() {
             Schema schema = Schema.Singleton;
-            ParseMainModelDir();        // Extract teams and find paths of Ruby files
+            ParseModelDirs();        // Extract teams and find paths of Ruby files
 
             // This is just a sample to prove that we are reading the human comments
             //Table table = schema.FindByDbName("bookings");
@@ -112,15 +127,12 @@ namespace datamodel {
         }
 
         private static void GenerateDataDictionary() {
-            Schema schema = Schema.Singleton;
-            ParseMainModelDir();        // Extract teams and find paths of Ruby files
-
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
                                         Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
-            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, schema.Tables);
+            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Tables);
         }
 
-        private static void ParseMainModelDir() {
+        private static void ParseModelDirs() {
             ModelDirParser parser = new ModelDirParser();
 
             foreach (string dir in Env.MODEL_DIRS)

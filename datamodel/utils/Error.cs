@@ -19,14 +19,13 @@ namespace datamodel {
             File.Delete(ERROR_LOG);
         }
 
-        public static void Append(string message) {
-            Append(new Error[] { new Error() { Message = message } });
+        public static void Log(string message) {
+            Log(new Error() { Message = message });
         }
 
-        public static void Append(IEnumerable<Error> errors) {
+        public static void Log(Error error) {
             using (TextWriter writer = new StreamWriter(ERROR_LOG, true))
-                foreach (Error error in errors)
-                    writer.WriteLine(error.ToString());
+                writer.WriteLine(error.ToString());
         }
     }
 }

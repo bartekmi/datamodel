@@ -15,7 +15,7 @@ namespace datamodel.tools {
                     continue;
 
                 if (table.ModelPath == null) {
-                    Error.Append(string.Format("Table {0} has no corresponding model. Class name = {1}", table.DbName, table.ClassName));
+                    Error.Log(string.Format("Table {0} has no corresponding model. Class name = {1}", table.DbName, table.ClassName));
                     continue;
                 }
 

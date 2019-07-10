@@ -12,14 +12,10 @@ namespace datamodel.parser {
         private List<Error> _errors;
 
         public void ParseDir(string dirPath) {
-            _errors = new List<Error>();
-
             ParseFilesInDir(dirPath);
 
             foreach (string childDirPath in Directory.GetDirectories(dirPath))
                 ParseDir(childDirPath);
-
-            Error.Append(_errors);
         }
 
         private void ParseFilesInDir(string dirPath) {
@@ -31,7 +27,7 @@ namespace datamodel.parser {
                     Table table = Schema.Singleton.FindByClassName(className);
 
                     if (table == null) {
-                        _errors.Add(new Error() {
+                        Error.Log(new Error() {
                             Path = path,
                             Message = string.Format("Table '{0}' not found in schema", className)
                         });
@@ -53,17 +49,17 @@ namespace datamodel.parser {
 
             string line = null;
 
-                while ((line = reader.ReadLine()) != null) {
-                    string[] matches = RegExUtils.GetCaptureGroups(line, teamPattern, null);
-                    if (matches != null)
-                        team = matches[0];
+            while ((line = reader.ReadLine()) != null) {
+                string[] matches = RegExUtils.GetCaptureGroups(line, teamPattern, null);
+                if (matches != null)
+                    team = matches[0];
 
-                    matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
-                    if (matches != null) {
-                        className = matches[0];
-                        return true;
-                    }
+                matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
+                if (matches != null) {
+                    className = matches[0];
+                    return true;
                 }
+            }
 
             return false;
         }

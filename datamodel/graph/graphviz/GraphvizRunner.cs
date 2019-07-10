@@ -8,12 +8,14 @@ using datamodel.graph;
 namespace datamodel.graphviz {
     public static class GraphvizRunner {
 
-        private const string INSTALL_DIR = @"C:\Program Files (x86)\Graphviz2.38";
-
         public static void Run(string input, string output, RenderingStyle style) {
             string exec = style.ToString().ToLower();
-            string path = Path.Combine(INSTALL_DIR, "bin", exec);
-            Process process = Process.Start(path, string.Format("-Tsvg -o{0} {1}", output, input));
+            string path = Path.Combine(Env.GRAPHVIZ_BIN_DIR, exec);
+            string commandLine = string.Format("-Tsvg -o{0} {1}", output, input);
+
+            Console.WriteLine("About to run: " + commandLine);
+
+            Process process = Process.Start(path, commandLine);
             process.WaitForExit();
 
             if (process.ExitCode != 0)
