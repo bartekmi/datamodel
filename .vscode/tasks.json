@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/datamodel.csproj"
+                "${workspaceFolder}/datamodel/datamodel.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/datamodel.csproj"
+                "${workspaceFolder}/datamodel/datamodel.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/datamodel.csproj"
+                "${workspaceFolder}/datamodel/datamodel.csproj"
             ],
             "problemMatcher": "$tsc"
         }

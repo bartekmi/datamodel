@@ -32,7 +32,7 @@ namespace datamodel.graph {
         // https://www.graphviz.org/doc/info/attrs.html#d:len
         public double? Len { get; set; }
 
-        // Minimum separation between nodes, in points (all except dot)
+        // Minimum separation between nodes, in points (all except dot renderer)
         // https://www.graphviz.org/doc/info/attrs.html#d:sep
         public double? Sep { get; set; }
 

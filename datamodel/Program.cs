@@ -14,13 +14,37 @@ using datamodel.utils;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("datamodel_test")]
+
 namespace datamodel {
-    // Command line on Windows:
-    // $ "/c/Program Files (x86)/Graphviz2.38/bin/dot" -Tsvg -obookings_team.svg bookings_team.dot
+
+    public static class Env {
+        public static string OUTPUT_ROOT_DIR;
+        public static string TEMP_DIR;
+        public static string REPO_ROOT;
+        public static string[] MODEL_DIRS;
+
+        private static void ConfigureWindows() {
+            OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
+            TEMP_DIR = @"C:\TEMP";
+            REPO_ROOT = @"C:\datamodel";
+            MODEL_DIRS = new string[] { "/datamodel/models", "/datamodel/customs_models" };
+        }
+
+        private static void ConfigureMac() {
+            OUTPUT_ROOT_DIR = @"~/Sites";
+            TEMP_DIR = @"~/temp";
+            REPO_ROOT = @"~/datamodel";
+            MODEL_DIRS = new string[] { "~/flexport/app/models", "~/flexport/engines/customs/app/models/customs" };
+        }
+
+        internal static void Configure() {
+            // Obviously add code here to set appropriate env once working on Windows again.
+            ConfigureMac();
+        }
+    }
+
     class Program {
 
-        public const string OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
-        public const string TEMP_DIR = @"C:\TEMP";
         public static readonly GraphDefinition[] GRAPHS = new GraphDefinition[] {
             new GraphDefinition("bookings"),
             new GraphDefinition("shipment_data"),
@@ -33,11 +57,37 @@ namespace datamodel {
         };
 
         static void Main(string[] args) {
+            Env.Configure();
 
+            string command = ExtractArgs(args);
+
+            switch (command) {
+                case "genyaml":
+                    GenerateYamls();
+                    break;
+                case "gendocs":
+                    GenerateDataDictionary();
+                    CreateGraph();
+                    break;
+                default:
+                    throw new Exception("Unexpected command: " + command);
+            }
             Error.Clear();
 
             GenerateDataDictionary();
             CreateGraph();
+        }
+
+        private static string ExtractArgs(string[] args) {
+            if (args.Length != 1)
+                throw new Exception("Exactly one arg expected");
+
+            return args[0];
+        }
+
+        private static void GenerateYamls() {
+            ParseMainModelDir();
+            new YamlFileGenerator().Generate(Schema.Singleton, "bookings");
         }
 
         private static void CreateGraph() {
@@ -56,62 +106,21 @@ namespace datamodel {
             Schema schema = Schema.Singleton;
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
 
-            DirUtils.CopyDirRecursively(@"C:\datamodel\assets", Path.Combine(OUTPUT_ROOT_DIR, "assets"));
-            DataDictionaryGenerator.Generate(OUTPUT_ROOT_DIR, schema.Tables);
-        }
-
-        #region Old Tests
-        // First few lines of the YAML file for bookings
-        // description: What's the diffrence between a booking and a quote request?
-        // group: booking_core
-        // columns:
-        // - name: air
-        //     description: Does transportation mode include Air?
-        private static void ParseYamlAnnotationFile() {
-            Schema schema = Schema.Singleton;
-            ParseMainModelDir();        // Extract teams and find paths of Ruby files
-            Table table = schema.FindByDbName("bookings");
-
-            List<Error> errors = new List<Error>();
-            YamlAnnotationParser.Parse(table, errors);
-            AreEqual("What's the diffrence between a booking and a quote request?", table.Description);
-            AreEqual("booking_core", table.Group);
-            True(table.FindColumn("air").Description.StartsWith("Does transportation mode include Air?"));
-        }
-
-        private static void GenerateYamls() {
-            ParseMainModelDir();
-            new YamlFileGenerator().Generate(Schema.Singleton, "bookings");
+            DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
+                                        Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
+            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, schema.Tables);
         }
 
         private static void ParseMainModelDir() {
             ModelDirParser parser = new ModelDirParser();
-            parser.ParseDir("/datamodel/models");
-            parser.ParseDir("/datamodel/customs_models");
-        }
 
-        private static void ParseSchema() {
-            AreEqual(739, Schema.Singleton.Tables.Count);
+            foreach (string dir in Env.MODEL_DIRS)
+                parser.ParseDir(dir);
         }
-        #endregion
-
-        #region Asserts
-        private static void AreEqual(object expected, object actual) {
-            if (expected == null && actual == null)
-                return;
-            if (expected == null || !expected.Equals(actual))
-                throw new Exception(string.Format("Expected: {0}. Actual: {1}", expected, actual));
-        }
-
-        private static void True(bool? value) {
-            if (value != true)
-                throw new Exception("Value was supposed to be true");
-        }
-
-        private static void False(bool? value) {
-            if (value != false)
-                throw new Exception("Value was supposed to be false");
-        }
-        #endregion
     }
 }
+
+// Useful notes I don't want to lose:
+
+// Command line on Windows:
+// $ "/c/Program Files (x86)/Graphviz2.38/bin/dot" -Tsvg -obookings_team.svg bookings_team.dot
