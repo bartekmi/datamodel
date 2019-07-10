@@ -11,7 +11,7 @@ namespace datamodel.tools {
 
         public void Generate(Schema schema, string team) {
             foreach (Table table in schema.Tables) {
-                if (table.Team != team)
+                if (team != null && table.Team != team)
                     continue;
 
                 if (table.ModelPath == null) {

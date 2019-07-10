@@ -44,8 +44,7 @@ namespace datamodel.schema {
 
         #region Creation
         private static Schema ParseSchema() {
-            string path = "/datamodel/bartek_raw.txt";
-            YamlMappingNode root = (YamlMappingNode)YamlUtils.ReadYaml(path).RootNode;
+            YamlMappingNode root = (YamlMappingNode)YamlUtils.ReadYaml(Env.SCHEMA_FILE).RootNode;
 
             YamlSchemaParser _parser = new YamlSchemaParser();
             List<Table> tables = _parser.ParseTables(YamlUtils.GetSequence(root, "entities"));

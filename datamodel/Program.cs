@@ -22,20 +22,33 @@ namespace datamodel {
         public static string TEMP_DIR;
         public static string REPO_ROOT;
         public static string[] MODEL_DIRS;
+        public static string SCHEMA_FILE;
 
+        private static void ConfigureMac() {
+            OUTPUT_ROOT_DIR = UserPath(@"Sites");
+            TEMP_DIR = UserPath(@"temp");
+            REPO_ROOT = UserPath(@"datamodel");
+            MODEL_DIRS = new string[] { FlexportPath("app/models"), FlexportPath("engines/customs/app/models/customs") };
+            SCHEMA_FILE = UserPath(@"datamodel/bartek_raw.txt");
+        }
+
+        private static string FlexportPath(string path) {
+            return UserPath(Path.Combine("fcopy", path));
+        }
+
+        private static string UserPath(string path) {
+            return Path.Combine("/Users/bmuszynski", path);
+        }
+
+        #region Windows
         private static void ConfigureWindows() {
             OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
             TEMP_DIR = @"C:\TEMP";
             REPO_ROOT = @"C:\datamodel";
             MODEL_DIRS = new string[] { "/datamodel/models", "/datamodel/customs_models" };
+            SCHEMA_FILE = @"C:\datamodel\bartek_raw.txt";
         }
-
-        private static void ConfigureMac() {
-            OUTPUT_ROOT_DIR = @"~/Sites";
-            TEMP_DIR = @"~/temp";
-            REPO_ROOT = @"~/datamodel";
-            MODEL_DIRS = new string[] { "~/flexport/app/models", "~/flexport/engines/customs/app/models/customs" };
-        }
+        #endregion
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
@@ -72,10 +85,6 @@ namespace datamodel {
                 default:
                     throw new Exception("Unexpected command: " + command);
             }
-            Error.Clear();
-
-            GenerateDataDictionary();
-            CreateGraph();
         }
 
         private static string ExtractArgs(string[] args) {
@@ -87,7 +96,7 @@ namespace datamodel {
 
         private static void GenerateYamls() {
             ParseMainModelDir();
-            new YamlFileGenerator().Generate(Schema.Singleton, "bookings");
+            new YamlFileGenerator().Generate(Schema.Singleton, null);
         }
 
         private static void CreateGraph() {

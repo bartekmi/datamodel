@@ -35,10 +35,10 @@ namespace datamodel.graph {
                 .Where(x => tablesDict.ContainsKey(x.Source) && tablesDict.ContainsKey(x.Destination))
                 .ToList();
 
-            string dotPath = Path.Combine(Program.TEMP_DIR, team + ".dot");
+            string dotPath = Path.Combine(Env.TEMP_DIR, team + ".dot");
             (new GraphvizGenerator()).GenerateGraph(graphDef, dotPath, tables, associations, extraTables);
 
-            string svgPath = Path.Combine(Program.OUTPUT_ROOT_DIR, team + ".svg");
+            string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, team + ".svg");
             GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);
         }
     }
