@@ -36,6 +36,11 @@ namespace datamodel.parser {
 
                     table.ModelPath = path;
                     table.Team = team;
+
+                    if (path.Contains("engine")) {
+                        string directory = Path.GetDirectoryName(path);
+                        table.Engine = Path.GetFileName(directory);         // Assumes that the last path element of all engines is unique
+                    }
                 }
             }
         }

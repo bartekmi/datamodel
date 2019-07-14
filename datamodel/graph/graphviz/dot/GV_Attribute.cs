@@ -16,7 +16,13 @@ namespace datamodel.graphviz.dot {
             if (Value is HtmlEntity)
                 writer.Write(string.Format("{0}=<{1}>", Name, (Value as HtmlEntity).ToHtml()));
             else
-                writer.Write(string.Format("{0}=\"{1}\"", Name, Value));
+                writer.Write(string.Format("{0}=\"{1}\"", Name, SanitizeValue(Value)));
+        }
+
+        private string SanitizeValue(object value) {
+            if (value == null)
+                return null;
+            return value.ToString().Replace('"', '\'');
         }
     }
 }

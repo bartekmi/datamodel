@@ -21,7 +21,7 @@ namespace datamodel {
 
         public static readonly GraphDefinition[] GRAPHS = new GraphDefinition[] {
             new GraphDefinition() {
-                Engine = "engines/operational_route/app/models/operational_route"
+                Engine = "operational_route"
             },
             new GraphDefinition("bookings"),
             new GraphDefinition("shipment_data"),

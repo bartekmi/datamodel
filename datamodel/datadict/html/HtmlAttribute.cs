@@ -13,7 +13,13 @@ namespace datamodel.datadict.html {
         }
 
         public void Render(TextWriter writer) {
-            writer.Write(string.Format("{0}=\"{1}\"", Name, Value));
+            writer.Write(string.Format("{0}=\"{1}\"", Name, SanitizeValue(Value)));
+        }
+
+        private string SanitizeValue(object value) {
+            if (value == null)
+                return null;
+            return value.ToString().Replace('"', '\'');
         }
     }
 }

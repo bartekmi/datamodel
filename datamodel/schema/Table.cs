@@ -26,6 +26,7 @@ namespace datamodel.schema {
         public List<Column> AllColumns = new List<Column>();
         public TableType Type { get; set; }
         public string Team { get; set; }
+        public string Engine { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }
         public bool IsObsolete { get; set; }
@@ -43,7 +44,7 @@ namespace datamodel.schema {
         public string SanitizedClassName { get { return FileUtils.SanitizeFilename(ClassName); } }
 
         public string DocUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", Team, SanitizedClassName)); } }
-        public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", Team)); } }
+        public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", Engine == null ? Team : Engine)); } }
 
         public string AnnotationFilePath {
             get {
@@ -52,17 +53,6 @@ namespace datamodel.schema {
                 return path;
             }
         }
-
-        public string Engine {
-            get {
-                if (ModelPath == null)
-                    return null;
-                string directory = Path.GetDirectoryName(ModelPath);
-                string engine = directory.Substring(Env.ROOT_MODEL_DIR.Length + 1);
-                return engine;
-            }
-        }
-
 
         public Column FindColumn(string dbColumnName) {
             return AllColumns.SingleOrDefault(x => x.DbName.ToLower() == dbColumnName.ToLower());
