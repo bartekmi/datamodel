@@ -104,7 +104,9 @@ namespace datamodel.graphviz {
 
             // Columns
             foreach (Column column in dbTable.AllColumns) {
-                if (Schema.IsInteresting(column)) {
+                if (Schema.IsInteresting(column) &&
+                    !column.Deprecated) {
+
                     HtmlTr row = new HtmlTr();
 
                     string columnName = HtmlUtils.Bullet() + column.HumanName;

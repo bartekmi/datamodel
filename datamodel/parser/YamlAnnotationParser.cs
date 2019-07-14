@@ -36,6 +36,7 @@ namespace datamodel.parser {
         private static void SetCommonElements(IDbElement element, YamlMappingNode node) {
             element.Description = YamlUtils.GetString(node, "description");
             element.Group = YamlUtils.GetString(node, "group");
+            element.Deprecated = YamlUtils.GetBoolean(node, "deprecated");
         }
     }
 }

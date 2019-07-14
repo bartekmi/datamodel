@@ -29,7 +29,7 @@ namespace datamodel.schema {
         public string Engine { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }
-        public bool IsObsolete { get; set; }
+        public bool Deprecated { get; set; }
         public string Issue { get; set; }
         public string Group { get; set; }
         public string ModelPath { get; set; }

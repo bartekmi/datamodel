@@ -71,7 +71,8 @@ namespace datamodel.datadict {
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
                             new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
-                            new HtmlElement("span", "(" + column.DbTypeString + ")").Attr("class", "faded gap-left")
+                            new HtmlElement("span", "(" + column.DbTypeString + ")").Attr("class", "faded gap-left"),
+                            DeprecatedSpan(column)
                         )
                       ).Attr("id", column.DbName));        // Id for anchor
 
@@ -111,7 +112,8 @@ namespace datamodel.datadict {
                             new HtmlElement("span").Attr("class", "gap-left"),
                             docIcon,
                             new HtmlElement("span").Attr("class", "gap-left"),
-                            diagramIcon
+                            diagramIcon,
+                            DeprecatedSpan(column)
                         )
                       ).Attr("id", column.DbName));        // Id for anchor
 
@@ -119,6 +121,12 @@ namespace datamodel.datadict {
                     table.AddTr(new HtmlTr(column.Description)
                         .Attr("class", "text"));
                 }
+        }
+
+        private static HtmlElement DeprecatedSpan(IDbElement dbElement) {
+            if (dbElement.Deprecated)
+                return new HtmlElement("span", "[DEPRECATED]").Attr("class", "heading3 gap-left");
+            return null;
         }
     }
 }

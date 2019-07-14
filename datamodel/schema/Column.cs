@@ -35,7 +35,7 @@ namespace datamodel.schema {
         public string Team { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }
-        public bool IsObsolete { get; set; }
+        public bool Deprecated { get; set; }
         public string Issue { get; set; }
         public bool IsMandatory { get; set; }
         public string Enum { get; set; }

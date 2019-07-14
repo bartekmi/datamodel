@@ -4,7 +4,7 @@ namespace datamodel.schema {
         string Team { get; set; }
         string Description { get; set; }
         Visibility Visibility { get; set; }
-        bool IsObsolete { get; set; }
+        bool Deprecated { get; set; }
         string Issue { get; set; }
         string Group { get; set; }
     }
