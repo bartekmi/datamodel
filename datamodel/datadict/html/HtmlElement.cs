@@ -13,7 +13,7 @@ namespace datamodel.datadict.html {
 
         public string ToHtml() {
             using (StringWriter writer = new StringWriter()) {
-                ToHtml(writer);
+                ToHtml(writer, 0);
                 return writer.ToString();
             }
         }
@@ -37,20 +37,32 @@ namespace datamodel.datadict.html {
             return child;
         }
 
-        public override void ToHtml(TextWriter writer) {
-            WriteOpeningTag(writer, _tag);
+        public override void ToHtml(TextWriter writer, int indent) {
+            bool multiline = _children.Count > 0;
 
+            // Opening Tag
+            WriteIndent(writer, indent);
+            WriteOpeningTag(writer, _tag, indent);
+            if (multiline)
+                writer.WriteLine();
+
+            // Text Content
             if (_text != null)
                 writer.Write(_text);
 
+            // Children
             foreach (HtmlBase child in _children)
                 if (child != null)
-                    child.ToHtml(writer);
+                    child.ToHtml(writer, indent + 1);
 
+            // Closing Tag
+            if (multiline)
+                WriteIndent(writer, indent);
             WriteClosingTag(writer, _tag);
+            writer.WriteLine();
         }
 
-        private void WriteOpeningTag(TextWriter writer, string tag) {
+        private void WriteOpeningTag(TextWriter writer, string tag, int indent) {
             writer.Write("<" + tag);
             foreach (HtmlAttribute attribute in _attributes) {
                 writer.Write(" ");

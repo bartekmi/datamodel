@@ -26,6 +26,10 @@ namespace datamodel.graph {
         // The Team for which this diagram is for
         public string Team { get; set; }
 
+        // The engine for which this diagram is for. Specify the path where the engine lives.
+        // For example, "/flexport/engines/operational_route/app/models/operational_route"
+        public string Engine { get; set; }
+
         public RenderingStyle Style { get; set; }
 
         // Preferred Edge Length, in inches (neato and fdp only)
@@ -39,12 +43,16 @@ namespace datamodel.graph {
         // Extra tables (defined by class names) to bring in from outside the team
         public string[] ExtraTableClassNames { get; set; }
 
-        public GraphDefinition(string team) {
-            Team = team;
-        }
+        // Derived
+        public bool IsTeamGraph { get { return !string.IsNullOrWhiteSpace(Team); } }
+        public bool IsEngineGraph { get { return !string.IsNullOrWhiteSpace(Engine); } }
 
         public GraphDefinition() {
             Style = RenderingStyle.Dot;
+        }
+
+        public GraphDefinition(string team) : this() {
+            Team = team;
         }
 
         public string[] Validate() {

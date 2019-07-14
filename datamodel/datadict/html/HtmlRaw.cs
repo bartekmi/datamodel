@@ -11,8 +11,10 @@ namespace datamodel.datadict.html {
             Text = text;
         }
 
-        public override void ToHtml(TextWriter writer) {
+        public override void ToHtml(TextWriter writer, int indent) {
+            WriteIndent(writer, indent);
             writer.Write(Text);
+            writer.WriteLine();
         }
     }
 }

@@ -111,6 +111,7 @@ namespace datamodel.graphviz {
                     HtmlTd columnNameTd = new HtmlTd();
                     row.AddTd(columnNameTd);
 
+                    // Foreign Key Column
                     if (column.IsFk) {
                         Table referencedTable = column.FkInfo.ReferencedTable;
                         if (tables.Contains(referencedTable))
@@ -128,16 +129,19 @@ namespace datamodel.graphviz {
                                    .SetAttrHtml("href", referencedTable.DocUrl));
                             }
                         }
-                    } else {
+                    }
+                    // Regular Column
+                    else {
                         string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
-                        columnNameTd.Text = columnName + dataType;
+                        columnNameTd.Text = string.Format("{0} {1}", columnName, dataType);
                     }
 
+                    // Attributes for the column name Html-like element
                     columnNameTd
                         .SetAttrHtml("align", "left")
                         .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ?
                             string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName) :
-                            column.Description)
+                            column.DescriptionParagraphs.First())
                         .SetAttrHtml("href", column.DocUrl);
 
                     table.AddTr(row);

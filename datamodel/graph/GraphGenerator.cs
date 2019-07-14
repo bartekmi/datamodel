@@ -19,10 +19,17 @@ namespace datamodel.graph {
                 string[] errors = graphDef.Validate();
                 if (errors != null && errors.Length > 0)
                     throw new Exception(string.Join(", ", errors));
+                if (!graphDef.IsTeamGraph && !graphDef.IsEngineGraph)
+                    throw new Exception("Either Team or Engine must be specified");
 
-                IEnumerable<Table> tables = schema.Tables.Where(x => x.Team == graphDef.Team);
+                IEnumerable<Table> tables = string.IsNullOrWhiteSpace(graphDef.Team) ?
+                    schema.Tables.Where(x => x.Engine == graphDef.Engine) :
+                    schema.Tables.Where(x => x.Team == graphDef.Team);
+
                 IEnumerable<Table> extraTables = graphDef.ExtraTables();
-                Generate(graphDef, graphDef.Team, tables, extraTables);
+
+                string graphName = graphDef.IsTeamGraph ? graphDef.Team : Path.GetFileName(graphDef.Engine);
+                Generate(graphDef, graphName, tables, extraTables);
             }
         }
 

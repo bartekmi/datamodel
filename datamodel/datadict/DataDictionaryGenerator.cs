@@ -42,7 +42,7 @@ namespace datamodel.datadict {
             GenerateAssociations(body, table);
 
             using (StreamWriter writer = new StreamWriter(path))
-                html.ToHtml(writer);
+                html.ToHtml(writer, 0);
         }
 
         private static void GenerateHeader(HtmlElement body, Table dbTable) {
@@ -67,6 +67,7 @@ namespace datamodel.datadict {
 
             foreach (Column column in dbTable.RegularColumns)
                 if (Schema.IsInteresting(column)) {
+                    // Column Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
                             new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
@@ -74,9 +75,13 @@ namespace datamodel.datadict {
                         )
                       ).Attr("id", column.DbName));        // Id for anchor
 
-
-                    table.AddTr(new HtmlTr(column.Description)
-                        .Attr("class", "text"));
+                    // Column Description
+                    HtmlTd descriptionTd = table
+                        .Add(new HtmlTr())
+                        .Add(new HtmlTd())
+                        .Attr("class", "text");
+                    foreach (string paragraphText in column.DescriptionParagraphs)
+                        descriptionTd.Add(new HtmlP(paragraphText));
                 }
         }
 

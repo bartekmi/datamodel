@@ -53,6 +53,17 @@ namespace datamodel.schema {
             }
         }
 
+        public string Engine {
+            get {
+                if (ModelPath == null)
+                    return null;
+                string directory = Path.GetDirectoryName(ModelPath);
+                string engine = directory.Substring(Env.ROOT_MODEL_DIR.Length + 1);
+                return engine;
+            }
+        }
+
+
         public Column FindColumn(string dbColumnName) {
             return AllColumns.SingleOrDefault(x => x.DbName.ToLower() == dbColumnName.ToLower());
         }

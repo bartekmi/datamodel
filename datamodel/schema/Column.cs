@@ -46,10 +46,17 @@ namespace datamodel.schema {
         public string HumanName { get { return NameUtils.SnakeCaseToHuman(DbName); } }
         public bool IsFk { get { return FkInfo != null; } }
         public string DocUrl { get { return string.Format("{0}#{1}", Owner.DocUrl, DbName); } }
+        public string[] DescriptionParagraphs {
+            get {
+                if (string.IsNullOrWhiteSpace(Description))
+                    return new string[0];
+                return Description.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            }
+        }
 
         // Relationships
-        public FkInfo FkInfo {get;set;}
-        
+        public FkInfo FkInfo { get; set; }
+
         public Column(Table owner) {
             Owner = owner;
         }
