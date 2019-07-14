@@ -77,12 +77,7 @@ namespace datamodel.datadict {
                       ).Attr("id", column.DbName));        // Id for anchor
 
                     // Column Description
-                    HtmlTd descriptionTd = table
-                        .Add(new HtmlTr())
-                        .Add(new HtmlTd())
-                        .Attr("class", "text");
-                    foreach (string paragraphText in column.DescriptionParagraphs)
-                        descriptionTd.Add(new HtmlP(paragraphText));
+                    AddDescriptionRow(table, column);
                 }
         }
 
@@ -115,12 +110,20 @@ namespace datamodel.datadict {
                             diagramIcon,
                             DeprecatedSpan(column)
                         )
-                      ).Attr("id", column.DbName));        // Id for anchor
+                    ).Attr("id", column.DbName));        // Id for anchor
 
-
-                    table.AddTr(new HtmlTr(column.Description)
-                        .Attr("class", "text"));
+                    // Column Description
+                    AddDescriptionRow(table, column);
                 }
+        }
+
+        private static void AddDescriptionRow(HtmlTable table, Column column) {
+            HtmlTd descriptionTd = table
+                .Add(new HtmlTr())
+                .Add(new HtmlTd())
+                .Attr("class", "text");
+            foreach (string paragraphText in column.DescriptionParagraphs)
+                descriptionTd.Add(new HtmlP(paragraphText));
         }
 
         private static HtmlElement DeprecatedSpan(IDbElement dbElement) {
