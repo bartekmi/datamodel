@@ -105,9 +105,9 @@ namespace datamodel.datadict {
                         new HtmlTd(
                             new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
                             new HtmlElement("span").Attr("class", "gap-left"),
-                            docIcon,
-                            new HtmlElement("span").Attr("class", "gap-left"),
                             diagramIcon,
+                            new HtmlElement("span").Attr("class", "gap-left"),
+                            docIcon,
                             DeprecatedSpan(column)
                         )
                     ).Attr("id", column.DbName));        // Id for anchor
