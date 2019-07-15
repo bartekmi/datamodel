@@ -13,7 +13,7 @@ using datamodel.graph;
 using datamodel.utils;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("datamodel_test")]
+[assembly: InternalsVisibleTo("datamodel_test2")]
 
 namespace datamodel {
 
