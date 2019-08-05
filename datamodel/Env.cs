@@ -28,22 +28,32 @@ namespace datamodel {
         // We need this because on the Mac, all user-accessible content lives in http://localhost/~user
         public static string HTTP_ROOT;
 
+        private static void ConfigureMacTrinity() {
+            OUTPUT_ROOT_DIR = UserPath(@"Sites");
+            TEMP_DIR = UserPath(@"temp");
+            REPO_ROOT = UserPath(@"datamodel");
+            ROOT_MODEL_DIR = UserPath("trinity");
+            MODEL_DIRS = new string[] {
+                "app/models",
+            };
+            SCHEMA_FILE = UserPath("trinity/bartek_raw_2.txt");
+            GRAPHVIZ_BIN_DIR = "/usr/local/bin";
+            HTTP_ROOT = "/~bmuszynski";
+        }
+
         private static void ConfigureMac() {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
             REPO_ROOT = UserPath(@"datamodel");
-            ROOT_MODEL_DIR = FlexportPath("");
+            ROOT_MODEL_DIR = UserPath("fcopy");
             MODEL_DIRS = new string[] {
                 "app/models",
+                "app/models/rates",
                 "engines/customs/app/models/customs",
                 "engines/operational_route/app/models/operational_route" };
             SCHEMA_FILE = UserPath("datamodel/bartek_raw.txt");
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
-        }
-
-        private static string FlexportPath(string path) {
-            return UserPath(Path.Combine("fcopy", path));
         }
 
         private static string UserPath(string path) {
@@ -65,7 +75,7 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            ConfigureMac();
+            ConfigureMacTrinity();
         }
     }
 }

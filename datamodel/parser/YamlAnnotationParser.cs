@@ -8,6 +8,11 @@ namespace datamodel.parser {
     public static class YamlAnnotationParser {
         public static void Parse(Table table) {
             string path = table.AnnotationFilePath;
+            if (!File.Exists(path)) {
+                Error.Log("Warning: No YAML annotation file: " + path);
+                return;
+            }
+
             YamlMappingNode root = (YamlMappingNode)YamlUtils.ReadYaml(path).RootNode;
             SetCommonElements(table, root);
 

@@ -169,16 +169,16 @@ namespace datamodel.graphviz {
         #region Edges / Associations
         private Edge AssociationToEdge(Association association) {
             Edge edge = new Edge() {
-                Source = TableToNodeId(association.SourceTable),
-                Destination = TableToNodeId(association.DestinationTable),
+                Source = TableToNodeId(association.OtherSideTable),
+                Destination = TableToNodeId(association.FkSideTable),
                 Association = association,
             };
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
                 .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.SourceMultiplicity))
-                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.DestinationMultiplicity))
+                .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.OtherSideMultiplicity))
+                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.FkSideMultiplicity))
                 .SetAttrGraph("edgetooltip", edge.Association.Description)
                 .SetAttrGraph("edgehref", edge.Association.DocUrl);
 

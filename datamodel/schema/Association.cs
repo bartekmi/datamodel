@@ -7,14 +7,6 @@ using datamodel.utils;
 
 namespace datamodel.schema {
 
-    // Snake case to allow for direct import from Ruby output file without ranslation
-    public enum Cardinality {
-        one_to_one,
-        one_to_many,
-        many_to_one,
-        many_to_many,
-    }
-
     // This has direct bearing how an end of an association is shown on the graph
     public enum Multiplicity {
         ZeroOrOne,      // This side of the relationship can be associated with one optional instance
@@ -24,21 +16,19 @@ namespace datamodel.schema {
     }
 
     public class Association {
-        public string Source { get; set; }
-        public string Destination { get; set; }
+        public string FkSide { get; set; }
+        public string OtherSide { get; set; }
         public bool Indirect { get; set; }
-        public bool Mutual { get; set; }
-        public bool Recursive { get; set; }
-        public Cardinality Cardinality { get; set; }
         public bool SourceOptional { get; set; }
         public bool DestinationOptional { get; set; }
         public List<RailsAssociation> RailsAssociations = new List<RailsAssociation>();
 
         // Hydrated
-        public Table SourceTable { get; set; }
-        public Table DestinationTable { get; set; }
+        public Table OtherSideTable { get; set; }
+        public Table FkSideTable { get; set; }
 
         // Derived
+        public bool Recursive { get { return OtherSide == FkSide; } }
         public Column FkColumn { get { return RailsAssociations.Select(x => x.FkColumn).FirstOrDefault(x => x != null); } }
         public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
         public string Description {
@@ -86,31 +76,34 @@ namespace datamodel.schema {
             }
         }
 
-        // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
-        public Multiplicity SourceMultiplicity {
-            get {
-                bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.one_to_many;
-                return ToMultiplicity(isSingle, SourceOptional);
-            }
-        }
+        public Multiplicity FkSideMultiplicity { get; set; }
+        public Multiplicity OtherSideMultiplicity { get; set; }
 
-        // The "Destination" end of the relationship (by the Rails definition) is the end which has the FK
-        public Multiplicity DestinationMultiplicity {
-            get {
-                bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.many_to_one;
-                return ToMultiplicity(isSingle, DestinationOptional);
-            }
-        }
+        // // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
+        // public Multiplicity SourceMultiplicity {
+        //     get {
+        //         bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.one_to_many;
+        //         return ToMultiplicity(isSingle, SourceOptional);
+        //     }
+        // }
 
-        private Multiplicity ToMultiplicity(bool single, bool optional) {
-            if (!single)
-                return Multiplicity.Many;
+        // // The "Destination" end of the relationship (by the Rails definition) is the end which has the FK
+        // public Multiplicity DestinationMultiplicity {
+        //     get {
+        //         bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.many_to_one;
+        //         return ToMultiplicity(isSingle, DestinationOptional);
+        //     }
+        // }
 
-            return optional ? Multiplicity.ZeroOrOne : Multiplicity.One;
-        }
+        // private Multiplicity ToMultiplicity(bool single, bool optional) {
+        //     if (!single)
+        //         return Multiplicity.Many;
 
-        public override string ToString() {
-            return string.Format("{0}-{1} ({2})", Source, Destination, Cardinality);
-        }
+        //     return optional ? Multiplicity.ZeroOrOne : Multiplicity.One;
+        // }
+
+        // public override string ToString() {
+        //     return string.Format("{0}-{1} ({2})", Source, Destination, Cardinality);
+        // }
     }
 }

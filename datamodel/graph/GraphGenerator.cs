@@ -39,7 +39,7 @@ namespace datamodel.graph {
             Dictionary<string, Table> tablesDict = allTables.ToDictionary(x => x.ClassName);
 
             List<Association> associations = Schema.Singleton.Associations
-                .Where(x => tablesDict.ContainsKey(x.Source) && tablesDict.ContainsKey(x.Destination))
+                .Where(x => tablesDict.ContainsKey(x.OtherSide) && tablesDict.ContainsKey(x.FkSide))
                 .ToList();
 
             string dotPath = Path.Combine(Env.TEMP_DIR, team + ".dot");

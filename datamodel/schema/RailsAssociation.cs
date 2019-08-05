@@ -14,6 +14,17 @@ namespace datamodel.schema {
         Through,
     }
 
+    public class Options {
+        internal bool Polymorphic;
+        internal string ClassName;
+        internal string As;
+        internal bool Destroy;
+        internal string InverseOf;
+        internal string Through;
+        internal string ForeignKey;
+        internal string Source;
+    }
+
     public class RailsAssociation {
 
         internal AssociationKind Kind;
@@ -22,7 +33,7 @@ namespace datamodel.schema {
         internal string ClassName;
         internal string ForeignKey;
         internal string ForeignType;
-        internal string InverseName;
+        internal string InverseOf;
         internal string Klass;
         internal string PluralName;
         internal string Type;
@@ -37,20 +48,13 @@ namespace datamodel.schema {
                 return ClassName;
             }
         }
-
+        public bool IsReverse {
+            get {
+                return Kind == AssociationKind.HasOne || Kind == AssociationKind.HasMany;
+            }
+        }
 
         // Set in post-processing
         internal Column FkColumn;
-    }
-
-    public class Options {
-        internal bool Polymorphic;
-        internal string ClassName;
-        internal string As;
-        internal bool Destroy;
-        internal string InverseOf;
-        internal string Through;
-        internal string ForeignKey;
-        internal string Source;
     }
 }

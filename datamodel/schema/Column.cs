@@ -32,12 +32,13 @@ namespace datamodel.schema {
         public string DbName { get; set; }
         public string DbTypeString { get; set; }
         public DataType DbType { get; set; }
+        public bool IsNull { get; set; }
+        public string[] Validations { get; set; }
         public string Team { get; set; }
         public string Description { get; set; }
         public Visibility Visibility { get; set; }
         public bool Deprecated { get; set; }
         public string Issue { get; set; }
-        public bool IsMandatory { get; set; }
         public string Enum { get; set; }
         public string Group { get; set; }
         public Table Owner { get; private set; }
@@ -51,6 +52,11 @@ namespace datamodel.schema {
                 if (string.IsNullOrWhiteSpace(Description))
                     return new string[0];
                 return Description.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            }
+        }
+        public bool IsMandatory {
+            get {
+                return !IsNull || Validations.Contains("presence");
             }
         }
 

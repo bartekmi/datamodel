@@ -6,7 +6,6 @@ namespace datamodel.schema {
     public class FkInfo {
 
         public Table ReferencedTable { get; set; }
-        public bool OtherEndIsAggregation { get; set; }        // Means that entity on this end of the relationship can only live in the context of the other
 
         internal static string FkColumnToHuman(string foreignKey) {
             if (string.IsNullOrWhiteSpace(foreignKey))

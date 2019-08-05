@@ -29,12 +29,14 @@ namespace datamodel.schema {
                 List<Column> columns = new List<Column>();
                 IEnumerable<string> allColumns = yamlColumns.Select(x => YamlUtils.GetString((YamlMappingNode)x, "name"));
 
-                foreach (YamlMappingNode columnData in yamlColumns) 
+                foreach (YamlMappingNode columnData in yamlColumns)
                     columns.Add(new Column(table) {
                         DbName = YamlUtils.GetString(columnData, "name"),
                         DbTypeString = YamlUtils.GetString(columnData, "type"),
                         DbType = ToDbType(YamlUtils.GetString(columnData, "type")),
-                        IsMandatory = YamlUtils.GetBoolean(columnData, "mandatory")
+                        IsNull = YamlUtils.GetBoolean(columnData, "null"),
+                        Validations = YamlUtils.GetString(columnData, "validations")
+                            .Split(",").Select(x => x.Trim()).ToArray(),
                     });
 
                 table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
@@ -54,28 +56,12 @@ namespace datamodel.schema {
         }
         #endregion
 
-        #region Parse Relationships (Ruby Terminology) or Associations (Generic Terminology)
-        public List<Association> ParseAssociations(YamlSequenceNode yamlRelationships) {
-            List<Association> associations = new List<Association>();
+        #region Parse Associations
+        public List<RailsAssociation> ParseAssociations(YamlSequenceNode yamlRelationships) {
+            List<RailsAssociation> associations = new List<RailsAssociation>();
 
-            foreach (YamlMappingNode data in yamlRelationships) {
-                Association association = new Association() {
-                    Source = YamlUtils.GetString(data, "source"),
-                    Destination = YamlUtils.GetString(data, "destination"),
-                    Indirect = YamlUtils.GetBoolean(data, "indirect"),
-                    Mutual = YamlUtils.GetBoolean(data, "mutual"),
-                    Recursive = YamlUtils.GetBoolean(data, "recursive"),
-                    Cardinality = Enum.Parse<Cardinality>(YamlUtils.GetString(data, "cardinality")),
-                    SourceOptional = YamlUtils.GetBoolean(data, "source_optional"),
-                    DestinationOptional = YamlUtils.GetBoolean(data, "destination_optional"),
-                };
-
-                YamlSequenceNode rubyAssociations = YamlUtils.GetSequence(data, "associations");
-                foreach (YamlMappingNode assocData in rubyAssociations)
-                    association.RailsAssociations.Add(ParseRailsAssociation(assocData));
-
-                associations.Add(association);
-            }
+            foreach (YamlMappingNode data in yamlRelationships)
+                associations.Add(ParseRailsAssociation(data));
 
             return associations;
         }
@@ -86,10 +72,10 @@ namespace datamodel.schema {
                 Name = YamlUtils.GetString(assocData, "name"),
                 ActiveRecord = YamlUtils.GetString(assocData, "active_record"),
                 ClassName = YamlUtils.GetString(assocData, "class_name"),
+                Klass = YamlUtils.GetString(assocData, "klass"),
                 ForeignKey = YamlUtils.GetString(assocData, "foreign_key"),
                 ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
-                InverseName = YamlUtils.GetString(assocData, "inverse_name"),
-                Klass = YamlUtils.GetString(assocData, "klass"),
+                InverseOf = YamlUtils.GetString(assocData, "inverse_of"),
                 PluralName = YamlUtils.GetString(assocData, "plural_name"),
                 Type = YamlUtils.GetString(assocData, "type"),
                 Options = ParseOptions(YamlUtils.GetString(assocData, "options")),
@@ -98,11 +84,11 @@ namespace datamodel.schema {
 
         private static AssociationKind ParseKind(string kind) {
             switch (kind) {
-                case "ActiveRecord::Reflection::BelongsToReflection": return AssociationKind.BelongsTo;
-                case "ActiveRecord::Reflection::HasOneReflection": return AssociationKind.HasOne;
-                case "ActiveRecord::Reflection::HasManyReflection": return AssociationKind.HasMany;
-                case "ActiveRecord::Reflection::HasAndBelongsToManyReflection": return AssociationKind.HasAndBelongsToMany;
-                case "ActiveRecord::Reflection::ThroughReflection": return AssociationKind.Through;
+                case "BelongsToReflection": return AssociationKind.BelongsTo;
+                case "HasOneReflection": return AssociationKind.HasOne;
+                case "HasManyReflection": return AssociationKind.HasMany;
+                case "HasAndBelongsToManyReflection": return AssociationKind.HasAndBelongsToMany;
+                case "ThroughReflection": return AssociationKind.Through;
 
                 default:
                     throw new Exception("Unexpected kind: " + kind);
