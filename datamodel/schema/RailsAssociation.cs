@@ -29,28 +29,54 @@ namespace datamodel.schema {
 
         internal AssociationKind Kind;
         internal string Name;
-        internal string ActiveRecord;
-        internal string ClassName;
+        internal string OwningModel;    // The model to which this association 'belongs'
+        internal string OtherModel;     // The model at the other end of the association
         internal string ForeignKey;
-        internal string ForeignType;
         internal string InverseOf;
-        internal string Klass;
         internal string PluralName;
-        internal string Type;
         internal Options Options;
 
+        // Unused and possible unnecessary
+        internal string ForeignType;
+        internal string Klass;
+        internal string Type;
+
         // Derived
-        public string UnqualifiedClassName {
+        internal string UnqualifiedClassName {
             get {
-                int index = ClassName.IndexOf("::");
+                int index = OtherModel.IndexOf("::");
                 if (index >= 0)
-                    return ClassName.Substring(index + 2);
-                return ClassName;
+                    return OtherModel.Substring(index + 2);
+                return OtherModel;
             }
         }
-        public bool IsReverse {
+        internal bool IsReverse {
             get {
-                return Kind == AssociationKind.HasOne || Kind == AssociationKind.HasMany;
+                switch (Kind) {
+                    case AssociationKind.HasOne:
+                    case AssociationKind.HasMany:
+                        return true;
+                    case AssociationKind.HasAndBelongsToMany:
+                        // See comment on Schema.MakeKey()
+                        if (OwningModel == OtherModel) {
+                            if (ForeignKey == InverseOf)
+                                throw new NotImplementedException();
+                            return ForeignKey.CompareTo(InverseOf) > 0;
+                        }
+                        return OwningModel.CompareTo(OtherModel) > 0;
+                    default:
+                        return false;
+                }
+            }
+        }
+        internal bool IsHABTM {
+            get {
+                return OwningModel.Contains("HABTM");
+            }
+        }
+        internal bool IsPolymorphicBelongsTo {
+            get {
+                return Kind == AssociationKind.BelongsTo && Options.Polymorphic;
             }
         }
 

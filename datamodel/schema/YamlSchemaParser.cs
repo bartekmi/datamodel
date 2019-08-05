@@ -70,8 +70,8 @@ namespace datamodel.schema {
             return new RailsAssociation() {
                 Kind = ParseKind(YamlUtils.GetString(assocData, "kind")),
                 Name = YamlUtils.GetString(assocData, "name"),
-                ActiveRecord = YamlUtils.GetString(assocData, "active_record"),
-                ClassName = YamlUtils.GetString(assocData, "class_name"),
+                OwningModel = YamlUtils.GetString(assocData, "active_record"),
+                OtherModel = YamlUtils.GetString(assocData, "class_name"),
                 Klass = YamlUtils.GetString(assocData, "klass"),
                 ForeignKey = YamlUtils.GetString(assocData, "foreign_key"),
                 ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
@@ -106,7 +106,10 @@ namespace datamodel.schema {
             Dictionary<string, string> dict = new Dictionary<string, string>();
             foreach (string piece in pieces) {
                 string[] keyValue = piece.Split("=>");
-                dict[keyValue[0]] = keyValue[1];
+
+                // We don't yet parse anonymous_class generated for HABTM
+                if (keyValue.Length == 2)
+                    dict[keyValue[0]] = keyValue[1];
             }
 
             return new Options() {

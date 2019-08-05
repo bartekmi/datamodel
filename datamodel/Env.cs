@@ -45,13 +45,13 @@ namespace datamodel {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
             REPO_ROOT = UserPath(@"datamodel");
-            ROOT_MODEL_DIR = UserPath("fcopy");
+            ROOT_MODEL_DIR = UserPath("flexport");
             MODEL_DIRS = new string[] {
                 "app/models",
                 "app/models/rates",
                 "engines/customs/app/models/customs",
                 "engines/operational_route/app/models/operational_route" };
-            SCHEMA_FILE = UserPath("datamodel/bartek_raw.txt");
+            SCHEMA_FILE = UserPath("flexport/bartek_raw_2.txt");
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
         }
@@ -75,7 +75,8 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            ConfigureMacTrinity();
+            ConfigureMac();
+            //ConfigureMacTrinity();
         }
     }
 }
