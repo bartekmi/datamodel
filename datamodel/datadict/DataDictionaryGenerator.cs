@@ -55,8 +55,21 @@ namespace datamodel.datadict {
                     new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DIAGRAM, dbTable.SvgUrl, "Go to diagram which contains this table", "h1-icon"))
                 )));
 
+            AddLabelAndData(table, "Team", dbTable.Team);
+            AddLabelAndData(table, "Engine", dbTable.Engine);
+            AddLabelAndData(table, "Database Table", dbTable.DbName);
+            AddLabelAndData(table, "Super-Class", dbTable.SuperClassName);
+
             if (!string.IsNullOrEmpty(dbTable.Description))
                 table.Add(new HtmlTr(dbTable.Description));
+        }
+
+        private static void AddLabelAndData(HtmlTable table, string label, string value) {
+            if (string.IsNullOrWhiteSpace(value))
+                return;
+
+            string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label), value);
+            table.Add(new HtmlTr(text));
         }
 
         private static void GenerateAttribute(HtmlElement body, Table dbTable) {

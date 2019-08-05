@@ -19,6 +19,8 @@ namespace datamodel.parser {
         }
 
         private void ParseFilesInDir(string dirPath) {
+            int count = 0;
+
             foreach (string path in Directory.GetFiles(dirPath)) {
                 using (StreamReader reader = new StreamReader(path)) {
                     if (!IsActiveRecord(reader, out string className, out string team))
@@ -41,8 +43,12 @@ namespace datamodel.parser {
                         string directory = Path.GetDirectoryName(path);
                         table.Engine = Path.GetFileName(directory);         // Assumes that the last path element of all engines is unique
                     }
+
+                    count++;
                 }
             }
+
+            Console.WriteLine("{0} Models found in {1}", count, dirPath);
         }
 
         internal static bool IsActiveRecord(TextReader reader, out string className, out string team) {      // internal for testing
@@ -50,18 +56,25 @@ namespace datamodel.parser {
             team = null;
 
             string teamPattern = "#\\s*TEAM:\\s*([a-zA-Z0-9_]+)";
+            string modulePattern = "\\s*module\\s*([a-zA-Z0-9_]+)";
             string classDefPattern = "class (([a-zA-Z0-9_]+::)?[a-zA-Z0-9_]+)\\s+<\\s+ApplicationRecord";
 
             string line = null;
+            List<string> pieces = new List<string>();
 
             while ((line = reader.ReadLine()) != null) {
                 string[] matches = RegExUtils.GetCaptureGroups(line, teamPattern, null);
                 if (matches != null)
                     team = matches[0];
 
+                matches = RegExUtils.GetCaptureGroups(line, modulePattern, null);
+                if (matches != null)
+                    pieces.Add(matches[0]);
+
                 matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
                 if (matches != null) {
-                    className = matches[0];
+                    pieces.Add(matches[0]);
+                    className = string.Join("::", pieces);
                     return true;
                 }
             }
