@@ -244,6 +244,10 @@ namespace datamodel.schema {
             return null;
         }
 
+        public bool IsValidClassName(string className) {
+            return _byClassName.ContainsKey(className);
+        }
+
         public Table FindByDbName(string dbName) {
             return Tables.SingleOrDefault(x => x.DbName == dbName);
         }

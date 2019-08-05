@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -57,10 +58,10 @@ namespace datamodel.parser {
 
             string teamPattern = "#\\s*TEAM:\\s*([a-zA-Z0-9_]+)";
             string modulePattern = "\\s*module\\s*([a-zA-Z0-9_]+)";
-            string classDefPattern = "class (([a-zA-Z0-9_]+::)?[a-zA-Z0-9_]+)\\s+<\\s+ApplicationRecord";
+            string classDefPattern = "class (([a-zA-Z0-9_]+::)?[a-zA-Z0-9_]+)\\s+<\\s+([a-zA-Z0-9_]+)";
 
             string line = null;
-            List<string> pieces = new List<string>();
+            List<string> modules = new List<string>();
 
             while ((line = reader.ReadLine()) != null) {
                 string[] matches = RegExUtils.GetCaptureGroups(line, teamPattern, null);
@@ -69,17 +70,27 @@ namespace datamodel.parser {
 
                 matches = RegExUtils.GetCaptureGroups(line, modulePattern, null);
                 if (matches != null)
-                    pieces.Add(matches[0]);
+                    modules.Add(matches[0]);
 
                 matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
                 if (matches != null) {
-                    pieces.Add(matches[0]);
-                    className = string.Join("::", pieces);
-                    return true;
+                    string baseClass = matches[2];      // match[1] appears to be the inner parentheses before the '::'
+                    string qualifiedBaseClass = CreateQualifiedName(modules, baseClass);
+                    if (baseClass == "ApplicationRecord" || Schema.Singleton.IsValidClassName(qualifiedBaseClass)) {
+                        className = CreateQualifiedName(modules, matches[0]);
+                        return true;
+                    } else
+                        return false;
                 }
             }
 
             return false;
+        }
+
+        private static string CreateQualifiedName(IEnumerable<string> modules, string className) {
+            List<string> list = new List<string>(modules);
+            list.Add(className);
+            return string.Join("::", list);
         }
     }
 }

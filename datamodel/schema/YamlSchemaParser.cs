@@ -42,10 +42,11 @@ namespace datamodel.schema {
                 table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
 
                 bool isDerived = table.SuperClassName != "ApplicationRecord" && table.SuperClassName != "ActiveRecord::Base";
-                if (isDerived)
-                    Console.WriteLine("Warning: skipping table {0} because it is derived from {1}", table.ClassName, table.SuperClassName);
-                else
-                    tables.Add(table);
+                // TODO(bartekmi) Decide what to do with this
+                // if (isDerived)
+                //     Console.WriteLine("Warning: skipping table {0} because it is derived from {1}", table.ClassName, table.SuperClassName);
+                // else
+                tables.Add(table);
             }
 
             return tables;
