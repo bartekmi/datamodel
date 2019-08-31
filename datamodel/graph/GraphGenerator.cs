@@ -44,7 +44,7 @@ namespace datamodel.graph {
 
             List<Association> associations = Schema.Singleton.Associations
                 .Where(x => tablesDict.ContainsKey(x.OtherSide) &&
-                            (tablesDict.ContainsKey(x.FkSide) || polymorphicInterfaces.ContainsKey(x.OtherSidePolymorphicName)))
+                            (tablesDict.ContainsKey(x.FkSide) || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.OtherSidePolymorphicName)))
                 .ToList();
 
             string dotPath = Path.Combine(Env.TEMP_DIR, team + ".dot");

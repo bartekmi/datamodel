@@ -139,6 +139,7 @@ namespace datamodel.schema {
             }
         }
 
+        #region Multiplicity
         private static Multiplicity DetermineFkSideMultiplicity(RailsAssociation reverseAssociation) {
             // If there is no reverse association, by default, we assume that many entities
             // with the FK can point to the same entity
@@ -149,7 +150,7 @@ namespace datamodel.schema {
                 case AssociationKind.HasOne:
                     // I think that, in principle, this could also be ZeroOrOne, but can I tell?
                     // Can any information be garnered from the presence of 'dependent: :destroy' option?
-                    return Multiplicity.One;
+                    return Multiplicity.ZeroOrOne;
                 case AssociationKind.HasMany:
                     return Multiplicity.Many;
                 case AssociationKind.HasAndBelongsToMany:
@@ -182,6 +183,8 @@ namespace datamodel.schema {
         }
         #endregion
 
+        #endregion
+
         #region Rehydrate
 
         private List<RailsAssociation> SetFkTablesAndClean(List<RailsAssociation> dirties) {
@@ -198,6 +201,11 @@ namespace datamodel.schema {
                         continue;
 
                     ra.FkColumn = column;
+
+                    // While validations on ordinary columns are associated with the columns themselves,
+                    // validations on FK columns are associated with the corresponding Rails Associations
+                    column.Validations = column.Validations.Concat(ra.Validations).ToArray();
+
                     if (ra.Options.Polymorphic) {
                         // In the case of a polymorphic association, its FK does not
                         // point to an actual table but to a virtual "interface",
@@ -218,7 +226,7 @@ namespace datamodel.schema {
 
         private void Rehydrate() {
             ResolveSuperClasses();
-            LinkAssociations();
+            RehydrateTablesOnAssociations();
         }
 
         private void ResolveSuperClasses() {
@@ -236,7 +244,7 @@ namespace datamodel.schema {
             }
         }
 
-        private void LinkAssociations() {
+        private void RehydrateTablesOnAssociations() {
             foreach (Association association in Associations) {
                 if (_byClassName.TryGetValue(association.OtherSide, out Table otherSideTable))
                     association.OtherSideTable = otherSideTable;

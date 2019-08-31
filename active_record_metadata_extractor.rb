@@ -20,6 +20,7 @@ class ActiveRecordMetadataExtractor
     file.puts "entities:"
     models.each do |model|
       puts model.name
+
       file.puts "  - entity_name: #{model.name}"
       file.puts "    is_abstract: #{model.abstract_class?}"
       file.puts "    table_name: #{model.table_name}"
@@ -37,7 +38,7 @@ class ActiveRecordMetadataExtractor
       file.puts "      - name: #{name}"
       file.puts "        type: #{column.type || column.sql_type.downcase.to_sym}"
       file.puts "        null: #{column.null}"
-      file.puts "        validations: #{model.validators_on(name).map(&:kind).join(', ')}"
+      file.puts "        validations: #{model.validators_on(name).map(&:kind).uniq.join(', ')}"
     end
   rescue StandardError => e
     warn("Could not write columns for model #{model.name} (#{e.message})")
@@ -47,27 +48,47 @@ class ActiveRecordMetadataExtractor
     file.puts "associations:"
     models.each do |model|
       model.reflect_on_all_associations.each do |association|
+
+        name = protect(association, :name)
+        active_record = protect(association, :active_record)
+        class_name = protect(association, :class_name)
+        foreign_key = protect(association, :foreign_key)
+        inverse_of = protect(association, :inverse_of)
+        plural_name = protect(association, :plural_name)
+        options = protect(association, :options)
+        klass = protect(association, :klass) unless association.polymorphic?
+        foreign_type = protect(association, :foreign_type)
+        type = protect(association, :type)
+
         begin
           file.puts "  - kind: #{association.class.name.split('::').last}"
-          file.puts "    name: #{association.name}"
-          file.puts "    active_record: #{association.active_record}"
-          file.puts "    class_name: #{association.class_name}" # Not fully-qualified
-          file.puts "    foreign_key: #{association.foreign_key}"
-          file.puts "    inverse_of: #{association.inverse_of ? association.inverse_of.name : nil}"
-          file.puts "    plural_name: #{association.plural_name}"
-          file.puts "    options: '#{association.options}'"
+          file.puts "    name: #{name}"
+          file.puts "    active_record: #{active_record}"
+          file.puts "    class_name: #{class_name}" # Not fully-qualified
+          file.puts "    foreign_key: #{foreign_key}"
+          file.puts "    inverse_of: #{inverse_of ? inverse_of.name : nil}"
+          file.puts "    plural_name: #{plural_name}"
+          file.puts "    options: '#{options}'"
+          file.puts "    validations: #{model.validators_on(name).map(&:kind).uniq.join(', ')}"
 
           # This one is fully-qualified
-          file.puts "    klass: #{association.klass}" unless association.polymorphic?
+          file.puts "    klass: #{klass}"
 
           # Currently unused
-          file.puts "    foreign_type: #{association.foreign_type}"
-          file.puts "    type: '#{association.type}'"
+          file.puts "    foreign_type: #{foreign_type}"
+          file.puts "    type: '#{type}'"
         rescue StandardError => e
-          byebug
-          warn("Could not write association #{association} (#{e.message})")
+          warn("Generic error processing Association '#{association.name}': #{e.message}")
         end
       end
+    end
+  end
+
+  def self.protect(association, method)
+    begin
+      association.send(method)
+    rescue StandardError => e
+      warn("Error accessing method '#{method}' of Association '#{association.name}': #{e.message}")
     end
   end
 

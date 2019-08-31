@@ -75,8 +75,8 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            // ConfigureMac();
-            ConfigureMacTrinity();
+            ConfigureMac();
+            // ConfigureMacTrinity();
         }
     }
 }

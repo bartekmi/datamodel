@@ -35,6 +35,7 @@ namespace datamodel.schema {
         internal string InverseOf;
         internal string PluralName;
         internal Options Options;
+        internal string[] Validations;
 
         // Unused and possible unnecessary
         internal string ForeignType;
