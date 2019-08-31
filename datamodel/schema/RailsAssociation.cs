@@ -38,7 +38,7 @@ namespace datamodel.schema {
 
         // Unused and possible unnecessary
         internal string ForeignType;
-        internal string Klass;
+        internal string ClassName;
         internal string Type;
 
         // Derived
