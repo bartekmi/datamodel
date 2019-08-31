@@ -13,8 +13,15 @@ namespace datamodel.graphviz {
     public class GraphvizGenerator {
 
         #region Top-Level
-        public void GenerateGraph(GraphDefinition graphDef, string path, IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables) {
-            Graph graph = CreateGraph(tables, associations, extraTables)
+        public void GenerateGraph(
+            GraphDefinition graphDef,
+            string path, IEnumerable<Table> tables,
+            IEnumerable<Association> associations,
+            IEnumerable<Table> extraTables,
+            List<PolymorphicInterface> interfaces
+            ) {
+
+            Graph graph = CreateGraph(tables, associations, extraTables, interfaces)
                 .SetAttrGraph("margin", "0.5")
                 .SetAttrGraph("notranslate", true);
 
@@ -28,7 +35,7 @@ namespace datamodel.graphviz {
                 graph.ToDot(writer);
         }
 
-        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables) {
+        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables, List<PolymorphicInterface> interfaces) {
             Graph graph = new Graph();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
             // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
@@ -46,7 +53,39 @@ namespace datamodel.graphviz {
             foreach (Association association in associations)
                 graph.AddEdge(AssociationToEdge(association));
 
+            foreach (PolymorphicInterface _interface in interfaces) {
+                graph.AddNode(PolymorphicInterfaceToNode(_interface));
+                graph.AddEdge(PolymorphicInterfaceToEdge(_interface));
+            }
+
             return graph;
+        }
+        #endregion
+
+        #region Polymorphic Associations
+        private Node PolymorphicInterfaceToNode(PolymorphicInterface _interface) {
+            Node node = new Node() {
+                Name = _interface.Name,
+            };
+
+            node.SetAttrGraph("tooltip", "Polymorphic Interface: " + _interface.Name)
+                .SetAttrGraph("shape", "circle")
+                .SetAttrGraph("label", "PMI")
+                .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
+                .SetAttrGraph("margin", 0);
+
+            return node;
+        }
+
+        private Edge PolymorphicInterfaceToEdge(PolymorphicInterface _interface) {
+            Edge edge = new Edge() {
+                Source = TableToNodeId(_interface.Table),
+                Destination = _interface.Name,
+            };
+
+            edge.SetAttrGraph("arrowhead", "none");
+
+            return edge;
         }
         #endregion
 
@@ -170,7 +209,9 @@ namespace datamodel.graphviz {
         private Edge AssociationToEdge(Association association) {
             Edge edge = new Edge() {
                 Source = TableToNodeId(association.OtherSideTable),
-                Destination = TableToNodeId(association.FkSideTable),
+                Destination = association.IsPolymorphic ?
+                    association.OtherSidePolymorphicName :
+                    TableToNodeId(association.FkSideTable),
                 Association = association,
             };
 

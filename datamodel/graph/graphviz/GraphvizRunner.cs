@@ -13,10 +13,13 @@ namespace datamodel.graphviz {
             string path = Path.Combine(Env.GRAPHVIZ_BIN_DIR, exec);
             string commandLine = string.Format("-Tsvg -o{0} {1}", output, input);
 
-            Console.WriteLine("About to run: " + commandLine);
+            Console.WriteLine("About to run...");
+            Console.WriteLine("{0} {1}", path, commandLine);
 
             Process process = Process.Start(path, commandLine);
             process.WaitForExit();
+
+            // TODO: Capture stderr and display
 
             if (process.ExitCode != 0)
                 throw new Exception("Exit Code: " + process.ExitCode);

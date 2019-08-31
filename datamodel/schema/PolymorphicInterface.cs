@@ -6,6 +6,7 @@ namespace datamodel.schema {
 
         // Derived
         public Column Column { get { return BelongsToAssociation.FkColumn; } }
+        public Table Table { get { return Column.Owner; } }
         public string Name { get { return BelongsToAssociation.Name; } }
 
         internal PolymorphicInterface(RailsAssociation association) {

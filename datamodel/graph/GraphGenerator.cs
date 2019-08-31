@@ -38,12 +38,23 @@ namespace datamodel.graph {
             List<Table> allTables = tables.Union(extraTables).ToList();
             Dictionary<string, Table> tablesDict = allTables.ToDictionary(x => x.ClassName);
 
+            Dictionary<string, PolymorphicInterface> polymorphicInterfaces = Schema.Singleton.Interfaces.Values
+                .Where(x => tablesDict.ContainsKey(x.Table.ClassName))
+                .ToDictionary(x => x.Name);
+
             List<Association> associations = Schema.Singleton.Associations
-                .Where(x => tablesDict.ContainsKey(x.OtherSide) && tablesDict.ContainsKey(x.FkSide))
+                .Where(x => tablesDict.ContainsKey(x.OtherSide) &&
+                            (tablesDict.ContainsKey(x.FkSide) || polymorphicInterfaces.ContainsKey(x.OtherSidePolymorphicName)))
                 .ToList();
 
             string dotPath = Path.Combine(Env.TEMP_DIR, team + ".dot");
-            (new GraphvizGenerator()).GenerateGraph(graphDef, dotPath, tables, associations, extraTables);
+            (new GraphvizGenerator()).GenerateGraph(
+                graphDef,
+                dotPath,
+                tables,
+                associations,
+                extraTables,
+                polymorphicInterfaces.Values.ToList());
 
             string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, team + ".svg");
             GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);

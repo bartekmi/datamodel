@@ -116,7 +116,7 @@ namespace datamodel.schema {
             return new Options() {
                 Polymorphic = GetBoolean(dict, ":polymorphic", false),
                 ClassName = GetString(dict, ":class_name"),
-                As = GetString(dict, ":as"),
+                As = GetString(dict, ":as", true),
                 Destroy = GetString(dict, ":dependent") == ":destroy",
                 InverseOf = GetString(dict, ":inverse_of"),
                 Through = GetString(dict, ":through"),
@@ -125,9 +125,13 @@ namespace datamodel.schema {
             };
         }
 
-        private static string GetString(Dictionary<string, string> dict, string key) {
+        private static string GetString(Dictionary<string, string> dict, string key, bool stripColons = false) {
             if (!dict.TryGetValue(key, out string value))
                 return null;
+
+            if (stripColons)
+                value = value.Replace(":", "");
+
             return value;
         }
 

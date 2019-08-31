@@ -74,11 +74,12 @@ namespace datamodel.schema {
                 return OwningModel.Contains("HABTM");
             }
         }
-        internal bool IsPolymorphicBelongsTo {
+        internal bool IsPolymorphicInterface {
             get {
                 return Kind == AssociationKind.BelongsTo && Options.Polymorphic;
             }
         }
+        internal bool IsPolymorphicAssociation { get { return Options.As != null; } }
 
         // Set in post-processing
         internal Column FkColumn;

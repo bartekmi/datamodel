@@ -18,7 +18,6 @@ namespace datamodel.schema {
     public class Association {
         public string FkSide { get; set; }
         public string OtherSide { get; set; }
-        public bool Indirect { get; set; }
         public bool SourceOptional { get; set; }
         public bool DestinationOptional { get; set; }
         public List<RailsAssociation> RailsAssociations = new List<RailsAssociation>();
@@ -38,6 +37,8 @@ namespace datamodel.schema {
                 return FkColumn.Description == null ? FkColumn.HumanName : FkColumn.Description;
             }
         }
+        public bool IsPolymorphic { get { return OtherSidePolymorphicName != null; } }
+        public string OtherSidePolymorphicName { get { return RailsAssociations.First().Options.As; } }
 
         public string RoleOppositeFK {
             get {
@@ -54,6 +55,10 @@ namespace datamodel.schema {
         }
         public string RoleByFK {
             get {
+                // For now, assuming that the FK side of a polymorphic association is boring
+                if (IsPolymorphic)
+                    return null;
+
                 RailsAssociation hasOne = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasOne);
                 if (hasOne != null) {
                     if (hasOne.Name.Replace("_", "").ToLower() ==
@@ -79,31 +84,14 @@ namespace datamodel.schema {
         public Multiplicity FkSideMultiplicity { get; set; }
         public Multiplicity OtherSideMultiplicity { get; set; }
 
-        // // The "Source" end of the relationship (by the Rails definition) is the end to which the FK points
-        // public Multiplicity SourceMultiplicity {
-        //     get {
-        //         bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.one_to_many;
-        //         return ToMultiplicity(isSingle, SourceOptional);
-        //     }
-        // }
+        public Association(RailsAssociation railsAssociation, RailsAssociation reverseRailsAssociation) {
+            RailsAssociations.Add(railsAssociation);
+            if (reverseRailsAssociation != null)
+                RailsAssociations.Add(reverseRailsAssociation);
+        }
 
-        // // The "Destination" end of the relationship (by the Rails definition) is the end which has the FK
-        // public Multiplicity DestinationMultiplicity {
-        //     get {
-        //         bool isSingle = Cardinality == Cardinality.one_to_one || Cardinality == Cardinality.many_to_one;
-        //         return ToMultiplicity(isSingle, DestinationOptional);
-        //     }
-        // }
-
-        // private Multiplicity ToMultiplicity(bool single, bool optional) {
-        //     if (!single)
-        //         return Multiplicity.Many;
-
-        //     return optional ? Multiplicity.ZeroOrOne : Multiplicity.One;
-        // }
-
-        // public override string ToString() {
-        //     return string.Format("{0}-{1} ({2})", Source, Destination, Cardinality);
-        // }
+        override public string ToString() {
+            return string.Format("Association from {0} to {1} {2}", FkSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
+        }
     }
 }

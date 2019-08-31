@@ -20,19 +20,19 @@ namespace datamodel {
     class Program {
 
         public static readonly GraphDefinition[] GRAPHS = new GraphDefinition[] {
-            // new GraphDefinition("trinity"),
-            new GraphDefinition() {
-                Engine = "operational_route"
-            },
-            new GraphDefinition("marketplace"),
-            new GraphDefinition("bookings"),
-            new GraphDefinition("shipment_data"),
-            new GraphDefinition("customs") {
-                ExtraTableClassNames = new string[] {"Client", "CompanyEntity", "Shipment"},
-                // Len = 2.0,
-                Sep = 10.0,
-                Style = RenderingStyle.Dot,
-            },
+            new GraphDefinition("trinity"),
+            // new GraphDefinition() {
+            //     Engine = "operational_route"
+            // },
+            // new GraphDefinition("marketplace"),
+            // new GraphDefinition("bookings"),
+            // new GraphDefinition("shipment_data"),
+            // new GraphDefinition("customs") {
+            //     ExtraTableClassNames = new string[] {"Client", "CompanyEntity", "Shipment"},
+            //     // Len = 2.0,
+            //     Sep = 10.0,
+            //     Style = RenderingStyle.Dot,
+            // },
         };
 
         static void Main(string[] args) {
