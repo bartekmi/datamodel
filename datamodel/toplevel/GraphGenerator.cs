@@ -29,7 +29,7 @@ namespace datamodel.toplevel {
         private static void CreateGraphDefinition(HierarchyItem item) {
             if (!item.IsTop) {
                 item.Graph = new GraphDefinition() {
-                    CoreTables = item.CumulativeTables.ToArray(),
+                    CoreModels = item.CumulativeModels.ToArray(),
                     NameComponents = item.CumulativeTitle.ToArray(),
                 };
                 UrlService.Singleton.AddGraph(item.Graph);
@@ -38,11 +38,11 @@ namespace datamodel.toplevel {
 
         internal static void Generate(GraphDefinition graphDef) {
 
-            IEnumerable<Table> allTables = graphDef.CoreTables.Union(graphDef.ExtraTables);
-            Dictionary<string, Table> tablesDict = allTables.ToDictionary(x => x.ClassName);
+            IEnumerable<Model> allModels = graphDef.CoreModels.Union(graphDef.ExtraModels);
+            Dictionary<string, Model> tablesDict = allModels.ToDictionary(x => x.ClassName);
 
             Dictionary<string, PolymorphicInterface> polymorphicInterfaces = Schema.Singleton.Interfaces.Values
-                .Where(x => tablesDict.ContainsKey(x.Table.ClassName))
+                .Where(x => tablesDict.ContainsKey(x.Model.ClassName))
                 .ToDictionary(x => x.Name);
 
             List<Association> associations = Schema.Singleton.Associations
@@ -52,9 +52,9 @@ namespace datamodel.toplevel {
 
             (new GraphvizGenerator()).GenerateGraph(
                 graphDef,
-                graphDef.CoreTables,
+                graphDef.CoreModels,
                 associations,
-                graphDef.ExtraTables,
+                graphDef.ExtraModels,
                 polymorphicInterfaces.Values.ToList());
         }
     }

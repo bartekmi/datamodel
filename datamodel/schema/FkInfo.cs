@@ -5,7 +5,7 @@ namespace datamodel.schema {
 
     public class FkInfo {
 
-        public Table ReferencedTable { get; set; }
+        public Model ReferencedModel { get; set; }
 
         internal static string FkColumnToHuman(string foreignKey) {
             if (string.IsNullOrWhiteSpace(foreignKey))

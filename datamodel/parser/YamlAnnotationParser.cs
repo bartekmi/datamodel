@@ -6,7 +6,7 @@ using datamodel.utils;
 
 namespace datamodel.parser {
     public static class YamlAnnotationParser {
-        public static void Parse(Table table) {
+        public static void Parse(Model table) {
             string path = table.AnnotationFilePath;
             if (!File.Exists(path)) {
                 Error.Log("Warning: No YAML annotation file: " + path);
@@ -20,10 +20,10 @@ namespace datamodel.parser {
             ParseColumns(root, "foreignKeyColumns", table, path);
         }
 
-        private static void ParseColumns(YamlMappingNode root, string key, Table table, string path) {
+        private static void ParseColumns(YamlMappingNode root, string key, Model table, string path) {
             YamlSequenceNode items = YamlUtils.GetSequence(root, key);
             if (items == null)
-                return;         // Table might not have any primary or FK columns
+                return;         // Model might not have any primary or FK columns
 
             foreach (YamlMappingNode item in items) {
                 string columnName = YamlUtils.GetString(item, "name");

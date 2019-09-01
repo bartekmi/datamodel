@@ -9,7 +9,7 @@
         private static void ParseYamlAnnotationFile() {
             Schema schema = Schema.Singleton;
             ParseMainModelDir();        // Extract teams and find paths of Ruby files
-            Table table = schema.FindByDbName("bookings");
+            Model table = schema.FindByDbName("bookings");
 
             List<Error> errors = new List<Error>();
             YamlAnnotationParser.Parse(table, errors);
@@ -25,7 +25,7 @@
         }
 
         private static void ParseSchema() {
-            AreEqual(739, Schema.Singleton.Tables.Count);
+            AreEqual(739, Schema.Singleton.Models.Count);
         }
         #endregion
 

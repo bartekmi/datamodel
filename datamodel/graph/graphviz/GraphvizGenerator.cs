@@ -15,13 +15,13 @@ namespace datamodel.graphviz {
         #region Top-Level
         public void GenerateGraph(
             GraphDefinition graphDef,
-            IEnumerable<Table> tables,
+            IEnumerable<Model> tables,
             IEnumerable<Association> associations,
-            IEnumerable<Table> extraTables,
+            IEnumerable<Model> extraModels,
             List<PolymorphicInterface> interfaces
             ) {
 
-            Graph graph = CreateGraph(tables, associations, extraTables, interfaces)
+            Graph graph = CreateGraph(tables, associations, extraModels, interfaces)
                 .SetAttrGraph("margin", "0.5")
                 .SetAttrGraph("notranslate", true);
 
@@ -41,20 +41,20 @@ namespace datamodel.graphviz {
             GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);
         }
 
-        public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables, List<PolymorphicInterface> interfaces) {
+        public Graph CreateGraph(IEnumerable<Model> tables, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
             Graph graph = new Graph();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
             // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
             // I've left the following line commented out in case this is ever needed.
             //.SetAttrGraph("imagepath", IMAGE_PATH);
 
-            IEnumerable<Table> allTables = tables.Union(extraTables);
+            IEnumerable<Model> allModels = tables.Union(extraModels);
 
-            foreach (Table table in tables)
-                graph.AddNode(TableToNode(allTables, table));
+            foreach (Model table in tables)
+                graph.AddNode(ModelToNode(allModels, table));
 
-            foreach (Table table in extraTables)
-                graph.AddNode(ExtraTableToNode(null, table));
+            foreach (Model table in extraModels)
+                graph.AddNode(ExtraModelToNode(null, table));
 
             foreach (Association association in associations)
                 graph.AddEdge(AssociationToEdge(association));
@@ -85,7 +85,7 @@ namespace datamodel.graphviz {
 
         private Edge PolymorphicInterfaceToEdge(PolymorphicInterface _interface) {
             Edge edge = new Edge() {
-                Source = TableToNodeId(_interface.Table),
+                Source = ModelToNodeId(_interface.Model),
                 Destination = _interface.Name,
             };
 
@@ -96,9 +96,9 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Models
-        private Node TableToNode(IEnumerable<Table> tables, Table table) {
+        private Node ModelToNode(IEnumerable<Model> tables, Model table) {
             Node node = new Node() {
-                Name = TableToNodeId(table),
+                Name = ModelToNodeId(table),
             };
 
             node.SetAttrGraph("style", "filled")
@@ -113,9 +113,9 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Extra Models - Not part of graph but added as "glue"
-        private Node ExtraTableToNode(IEnumerable<Table> tables, Table table) {
+        private Node ExtraModelToNode(IEnumerable<Model> tables, Model table) {
             Node node = new Node() {
-                Name = TableToNodeId(table),
+                Name = ModelToNodeId(table),
             };
 
             node.SetAttrGraph("shape", "Mrecord")
@@ -128,7 +128,7 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Common Node Creation
-        private HtmlEntity CreateLabel(IEnumerable<Table> tables, Table dbTable, bool includeColumns) {
+        private HtmlEntity CreateLabel(IEnumerable<Model> tables, Model dbModel, bool includeColumns) {
 
             HtmlTable table = new HtmlTable()
                 .SetAttrHtml("border", 0)
@@ -136,11 +136,11 @@ namespace datamodel.graphviz {
                 .SetAttrHtml("cellspacing", 0);
 
             // Header
-            string headerText = HtmlUtils.SetFont(HtmlUtils.MakeBold(dbTable.HumanName), 16);
+            string headerText = HtmlUtils.SetFont(HtmlUtils.MakeBold(dbModel.HumanName), 16);
 
             HtmlTd headerTd = new HtmlTd(headerText)
-                .SetAttrHtml("tooltip", string.IsNullOrEmpty(dbTable.Description) ? "No description provided" : dbTable.Description)
-                .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbTable));
+                .SetAttrHtml("tooltip", string.IsNullOrEmpty(dbModel.Description) ? "No description provided" : dbModel.Description)
+                .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbModel));
 
             table.AddTr(new HtmlTr(headerTd));
 
@@ -148,7 +148,7 @@ namespace datamodel.graphviz {
                 return table;
 
             // Columns
-            foreach (Column column in dbTable.AllColumns) {
+            foreach (Column column in dbModel.AllColumns) {
                 if (Schema.IsInteresting(column) &&
                     !column.Deprecated) {
 
@@ -160,21 +160,21 @@ namespace datamodel.graphviz {
 
                     // Foreign Key Column
                     if (column.IsFk) {
-                        Table referencedTable = column.FkInfo.ReferencedTable;
-                        if (tables.Contains(referencedTable))
+                        Model referencedModel = column.FkInfo.ReferencedModel;
+                        if (tables.Contains(referencedModel))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
                         else {
                             columnNameTd.Text = columnName;
 
-                            if (referencedTable != null) {
+                            if (referencedModel != null) {
                                 // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
-                                   .SetAttrHtml("tooltip", string.Format("Go to diagram which contains linked table: '{0}'", referencedTable.HumanName))
-                                   .SetAttrHtml("href", UrlService.Singleton.GetGraphs(referencedTable).First().SvgUrl));
+                                   .SetAttrHtml("tooltip", string.Format("Go to diagram which contains linked table: '{0}'", referencedModel.HumanName))
+                                   .SetAttrHtml("href", UrlService.Singleton.GetGraphs(referencedModel).First().SvgUrl));
 
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
-                                   .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedTable.HumanName))
-                                   .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedTable)));
+                                   .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedModel.HumanName))
+                                   .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
                             }
                         }
                     }
@@ -215,10 +215,10 @@ namespace datamodel.graphviz {
         #region Edges / Associations
         private Edge AssociationToEdge(Association association) {
             Edge edge = new Edge() {
-                Source = TableToNodeId(association.OtherSideTable),
+                Source = ModelToNodeId(association.OtherSideModel),
                 Destination = association.IsPolymorphic ?
                     association.OtherSidePolymorphicName :
-                    TableToNodeId(association.FkSideTable),
+                    ModelToNodeId(association.FkSideModel),
                 Association = association,
             };
 
@@ -254,7 +254,7 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Misc
-        private static string TableToNodeId(Table table) {
+        private static string ModelToNodeId(Model table) {
             return table.DbName;
         }
         #endregion

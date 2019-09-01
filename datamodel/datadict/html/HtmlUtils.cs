@@ -19,12 +19,12 @@ namespace datamodel.datadict.html {
             return MakeImage(relativeSource, url, cssClass, toolTip);
         }
 
-        public static HtmlRaw MakeIconForDocs(Table table) {
+        public static HtmlRaw MakeIconForDocs(Model table) {
             string docToolTip = string.Format("Go to Data Dictionary of linked table: {0}", table.HumanName);
             return MakeIcon(IconUtils.DOCS, UrlService.Singleton.DocUrl(table), docToolTip);
         }
 
-        public static HtmlBase MakeIconsForDiagrams(Table table, string cssClass) {
+        public static HtmlBase MakeIconsForDiagrams(Model table, string cssClass) {
             List<GraphDefinition> graphs = UrlService.Singleton.GetGraphs(table);
             HtmlElement span = new HtmlElement("span");
 
@@ -35,8 +35,8 @@ namespace datamodel.datadict.html {
         }
 
         public static HtmlBase MakeIconForDiagram(GraphDefinition graph, string cssClass) {
-            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}", LINE_BREAK, graph.Name, graph.CoreTables.Length);
-            HtmlBase link = MakeLink(graph.SvgUrl, graph.CoreTables.Length.ToString(), cssClass, toolTip);
+            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}", LINE_BREAK, graph.Name, graph.CoreModels.Length);
+            HtmlBase link = MakeLink(graph.SvgUrl, graph.CoreModels.Length.ToString(), cssClass, toolTip);
             return link;
         }
 

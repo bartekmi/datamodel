@@ -15,12 +15,12 @@ namespace datamodel.schema {
             return commaList.Split(",").Select(x => x.Trim()).ToArray();
         }
 
-        #region Parse Tables
-        public List<Table> ParseTables(YamlSequenceNode yamlEntities) {
-            List<Table> tables = new List<Table>();
+        #region Parse Models
+        public List<Model> ParseModels(YamlSequenceNode yamlEntities) {
+            List<Model> tables = new List<Model>();
 
             foreach (YamlMappingNode tableData in yamlEntities) {
-                Table table = new Table() {
+                Model table = new Model() {
                     ClassName = YamlUtils.GetString(tableData, "entity_name"),
                     SuperClassName = YamlUtils.GetString(tableData, "superclass"),
                     IsAbstract = YamlUtils.GetBoolean(tableData, "is_abstract"),

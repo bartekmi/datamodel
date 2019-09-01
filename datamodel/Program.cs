@@ -51,7 +51,7 @@ namespace datamodel {
         private static void GenerateGraphsAndDataDictionary() {
             ParseModelDirs();        // Extract teams and find paths of Ruby files
 
-            foreach (Table table in Schema.Singleton.Tables)
+            foreach (Model table in Schema.Singleton.Models)
                 if (table.ModelPath != null)
                     YamlAnnotationParser.Parse(table);
 
@@ -63,7 +63,7 @@ namespace datamodel {
             GraphGenerator.Generate(topLevel);
 
             IndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
-            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Tables);
+            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
 
         private static void ParseModelDirs() {

@@ -23,8 +23,8 @@ namespace datamodel.schema {
         public List<RailsAssociation> RailsAssociations = new List<RailsAssociation>();
 
         // Hydrated
-        public Table OtherSideTable { get; set; }
-        public Table FkSideTable { get; set; }
+        public Model OtherSideModel { get; set; }
+        public Model FkSideModel { get; set; }
 
         // Derived
         public bool Recursive { get { return OtherSide == FkSide; } }

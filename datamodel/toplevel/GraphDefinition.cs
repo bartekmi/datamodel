@@ -37,10 +37,10 @@ namespace datamodel.toplevel {
         public double? Sep { get; set; }
 
         // Core tables (defined by class names) - full attributes will be shown
-        public Table[] CoreTables { get; set; }
+        public Model[] CoreModels { get; set; }
 
         // Extra tables (defined by class names) - no attributes will be shown
-        public Table[] ExtraTables { get; set; }
+        public Model[] ExtraModels { get; set; }
 
         // Name components of this graph from general to specified - e.g. team/engine/module
         public string[] NameComponents { get; set; }
@@ -56,16 +56,16 @@ namespace datamodel.toplevel {
 
         public GraphDefinition() {
             Style = RenderingStyle.Dot;
-            CoreTables = new Table[0];
-            ExtraTables = new Table[0];
+            CoreModels = new Model[0];
+            ExtraModels = new Model[0];
         }
 
         // Validation code will kick-in once we import these from YAML
         public string[] Validate() {
             List<string> errors = new List<string>();
 
-            // Validate(errors, CoreTables);
-            // Validate(errors, ExtraTables);
+            // Validate(errors, CoreModels);
+            // Validate(errors, ExtraModels);
 
             return errors.ToArray();
         }

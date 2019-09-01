@@ -16,7 +16,7 @@ namespace datamodel.toplevel {
         public GraphDefinition Graph { get; set; }
 
         // List of Models - for Leav Items only
-        public Table[] Tables { get; set; }
+        public Model[] Models { get; set; }
 
         public int Level { get; set; }
 
@@ -26,8 +26,8 @@ namespace datamodel.toplevel {
         public bool IsNonLeaf { get { return !IsLeaf; } }
         public string SvgUrl { get { return Graph == null ? null : Graph.SvgUrl; } }
         public bool HasDiagram { get { return SvgUrl != null; } }
-        public IEnumerable<Table> CumulativeTables {
-            get { return IsLeaf ? Tables : Children.SelectMany(x => x.CumulativeTables); }
+        public IEnumerable<Model> CumulativeModels {
+            get { return IsLeaf ? Models : Children.SelectMany(x => x.CumulativeModels); }
         }
         public IEnumerable<string> CumulativeTitle {
             get {
@@ -37,7 +37,7 @@ namespace datamodel.toplevel {
                     Parent.CumulativeTitle.Concat(titleAsEnum);
             }
         }
-        public int CumulativeModelCount { get { return CumulativeTables.Count(); } }
+        public int CumulativeModelCount { get { return CumulativeModels.Count(); } }
 
         private HierarchyItem(HierarchyItem parent) {
             Children = new List<HierarchyItem>();
@@ -49,7 +49,7 @@ namespace datamodel.toplevel {
                 Title = "All Teams",
             };
 
-            foreach (var teamGrup in Schema.Singleton.Tables.GroupBy(x => x.Team).OrderBy(x => x.Key)) {
+            foreach (var teamGrup in Schema.Singleton.Models.GroupBy(x => x.Team).OrderBy(x => x.Key)) {
                 HierarchyItem teamItem = new HierarchyItem(topLevel) {
                     Title = teamGrup.Key == null ? "No Team" : ("Team " + teamGrup.Key),
                     IsUncategorizedCatchall = teamGrup.Key == null,
@@ -68,7 +68,7 @@ namespace datamodel.toplevel {
                         HierarchyItem moduleItem = new HierarchyItem(engineItem) {
                             Title = moduleGroup.Key == null ? "Non-Module" : ("Module " + moduleGroup.Key),
                             IsUncategorizedCatchall = moduleGroup.Key == null,
-                            Tables = moduleGroup.ToArray(),
+                            Models = moduleGroup.ToArray(),
                         };
                         engineItem.Children.Add(moduleItem);
 
@@ -95,7 +95,7 @@ namespace datamodel.toplevel {
 
                 //if (onlyChild.IsUncategorizedCatchall)          // See 1) above
                 if (onlyChild.IsLeaf) {
-                    Tables = onlyChild.Tables;
+                    Models = onlyChild.Models;
                     Children.Clear();
                 } else
                     Children = onlyChild.Children;

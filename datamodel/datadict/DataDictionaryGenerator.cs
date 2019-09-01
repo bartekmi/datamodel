@@ -11,10 +11,10 @@ using datamodel.toplevel;
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
 
-        public static void Generate(string rootDir, IEnumerable<Table> tables) {
-            foreach (Table table in tables) {
+        public static void Generate(string rootDir, IEnumerable<Model> tables) {
+            foreach (Model table in tables) {
                 if (string.IsNullOrWhiteSpace(table.Team)) {
-                    Console.WriteLine("Warning: Table '{0}' has no team", table.ClassName);
+                    Console.WriteLine("Warning: Model '{0}' has no team", table.ClassName);
                     continue;
                 }
 
@@ -25,11 +25,11 @@ namespace datamodel.datadict {
                 string filename = table.SanitizedClassName + ".html";
                 string path = Path.Combine(dir, filename);
 
-                GenerateForTable(table, path);
+                GenerateForModel(table, path);
             }
         }
 
-        private static void GenerateForTable(Table table, string path) {
+        private static void GenerateForModel(Model table, string path) {
             HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
 
             GenerateHeader(body, table);
@@ -40,23 +40,23 @@ namespace datamodel.datadict {
                 html.ToHtml(writer, 0);
         }
 
-        private static void GenerateHeader(HtmlElement body, Table dbTable) {
+        private static void GenerateHeader(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
-                    new HtmlElement("span", dbTable.HumanName).Attr("class", "heading1"),
+                    new HtmlElement("span", dbModel.HumanName).Attr("class", "heading1"),
                     new HtmlElement("span").Attr("class", "gap-left-large"),
-                    HtmlUtils.MakeIconsForDiagrams(dbTable, "h1-text-icon")
+                    HtmlUtils.MakeIconsForDiagrams(dbModel, "h1-text-icon")
                 )));
 
-            AddLabelAndData(table, "Team", dbTable.Team);
-            AddLabelAndData(table, "Engine", dbTable.Engine);
-            AddLabelAndData(table, "Database Table", dbTable.DbName);
-            AddLabelAndData(table, "Super-Class", dbTable.SuperClassName);
+            AddLabelAndData(table, "Team", dbModel.Team);
+            AddLabelAndData(table, "Engine", dbModel.Engine);
+            AddLabelAndData(table, "Database Table", dbModel.DbName);
+            AddLabelAndData(table, "Super-Class", dbModel.SuperClassName);
 
-            if (!string.IsNullOrEmpty(dbTable.Description))
-                table.Add(new HtmlTr(dbTable.Description));
+            if (!string.IsNullOrEmpty(dbModel.Description))
+                table.Add(new HtmlTr(dbModel.Description));
         }
 
         private static void AddLabelAndData(HtmlTable table, string label, string value) {
@@ -67,13 +67,13 @@ namespace datamodel.datadict {
             table.Add(new HtmlTr(text));
         }
 
-        private static void GenerateAttribute(HtmlElement body, Table dbTable) {
+        private static void GenerateAttribute(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.AddTr(new HtmlTr(new HtmlTh("Attributes")
                 .Attr("class", "heading2")));
 
-            foreach (Column column in dbTable.RegularColumns)
+            foreach (Column column in dbModel.RegularColumns)
                 if (Schema.IsInteresting(column)) {
                     // Column Header
                     table.AddTr(new HtmlTr(
@@ -89,21 +89,21 @@ namespace datamodel.datadict {
                 }
         }
 
-        private static void GenerateAssociations(HtmlElement body, Table dbTable) {
+        private static void GenerateAssociations(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.AddTr(new HtmlTr(new HtmlTh("Links / Associations")
                 .Attr("class", "heading2")));
 
-            foreach (Column column in dbTable.FkColumns)
+            foreach (Column column in dbModel.FkColumns)
                 if (Schema.IsInteresting(column)) {
-                    Table referencedTable = column.FkInfo.ReferencedTable;
+                    Model referencedModel = column.FkInfo.ReferencedModel;
 
                     HtmlBase docIcon = null;
                     HtmlBase diagramIcon = null;
-                    if (referencedTable != null) {
-                        docIcon = HtmlUtils.MakeIconForDocs(referencedTable);
-                        diagramIcon = HtmlUtils.MakeIconsForDiagrams(referencedTable, "text-icon");
+                    if (referencedModel != null) {
+                        docIcon = HtmlUtils.MakeIconForDocs(referencedModel);
+                        diagramIcon = HtmlUtils.MakeIconsForDiagrams(referencedModel, "text-icon");
                     }
 
                     table.AddTr(new HtmlTr(

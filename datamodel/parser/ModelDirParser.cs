@@ -29,12 +29,12 @@ namespace datamodel.parser {
                     if (!IsActiveRecord(reader, out string className, out string team))
                         continue;
 
-                    Table table = Schema.Singleton.FindByClassName(className);
+                    Model table = Schema.Singleton.FindByClassName(className);
 
                     if (table == null) {
                         Error.Log(new Error() {
                             Path = path,
-                            Message = string.Format("Table '{0}' not found in schema", className)
+                            Message = string.Format("Model '{0}' not found in schema", className)
                         });
                         continue;
                     }
@@ -77,7 +77,7 @@ namespace datamodel.parser {
                 matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
                 if (matches != null) {
                     string baseClass = matches[1];
-                    string unqualifiedBaseClass = Table.ExtractUnqualifiedClassName(baseClass);
+                    string unqualifiedBaseClass = Model.ExtractUnqualifiedClassName(baseClass);
 
                     if (unqualifiedBaseClass == "ApplicationRecord" ||
                         // Due to Ruby's complex class scope resolution mechanism, we only require

@@ -10,12 +10,12 @@ namespace datamodel.tools {
     public class YamlFileGenerator {
 
         public void Generate(Schema schema, string team) {
-            foreach (Table table in schema.Tables) {
+            foreach (Model table in schema.Models) {
                 if (team != null && table.Team != team)
                     continue;
 
                 if (table.ModelPath == null) {
-                    Error.Log(string.Format("Table {0} has no corresponding model. Class name = {1}", table.DbName, table.ClassName));
+                    Error.Log(string.Format("Model {0} has no corresponding model. Class name = {1}", table.DbName, table.ClassName));
                     continue;
                 }
 
@@ -37,7 +37,7 @@ namespace datamodel.tools {
             }
         }
 
-        private void WriteHeader(TextWriter writer, Table table) {
+        private void WriteHeader(TextWriter writer, Model table) {
             writer.WriteLine(
 @"description: YET_TO_BE_DEFINED
 group:"

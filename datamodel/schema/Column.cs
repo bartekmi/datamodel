@@ -42,7 +42,7 @@ namespace datamodel.schema {
         public string Issue { get; set; }
         public string Enum { get; set; }
         public string Group { get; set; }
-        public Table Owner { get; private set; }
+        public Model Owner { get; private set; }
 
         // Derived 
         public string HumanName { get { return NameUtils.SnakeCaseToHuman(DbName); } }
@@ -64,7 +64,7 @@ namespace datamodel.schema {
         // Relationships
         public FkInfo FkInfo { get; set; }
 
-        public Column(Table owner) {
+        public Column(Model owner) {
             Owner = owner;
         }
     }

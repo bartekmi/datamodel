@@ -75,13 +75,13 @@ namespace datamodel.datadict.index {
         private static HtmlElement GenerateFlatList() {
             HtmlElement list = new HtmlElement("div").Attr("class", "index-subpanel");
 
-            foreach (Table table in Schema.Singleton.Tables.OrderBy(x => x.ClassName))
+            foreach (Model table in Schema.Singleton.Models.OrderBy(x => x.ClassName))
                 list.Add(GenerateFlatListItem(table));
 
             return list;
         }
 
-        private static HtmlElement GenerateFlatListItem(Table table) {
+        private static HtmlElement GenerateFlatListItem(Model table) {
             HtmlElement div = new HtmlElement("div");
             HtmlElement span = div.Add(new HtmlElement("span"));
 
