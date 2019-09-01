@@ -255,7 +255,7 @@ namespace datamodel.graphviz {
 
         #region Misc
         private static string ModelToNodeId(Model table) {
-            return table.DbName;
+            return table.SanitizedClassName.Replace(':', '_');
         }
         #endregion
     }
