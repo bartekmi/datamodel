@@ -37,6 +37,23 @@ namespace datamodel.schema {
         internal Options Options;
         internal string[] Validations;
 
+        public override int GetHashCode() {
+            return Stringify().GetHashCode();
+        }
+
+        public override bool Equals(object obj) {
+            return obj is RailsAssociation && Stringify() == (obj as RailsAssociation).Stringify();
+        }
+
+        private string _strigified = null;
+        private string Stringify() {
+            if (_strigified == null)
+                _strigified = string.Join("|", new string[] {
+                    Name, OwningModel, OtherModel, ForeignKey, InverseOf, PluralName,
+                });
+            return _strigified;
+        }
+
         // Unused and possible unnecessary
         internal string ForeignType;
         internal string ClassName;

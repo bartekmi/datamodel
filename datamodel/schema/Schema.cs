@@ -54,7 +54,8 @@ namespace datamodel.schema {
             Schema schema = new Schema(tables);
 
             // Step Two: Associations
-            List<RailsAssociation> railsAssociations = _parser.ParseAssociations(YamlUtils.GetSequence(root, "associations"));
+            IEnumerable<RailsAssociation> railsAssociations = _parser.ParseAssociations(YamlUtils.GetSequence(root, "associations"));
+            railsAssociations = new HashSet<RailsAssociation>(railsAssociations);   // Make unique
             railsAssociations = schema.SetFkModelsAndClean(railsAssociations);
             schema.Associations = BuildAssociations(railsAssociations)
                 .Concat(BuildPolymorphicAssociations(railsAssociations))
@@ -67,7 +68,8 @@ namespace datamodel.schema {
             return schema;
         }
 
-        private void BuildPolymorphicInterfaces(List<RailsAssociation> railsAssociations) {
+        # region Polymorphic Interfaces
+        private void BuildPolymorphicInterfaces(IEnumerable<RailsAssociation> railsAssociations) {
             foreach (RailsAssociation railsAssoc in railsAssociations) {
                 if (railsAssoc.IsPolymorphicInterface) {
                     PolymorphicInterface _interface = new PolymorphicInterface(railsAssoc);
@@ -76,7 +78,7 @@ namespace datamodel.schema {
             }
         }
 
-        private static List<Association> BuildPolymorphicAssociations(List<RailsAssociation> railsAssociations) {
+        private static List<Association> BuildPolymorphicAssociations(IEnumerable<RailsAssociation> railsAssociations) {
             List<Association> associations = new List<Association>();
 
             foreach (RailsAssociation railsAssoc in railsAssociations) {
@@ -92,8 +94,11 @@ namespace datamodel.schema {
 
             return associations;
         }
+        #endregion
 
-        private static List<Association> BuildAssociations(List<RailsAssociation> railsAssociations) {
+        #region Associations
+
+        private static List<Association> BuildAssociations(IEnumerable<RailsAssociation> railsAssociations) {
             Dictionary<string, RailsAssociation> reverseAssociationDict = new Dictionary<string, RailsAssociation>();
             foreach (RailsAssociation ra in railsAssociations.Where(x => x.IsReverse)) {
                 string key = MakeKey(ra, false);
@@ -184,12 +189,12 @@ namespace datamodel.schema {
             return Multiplicity.ZeroOrOne;
         }
         #endregion
-
+        #endregion
         #endregion
 
         #region Rehydrate
 
-        private List<RailsAssociation> SetFkModelsAndClean(List<RailsAssociation> dirties) {
+        private List<RailsAssociation> SetFkModelsAndClean(IEnumerable<RailsAssociation> dirties) {
             List<RailsAssociation> cleans = new List<RailsAssociation>();
 
             foreach (RailsAssociation ra in dirties) {
