@@ -18,8 +18,7 @@ namespace datamodel.graphviz {
             IEnumerable<Model> tables,
             IEnumerable<Association> associations,
             IEnumerable<Model> extraModels,
-            List<PolymorphicInterface> interfaces
-            ) {
+            List<PolymorphicInterface> interfaces) {
 
             Graph graph = CreateGraph(tables, associations, extraModels, interfaces)
                 .SetAttrGraph("margin", "0.5")
@@ -64,7 +63,31 @@ namespace datamodel.graphviz {
                 graph.AddEdge(PolymorphicInterfaceToEdge(_interface));
             }
 
+            foreach (Model model in allModels.Where(x => x.Superclass != null))
+                if (allModels.Contains(model.Superclass))
+                    graph.AddEdge(SuplerclassLinkToEdge(model));
+
             return graph;
+        }
+        #endregion
+
+        #region Superclass Relationships
+        private Edge SuplerclassLinkToEdge(Model model) {
+            // The source/destination ordering here is important and forces the 
+            // superclass to be above the derived class
+            Edge edge = new Edge() {
+                Source = ModelToNodeId(model.Superclass),
+                Destination = ModelToNodeId(model),
+            };
+
+            edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
+                .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
+                .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
+                .SetAttrGraph("arrowhead", "none")
+                .SetAttrGraph("arrowtail", "onormal")
+                .SetAttrGraph("tailport", "s");     // Forces arrow to connect to center bottom. 
+
+            return edge;
         }
         #endregion
 

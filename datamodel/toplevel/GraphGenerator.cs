@@ -38,6 +38,17 @@ namespace datamodel.toplevel {
 
         internal static void Generate(GraphDefinition graphDef) {
 
+
+            IEnumerable<Model> externalSuperclasses = graphDef.CoreModels
+                .Where(x => x.Superclass != null)
+                .Select(x => x.Superclass)
+                .Distinct()
+                .Where(x => !graphDef.CoreModels.Contains(x));
+
+            IEnumerable<Model> externalModels = graphDef.ExtraModels
+                .Concat(externalSuperclasses)
+                .Distinct();
+
             IEnumerable<Model> allModels = graphDef.CoreModels.Union(graphDef.ExtraModels);
             Dictionary<string, Model> tablesDict = allModels.ToDictionary(x => x.ClassName);
 
@@ -54,7 +65,7 @@ namespace datamodel.toplevel {
                 graphDef,
                 graphDef.CoreModels,
                 associations,
-                graphDef.ExtraModels,
+                externalModels,
                 polymorphicInterfaces.Values.ToList());
         }
     }
