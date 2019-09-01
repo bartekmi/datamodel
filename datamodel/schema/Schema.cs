@@ -33,6 +33,7 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
         private Dictionary<string, Table> _byClassName;
         private HashSet<string> _teamNames;
+        private HashSet<string> _unqualifiedClassNames;
 
         private Schema(List<Table> tables) {
             Tables = tables;
@@ -48,6 +49,7 @@ namespace datamodel.schema {
             // Step One: Entities
             YamlSchemaParser _parser = new YamlSchemaParser();
             List<Table> tables = _parser.ParseTables(YamlUtils.GetSequence(root, "entities"));
+            tables = tables.Where(x => !x.ClassName.Contains("HABTM")).ToList();        // Ignore dummy tables for "Has And Belongs To Many"
 
             Schema schema = new Schema(tables);
 
@@ -265,6 +267,13 @@ namespace datamodel.schema {
                 _teamNames = new HashSet<string>(Tables.Select(x => x.Team));
 
             return _teamNames.Contains(team);
+        }
+
+        public bool UnqualifiedClassNameExists(string unqualifiedClassName) {
+            if (_unqualifiedClassNames == null)
+                _unqualifiedClassNames = new HashSet<string>(Tables.Select(x => x.UnqualifiedClassName));
+
+            return _unqualifiedClassNames.Contains(unqualifiedClassName);
         }
 
         public Table FindByClassName(string className) {

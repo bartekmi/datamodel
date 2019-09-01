@@ -23,34 +23,25 @@ namespace datamodel.schema {
                 Table table = new Table() {
                     ClassName = YamlUtils.GetString(tableData, "entity_name"),
                     SuperClassName = YamlUtils.GetString(tableData, "superclass"),
-                    IsSpecialized = YamlUtils.GetBoolean(tableData, "specialized"),
+                    IsAbstract = YamlUtils.GetBoolean(tableData, "is_abstract"),
                     DbName = YamlUtils.GetString(tableData, "table_name"),
                 };
 
                 // Columns
                 YamlSequenceNode yamlColumns = YamlUtils.GetSequence(tableData, "columns");
-                if (yamlColumns == null)
-                    continue;           // No columns means ??? - things like 'session' whatever that is
-
                 List<Column> columns = new List<Column>();
-                IEnumerable<string> allColumns = yamlColumns.Select(x => YamlUtils.GetString((YamlMappingNode)x, "name"));
 
-                foreach (YamlMappingNode columnData in yamlColumns)
-                    columns.Add(new Column(table) {
-                        DbName = YamlUtils.GetString(columnData, "name"),
-                        DbTypeString = YamlUtils.GetString(columnData, "type"),
-                        DbType = ToDbType(YamlUtils.GetString(columnData, "type")),
-                        IsNull = YamlUtils.GetBoolean(columnData, "null"),
-                        Validations = CommaListToArray(YamlUtils.GetString(columnData, "validations")),
-                    });
+                if (yamlColumns != null)
+                    foreach (YamlMappingNode columnData in yamlColumns)
+                        columns.Add(new Column(table) {
+                            DbName = YamlUtils.GetString(columnData, "name"),
+                            DbTypeString = YamlUtils.GetString(columnData, "type"),
+                            DbType = ToDbType(YamlUtils.GetString(columnData, "type")),
+                            IsNull = YamlUtils.GetBoolean(columnData, "null"),
+                            Validations = CommaListToArray(YamlUtils.GetString(columnData, "validations")),
+                        });
 
                 table.AllColumns = columns.OrderBy(x => x.HumanName).ToList();
-
-                bool isDerived = table.SuperClassName != "ApplicationRecord" && table.SuperClassName != "ActiveRecord::Base";
-                // TODO(bartekmi) Decide what to do with this
-                // if (isDerived)
-                //     Console.WriteLine("Warning: skipping table {0} because it is derived from {1}", table.ClassName, table.SuperClassName);
-                // else
                 tables.Add(table);
             }
 

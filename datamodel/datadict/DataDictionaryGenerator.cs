@@ -6,6 +6,7 @@ using System.Linq;
 using datamodel.schema;
 using datamodel.datadict.html;
 using datamodel.utils;
+using datamodel.toplevel;
 
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
@@ -29,13 +30,7 @@ namespace datamodel.datadict {
         }
 
         private static void GenerateForTable(Table table, string path) {
-            HtmlElement html = new HtmlElement("html");
-            html.Add(new HtmlElement("head")
-                    .Add(new HtmlElement("link")
-                        .Attr("rel", "stylesheet")
-                        .Attr("href", UrlUtils.ToCssUrl("datadict.css"))));
-
-            HtmlElement body = html.Add(new HtmlElement("body"));
+            HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
 
             GenerateHeader(body, table);
             GenerateAttribute(body, table);
@@ -52,7 +47,7 @@ namespace datamodel.datadict {
                  new HtmlElement("th",
                     new HtmlElement("span", dbTable.HumanName).Attr("class", "heading1"),
                     new HtmlElement("span").Attr("class", "gap-left-large"),
-                    new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DIAGRAM, dbTable.SvgUrl, "Go to diagram which contains this table", "h1-icon"))
+                    HtmlUtils.MakeIconsForDiagrams(dbTable, "h1-text-icon")
                 )));
 
             AddLabelAndData(table, "Team", dbTable.Team);
@@ -104,14 +99,11 @@ namespace datamodel.datadict {
                 if (Schema.IsInteresting(column)) {
                     Table referencedTable = column.FkInfo.ReferencedTable;
 
-                    HtmlRaw docIcon = null;
-                    HtmlRaw diagramIcon = null;
+                    HtmlBase docIcon = null;
+                    HtmlBase diagramIcon = null;
                     if (referencedTable != null) {
-                        string docToolTip = string.Format("Go to Data Dictionary of linked table: {0}", referencedTable.HumanName);
-                        docIcon = new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DOCS, referencedTable.DocUrl, docToolTip));
-
-                        string diagramToolTip = string.Format("Go to diagram which contains linked table: {0}", referencedTable.HumanName);
-                        diagramIcon = new HtmlRaw(HtmlUtils.MakeIcon(IconUtils.DIAGRAM, referencedTable.SvgUrl, diagramToolTip));
+                        docIcon = HtmlUtils.MakeIconForDocs(referencedTable);
+                        diagramIcon = HtmlUtils.MakeIconsForDiagrams(referencedTable, "text-icon");
                     }
 
                     table.AddTr(new HtmlTr(

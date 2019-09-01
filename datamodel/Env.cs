@@ -1,4 +1,5 @@
 using System.IO;
+using System.Collections.Generic;
 
 namespace datamodel {
     public static class Env {
@@ -41,19 +42,33 @@ namespace datamodel {
             HTTP_ROOT = "/~bmuszynski";
         }
 
-        private static void ConfigureMac() {
+        private static void ConfigureMacFlexport() {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
             REPO_ROOT = UserPath(@"datamodel");
             ROOT_MODEL_DIR = UserPath("flexport");
-            MODEL_DIRS = new string[] {
-                "app/models",
-                "app/models/rates",
-                "engines/customs/app/models/customs",
-                "engines/operational_route/app/models/operational_route" };
+            MODEL_DIRS = FindModelDirs();
+            //MODEL_DIRS = new string[] { "engines/financial_ledger/app/models/financial_ledger/internal" };
             SCHEMA_FILE = UserPath("flexport/bartek_raw_2.txt");
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
+        }
+
+        private static string[] FindModelDirs() {
+            List<string> modelDirs = new List<string>();
+
+            foreach (string engineFullPath in Directory.GetDirectories(UserPath("flexport/engines"))) {
+                string dirFullPath = Path.Combine(engineFullPath, "app", "models");
+                if (!Directory.Exists(dirFullPath))
+                    continue;
+                string dirName = Path.GetFileName(engineFullPath);
+                modelDirs.Add(string.Format("engines/{0}/app/models", dirName));
+            }
+
+            modelDirs.Add("app/models");
+            modelDirs.Add("app/services");      // E.g. Partners::PartnerKnownConsignor. Evil? Who am I to judge.
+
+            return modelDirs.ToArray();
         }
 
         private static string UserPath(string path) {
@@ -75,7 +90,7 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            ConfigureMac();
+            ConfigureMacFlexport();
             // ConfigureMacTrinity();
         }
     }

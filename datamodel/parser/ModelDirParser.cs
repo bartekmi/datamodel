@@ -8,6 +8,8 @@ using datamodel.utils;
 
 namespace datamodel.parser {
 
+    // This parser parses (nearly) all Models in our code-base, extracting the following
+    // 1) Team Name, 2) Class Name
     public class ModelDirParser {
 
         private List<Error> _errors;
@@ -57,8 +59,8 @@ namespace datamodel.parser {
             team = null;
 
             string teamPattern = "#\\s*TEAM:\\s*([a-zA-Z0-9_]+)";
-            string modulePattern = "\\s*module\\s*([a-zA-Z0-9_]+)";
-            string classDefPattern = "class (([a-zA-Z0-9_]+::)?[a-zA-Z0-9_]+)\\s+<\\s+([a-zA-Z0-9_]+)";
+            string modulePattern = "\\s*module\\s+([a-zA-Z0-9_:]+)";
+            string classDefPattern = "class\\s+([a-zA-Z0-9_:]+)\\s*<\\s*([a-zA-Z0-9_:]+)";
 
             string line = null;
             List<string> modules = new List<string>();
@@ -74,13 +76,19 @@ namespace datamodel.parser {
 
                 matches = RegExUtils.GetCaptureGroups(line, classDefPattern, null);
                 if (matches != null) {
-                    string baseClass = matches[2];      // match[1] appears to be the inner parentheses before the '::'
-                    string qualifiedBaseClass = CreateQualifiedName(modules, baseClass);
-                    if (baseClass == "ApplicationRecord" || Schema.Singleton.IsValidClassName(qualifiedBaseClass)) {
+                    string baseClass = matches[1];
+                    string unqualifiedBaseClass = Table.ExtractUnqualifiedClassName(baseClass);
+
+                    if (unqualifiedBaseClass == "ApplicationRecord" ||
+                        // Due to Ruby's complex class scope resolution mechanism, we only require
+                        // the un-qualified base class to be among the model classes.
+                        // There is an ever-so-slight risk of a non-model class deriving from a base-class
+                        // with an identical name to a ligit Model class, but we're ok with that.
+                        Schema.Singleton.UnqualifiedClassNameExists(unqualifiedBaseClass)) {
+
                         className = CreateQualifiedName(modules, matches[0]);
                         return true;
-                    } else
-                        return false;
+                    }
                 }
             }
 

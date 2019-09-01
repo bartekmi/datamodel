@@ -6,7 +6,7 @@ using System.Linq;
 using datamodel.schema;
 using datamodel.graphviz.dot;
 using datamodel.utils;
-using datamodel.graph;
+using datamodel.toplevel;
 
 namespace datamodel.graphviz {
 
@@ -15,7 +15,7 @@ namespace datamodel.graphviz {
         #region Top-Level
         public void GenerateGraph(
             GraphDefinition graphDef,
-            string path, IEnumerable<Table> tables,
+            IEnumerable<Table> tables,
             IEnumerable<Association> associations,
             IEnumerable<Table> extraTables,
             List<PolymorphicInterface> interfaces
@@ -31,8 +31,14 @@ namespace datamodel.graphviz {
             if (graphDef.Len != null)
                 graph.SetAttrGraph("len", graphDef.Len.Value);
 
-            using (TextWriter writer = new StreamWriter(path))
+            string baseName = graphDef.FullyQualifiedName;
+            string dotPath = Path.Combine(Env.TEMP_DIR, baseName + ".dot");
+
+            using (TextWriter writer = new StreamWriter(dotPath))
                 graph.ToDot(writer);
+
+            string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".svg");
+            GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);
         }
 
         public Graph CreateGraph(IEnumerable<Table> tables, IEnumerable<Association> associations, IEnumerable<Table> extraTables, List<PolymorphicInterface> interfaces) {
@@ -89,7 +95,7 @@ namespace datamodel.graphviz {
         }
         #endregion
 
-        #region Tables
+        #region Models
         private Node TableToNode(IEnumerable<Table> tables, Table table) {
             Node node = new Node() {
                 Name = TableToNodeId(table),
@@ -106,7 +112,7 @@ namespace datamodel.graphviz {
 
         #endregion
 
-        #region Extra Tables - Not part of graph but added as "glue"
+        #region Extra Models - Not part of graph but added as "glue"
         private Node ExtraTableToNode(IEnumerable<Table> tables, Table table) {
             Node node = new Node() {
                 Name = TableToNodeId(table),
@@ -134,7 +140,7 @@ namespace datamodel.graphviz {
 
             HtmlTd headerTd = new HtmlTd(headerText)
                 .SetAttrHtml("tooltip", string.IsNullOrEmpty(dbTable.Description) ? "No description provided" : dbTable.Description)
-                .SetAttrHtml("href", dbTable.DocUrl);
+                .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbTable));
 
             table.AddTr(new HtmlTr(headerTd));
 
@@ -161,13 +167,14 @@ namespace datamodel.graphviz {
                             columnNameTd.Text = columnName;
 
                             if (referencedTable != null) {
+                                // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
                                    .SetAttrHtml("tooltip", string.Format("Go to diagram which contains linked table: '{0}'", referencedTable.HumanName))
-                                   .SetAttrHtml("href", referencedTable.SvgUrl));
+                                   .SetAttrHtml("href", UrlService.Singleton.GetGraphs(referencedTable).First().SvgUrl));
 
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
                                    .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedTable.HumanName))
-                                   .SetAttrHtml("href", referencedTable.DocUrl));
+                                   .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedTable)));
                             }
                         }
                     }

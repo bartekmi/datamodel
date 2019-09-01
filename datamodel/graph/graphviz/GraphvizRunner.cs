@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using datamodel.graph;
+using datamodel.toplevel;
 
 namespace datamodel.graphviz {
     public static class GraphvizRunner {

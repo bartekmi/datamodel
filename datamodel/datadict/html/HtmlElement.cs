@@ -7,7 +7,7 @@ namespace datamodel.datadict.html {
     public class HtmlElement : HtmlBase {
 
         private string _tag;
-        private string _text;
+        public string Text { get; set; }
         private List<HtmlBase> _children = new List<HtmlBase>();
         private List<HtmlAttribute> _attributes = new List<HtmlAttribute>();
 
@@ -20,7 +20,7 @@ namespace datamodel.datadict.html {
 
         public HtmlElement(string tag, string text = null) {
             _tag = tag;
-            _text = text;
+            Text = text;
         }
 
         public HtmlElement(string tag, params HtmlBase[] children) {
@@ -32,10 +32,16 @@ namespace datamodel.datadict.html {
             _attributes.Add(new HtmlAttribute(name, value));
         }
 
-        public T Add<T>(T child) where T : HtmlElement {
+        public T Add<T>(T child) where T : HtmlBase {
             _children.Add(child);
             return child;
         }
+
+        // public HtmlRaw Add(string rawHtml) {
+        //     HtmlRaw raw = new HtmlRaw(rawHtml);
+        //     _children.Add(raw);
+        //     return raw;
+        // }
 
         public override void ToHtml(TextWriter writer, int indent) {
             bool multiline = _children.Count > 0;
@@ -47,8 +53,8 @@ namespace datamodel.datadict.html {
                 writer.WriteLine();
 
             // Text Content
-            if (_text != null)
-                writer.Write(_text);
+            if (Text != null)
+                writer.Write(Text);
 
             // Children
             foreach (HtmlBase child in _children)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using datamodel.utils;
+using datamodel.toplevel;
 
 namespace datamodel.schema {
     public enum DataType {
@@ -46,7 +47,7 @@ namespace datamodel.schema {
         // Derived 
         public string HumanName { get { return NameUtils.SnakeCaseToHuman(DbName); } }
         public bool IsFk { get { return FkInfo != null; } }
-        public string DocUrl { get { return string.Format("{0}#{1}", Owner.DocUrl, DbName); } }
+        public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), DbName); } }
         public string[] DescriptionParagraphs {
             get {
                 if (string.IsNullOrWhiteSpace(Description))
