@@ -1,4 +1,6 @@
-﻿body {
+﻿/* ------------------------------------------------------------- */
+/* Html Elements */
+body {
   font-family: arial, sans-serif;
 }
 
@@ -18,10 +20,11 @@ th {
   background-color: #99ccff;
 }
 
-tr:nth-child(even) {
+/* tr:nth-child(even) {
   background-color: #dddddd;
-}
+} */
 
+/* ------------------------------------------------------------- */
 /* Classes */
 .heading1 {
   font-size: 40px;
@@ -47,6 +50,10 @@ tr:nth-child(even) {
   color: gray;
 }
 
+.attribute {
+  background-color: rgb(213, 235, 255);
+}
+/* Icons (Image and Text */
 .icon {
   width: 20px;
   height: 20px;
@@ -68,6 +75,20 @@ tr:nth-child(even) {
   margin: 2px 4px;
   padding: 2px 4px;
   background-color: lightgray;
+}
+
+/* Enum Table */
+.enum-table {
+  margin-left: 50px;
+  width: auto;
+}
+
+.enum-header th {
+  background-color: #9fbad4;
+}
+
+.enum-data td {
+  background-color: #d2d7f3;
 }
 
 /* Index Classes */

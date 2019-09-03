@@ -12,6 +12,7 @@ namespace datamodel.schema {
         String,
         Text,     // Long string
         Integer,
+        Enum,
         BigInt,
         Decimal,
         Float,
@@ -40,7 +41,7 @@ namespace datamodel.schema {
         public Visibility Visibility { get; set; }
         public bool Deprecated { get; set; }
         public string Issue { get; set; }
-        public string Enum { get; set; }
+        public Enum Enum { get; set; }
         public string Group { get; set; }
         public Model Owner { get; private set; }
 
@@ -66,6 +67,10 @@ namespace datamodel.schema {
 
         public Column(Model owner) {
             Owner = owner;
+        }
+
+        public override string ToString() {
+            return string.Format("{0}.{1}", Owner.ClassName, DbName);
         }
     }
 }

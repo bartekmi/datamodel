@@ -11,42 +11,42 @@ using datamodel.toplevel;
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
 
-        public static void Generate(string rootDir, IEnumerable<Model> tables) {
-            foreach (Model table in tables) {
-                if (string.IsNullOrWhiteSpace(table.Team)) {
-                    Console.WriteLine("Warning: Model '{0}' has no team", table.ClassName);
+        public static void Generate(string rootDir, IEnumerable<Model> models) {
+            foreach (Model model in models) {
+                if (string.IsNullOrWhiteSpace(model.Team)) {
+                    Console.WriteLine("Warning: Model '{0}' has no team", model.ClassName);
                     continue;
                 }
 
-                string dir = Path.Combine(rootDir, table.Team);
+                string dir = Path.Combine(rootDir, model.Team);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
-                string filename = table.SanitizedClassName + ".html";
+                string filename = model.SanitizedClassName + ".html";
                 string path = Path.Combine(dir, filename);
 
-                GenerateForModel(table, path);
+                GenerateForModel(model, path);
             }
         }
 
-        private static void GenerateForModel(Model table, string path) {
+        private static void GenerateForModel(Model model, string path) {
             HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
 
-            GenerateHeader(body, table);
-            GenerateAttribute(body, table);
-            GenerateAssociations(body, table);
+            GenerateModelHeader(body, model);
+            GenerateModelAttributes(body, model);
+            GenerateModelAssociations(body, model);
 
             using (StreamWriter writer = new StreamWriter(path))
                 html.ToHtml(writer, 0);
         }
 
-        private static void GenerateHeader(HtmlElement body, Model dbModel) {
+        private static void GenerateModelHeader(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
-                    new HtmlElement("span", dbModel.HumanName).Attr("class", "heading1"),
-                    new HtmlElement("span").Attr("class", "gap-left-large"),
+                    new HtmlElement("span", dbModel.HumanName).Class("heading1"),
+                    new HtmlElement("span").Class("gap-left-large"),
                     HtmlUtils.MakeIconsForDiagrams(dbModel, "h1-text-icon")
                 )));
 
@@ -67,33 +67,35 @@ namespace datamodel.datadict {
             table.Add(new HtmlTr(text));
         }
 
-        private static void GenerateAttribute(HtmlElement body, Model dbModel) {
+        private static void GenerateModelAttributes(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(new HtmlTh("Attributes")
-                .Attr("class", "heading2")));
+            table.AddTr(new HtmlTr(new HtmlTh("Attributes").Class("heading2")));
 
             foreach (Column column in dbModel.RegularColumns)
                 if (Schema.IsInteresting(column)) {
                     // Column Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
-                            new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
-                            new HtmlElement("span", "(" + column.DbTypeString + ")").Attr("class", "faded gap-left"),
+                            new HtmlElement("span", column.HumanName).Class("heading3"),
+                            new HtmlElement("span", "(" + column.DbType + ")").Class("faded gap-left"),
                             DeprecatedSpan(column)
                         )
-                      ).Attr("id", column.DbName));        // Id for anchor
+                      ).Attr("id", column.DbName)
+                       .Class("attribute"));        // Id for anchor
 
                     // Column Description
                     AddDescriptionRow(table, column);
+
+                    // Column Enum Values
+                    AddEnumValuesRow(table, column);
                 }
         }
 
-        private static void GenerateAssociations(HtmlElement body, Model dbModel) {
+        private static void GenerateModelAssociations(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(new HtmlTh("Links / Associations")
-                .Attr("class", "heading2")));
+            table.AddTr(new HtmlTr(new HtmlTh("Links / Associations").Class("heading2")));
 
             foreach (Column column in dbModel.FkColumns)
                 if (Schema.IsInteresting(column)) {
@@ -106,12 +108,13 @@ namespace datamodel.datadict {
                         diagramIcon = HtmlUtils.MakeIconsForDiagrams(referencedModel, "text-icon");
                     }
 
+                    // Column Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
-                            new HtmlElement("span", column.HumanName).Attr("class", "heading3"),
-                            new HtmlElement("span").Attr("class", "gap-left"),
+                            new HtmlElement("span", column.HumanName).Class("heading3"),
+                            new HtmlElement("span").Class("gap-left"),
                             diagramIcon,
-                            new HtmlElement("span").Attr("class", "gap-left"),
+                            new HtmlElement("span").Class("gap-left"),
                             docIcon,
                             DeprecatedSpan(column)
                         )
@@ -126,14 +129,30 @@ namespace datamodel.datadict {
             HtmlTd descriptionTd = table
                 .Add(new HtmlTr())
                 .Add(new HtmlTd())
-                .Attr("class", "text");
+                .Class("text");
             foreach (string paragraphText in column.DescriptionParagraphs)
                 descriptionTd.Add(new HtmlP(paragraphText));
         }
 
+        private static void AddEnumValuesRow(HtmlTable table, Column column) {
+            if (column.Enum != null) {
+                HtmlTd enumValuesTd = table
+                    .Add(new HtmlTr())
+                    .Add(new HtmlTd());
+
+                enumValuesTd.Add(new HtmlTable(
+                        new HtmlTr(new HtmlTh("Enum Values"),
+                            new HtmlTh("Enum Descriptions")).Class("enum-header"),
+                        column.Enum.Values.Select(x =>
+                            new HtmlTr(x.Key.ToString(), x.Value).Class("enum-data"))
+                    ).Class("enum-table")
+                );
+            }
+        }
+
         private static HtmlElement DeprecatedSpan(IDbElement dbElement) {
             if (dbElement.Deprecated)
-                return new HtmlElement("span", "[DEPRECATED]").Attr("class", "heading3 gap-left");
+                return new HtmlElement("span", "[DEPRECATED]").Class("heading3 gap-left");
             return null;
         }
     }

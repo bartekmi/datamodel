@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using datamodel.utils;
-using YamlDotNet.RepresentationModel;
 
 namespace datamodel.schema {
     public class Schema {
@@ -44,17 +43,16 @@ namespace datamodel.schema {
 
         #region Creation
         private static Schema ParseSchema() {
-            YamlMappingNode root = (YamlMappingNode)YamlUtils.ReadYaml(Env.SCHEMA_FILE).RootNode;
 
             // Step One: Entities
-            YamlSchemaParser _parser = new YamlSchemaParser();
-            List<Model> tables = _parser.ParseModels(YamlUtils.GetSequence(root, "entities"));
+            YamlSchemaParser parser = new YamlSchemaParser();
+            List<Model> tables = parser.ParseModels();
             tables = tables.Where(x => !x.ClassName.Contains("HABTM")).ToList();        // Ignore dummy tables for "Has And Belongs To Many"
 
             Schema schema = new Schema(tables);
 
             // Step Two: Associations
-            IEnumerable<RailsAssociation> railsAssociations = _parser.ParseAssociations(YamlUtils.GetSequence(root, "associations"));
+            IEnumerable<RailsAssociation> railsAssociations = parser.ParseAssociations();
             railsAssociations = new HashSet<RailsAssociation>(railsAssociations);   // Make unique
             railsAssociations = schema.SetFkModelsAndClean(railsAssociations);
             schema.Associations = BuildAssociations(railsAssociations)

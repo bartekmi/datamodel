@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
 
 using datamodel.schema;
 using datamodel.graphviz;
-using datamodel.utils;
 
 namespace datamodel.toplevel {
 
@@ -27,7 +24,7 @@ namespace datamodel.toplevel {
         }
 
         private static void CreateGraphDefinition(HierarchyItem item) {
-            if (!item.IsTop) {
+            if (!item.IsTop || Env.GENERATE_TOP_LEVEL_GRAPH) {
                 item.Graph = new GraphDefinition() {
                     CoreModels = item.CumulativeModels.ToArray(),
                     NameComponents = item.CumulativeTitle.ToArray(),

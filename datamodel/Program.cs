@@ -8,7 +8,6 @@ using datamodel.parser;
 using datamodel.schema;
 using datamodel.tools;
 using datamodel.datadict;
-using datamodel.datadict.index;
 using datamodel.toplevel;
 using datamodel.utils;
 

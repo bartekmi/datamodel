@@ -12,14 +12,19 @@ namespace datamodel.datadict.html {
             // Do nothing
         }
 
-        public HtmlTr(params HtmlTd[] tds) : base("tr") {
+        public HtmlTr(params HtmlTd[] tds) : this() {
             foreach (HtmlTd td in tds)
                 Add(td);
         }
 
-        public HtmlTr(params HtmlTh[] tds) : base("tr") {
+        public HtmlTr(params HtmlTh[] tds) : this() {
             foreach (HtmlTh td in tds)
                 Add(td);
+        }
+
+        public HtmlTr(params string[] datas) : this() {
+            foreach (string data in datas)
+                Add(new HtmlTd(data));
         }
     }
 }

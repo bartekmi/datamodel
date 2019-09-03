@@ -40,5 +40,10 @@ namespace datamodel.utils {
 
             return bool.Parse(value);
         }
+
+        public static int GetInt(YamlMappingNode node, string key) {
+            string value = GetString(node, key, false);
+            return int.Parse(value);
+        }
     }
 }

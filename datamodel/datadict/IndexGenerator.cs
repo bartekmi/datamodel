@@ -8,7 +8,7 @@ using datamodel.toplevel;
 using datamodel.datadict.html;
 using datamodel.schema;
 
-namespace datamodel.datadict.index {
+namespace datamodel.datadict {
     public static class IndexGenerator {
 
         #region Top Level
@@ -28,14 +28,14 @@ namespace datamodel.datadict.index {
 
         private static HtmlElement GenerateTopContainer() {
             HtmlElement topContainer = new HtmlElement("div")
-                .Attr("class", "index-container");
+                .Class("index-container");
             return topContainer;
         }
         #endregion
 
         #region Hierarchy
         private static HtmlElement GenerateHierarchy(HierarchyItem hierarchyItem) {
-            HtmlElement hierarchyHtml = new HtmlElement("div").Attr("class", "index-subpanel");
+            HtmlElement hierarchyHtml = new HtmlElement("div").Class("index-subpanel");
             AddHierarchyToParentRecursively(hierarchyHtml, hierarchyItem);
             return hierarchyHtml;
         }
@@ -73,9 +73,9 @@ namespace datamodel.datadict.index {
 
         #region Flat List
         private static HtmlElement GenerateFlatList() {
-            HtmlElement list = new HtmlElement("div").Attr("class", "index-subpanel");
+            HtmlElement list = new HtmlElement("div").Class("index-subpanel");
 
-            foreach (Model table in Schema.Singleton.Models.OrderBy(x => x.ClassName))
+            foreach (Model table in Schema.Singleton.Models.OrderBy(x => x.HumanName))
                 list.Add(GenerateFlatListItem(table));
 
             return list;

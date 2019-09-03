@@ -29,6 +29,9 @@ namespace datamodel {
         // We need this because on the Mac, all user-accessible content lives in http://localhost/~user
         public static string HTTP_ROOT;
 
+        // Generate a graph for the top level of the team hierarchy?
+        public static bool GENERATE_TOP_LEVEL_GRAPH;
+
         private static void ConfigureMacTrinity() {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
@@ -40,6 +43,7 @@ namespace datamodel {
             SCHEMA_FILE = UserPath("trinity/bartek_raw_2.txt");
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
+            GENERATE_TOP_LEVEL_GRAPH = true;
         }
 
         private static void ConfigureMacFlexport() {
@@ -52,6 +56,7 @@ namespace datamodel {
             SCHEMA_FILE = UserPath("flexport/bartek_raw_2.txt");
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
+            GENERATE_TOP_LEVEL_GRAPH = false;
         }
 
         private static string[] FindModelDirs() {
@@ -90,8 +95,8 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            ConfigureMacFlexport();
             // ConfigureMacTrinity();
+            ConfigureMacFlexport();
         }
     }
 }

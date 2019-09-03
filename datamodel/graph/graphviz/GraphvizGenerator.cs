@@ -231,7 +231,7 @@ namespace datamodel.graphviz {
                 case DataType.Boolean: return "bool";
             }
 
-            return column.DbTypeString;
+            return column.DbType.ToString();
         }
         #endregion
 

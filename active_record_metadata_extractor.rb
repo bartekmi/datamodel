@@ -3,8 +3,8 @@ class ActiveRecordMetadataExtractor
   IGNORE = %w[ApplicationRecord ActiveStorage::Attachment ActiveStorage::Blob].freeze
   OUTPUT_FILE = "bartek_raw_2.txt".freeze
 
-  def self.run
-    load_application(".")
+  def self.run(path)
+    load_application(path)
 
     models = ActiveRecord::Base.descendants
       .reject { |model| IGNORE.any? { |ignorable| model.name.include?(ignorable) } }
@@ -27,6 +27,7 @@ class ActiveRecordMetadataExtractor
       file.puts "    superclass: #{model.superclass.name}"
 
       write_columns file, model
+      write_enums file, model
     end
   end
 
@@ -42,6 +43,18 @@ class ActiveRecordMetadataExtractor
     end
   rescue StandardError => e
     warn("Could not write columns for model #{model.name} (#{e.message})")
+  end
+
+  def self.write_enums(file, model)
+    file.puts "    enums:"
+    model.defined_enums.each do |name, values|
+      file.puts "      - name: #{name}"
+      file.puts "        values:"
+      values.each do |enum_string, enum_number|
+        file.puts "        - string: #{enum_string}"
+        file.puts "          number: #{enum_number}"
+      end
+    end
   end
 
   def self.write_associations(file, models)
@@ -109,4 +122,4 @@ class ActiveRecordMetadataExtractor
   end
 end
 
-ActiveRecordMetadataExtractor.run
+ActiveRecordMetadataExtractor.run "."

@@ -87,5 +87,10 @@ namespace datamodel.datadict.html {
             entity.SetAttributeInternal(name, value);
             return entity;
         }
+
+        public static T Class<T>(this T entity, string className) where T : HtmlElement {
+            entity.SetAttributeInternal("class", className);
+            return entity;
+        }
     }
 }
