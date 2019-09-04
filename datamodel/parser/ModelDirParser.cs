@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
 using datamodel.schema;
 using datamodel.utils;
 
@@ -50,8 +49,6 @@ namespace datamodel.parser {
                     count++;
                 }
             }
-
-            Console.WriteLine("{0} Models found in {1}", count, dirPath);
         }
 
         internal static bool IsActiveRecord(TextReader reader, out string className, out string team) {      // internal for testing

@@ -97,9 +97,19 @@ namespace datamodel.graphviz {
                 Name = _interface.Name,
             };
 
-            node.SetAttrGraph("tooltip", "Polymorphic Interface: " + _interface.Name)
+            IEnumerable<string> links = Schema.Singleton.PolymorphicAssociationsForInterface(_interface)
+                .Select(x => string.Format("{0} {1}",
+                    HtmlUtils.Bullet(),
+                    x.PolymorphicReverseName));
+
+            string tooltip = string.Format("Polymorphic Association: {0}{1}{1}Used By:{1}{2}",
+                _interface.Name,
+                HtmlUtils.LINE_BREAK,
+                string.Join(HtmlUtils.LINE_BREAK, links));
+
+            node.SetAttrGraph("tooltip", tooltip)
                 .SetAttrGraph("shape", "circle")
-                .SetAttrGraph("label", "PMI")
+                .SetAttrGraph("label", "PMA")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("margin", 0);
 
@@ -173,7 +183,8 @@ namespace datamodel.graphviz {
             // Columns
             foreach (Column column in dbModel.AllColumns) {
                 if (Schema.IsInteresting(column) &&
-                    !column.Deprecated) {
+                    !column.Deprecated &&
+                    !(column.IsPolymorphicId || column.IsPolymorphicType)) {
 
                     HtmlTr row = new HtmlTr();
 
@@ -240,7 +251,7 @@ namespace datamodel.graphviz {
             Edge edge = new Edge() {
                 Source = ModelToNodeId(association.OtherSideModel),
                 Destination = association.IsPolymorphic ?
-                    association.OtherSidePolymorphicName :
+                    association.PolymorphicName :
                     ModelToNodeId(association.FkSideModel),
                 Association = association,
             };
@@ -278,7 +289,7 @@ namespace datamodel.graphviz {
 
         #region Misc
         private static string ModelToNodeId(Model table) {
-            return table.SanitizedClassName.Replace(':', '_');
+            return table.ClassName;
         }
         #endregion
     }

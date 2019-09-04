@@ -11,7 +11,7 @@ namespace datamodel.graphviz.dot {
         public Association Association { get; set; }
 
         override public void ToDot(TextWriter writer) {
-            writer.Write(string.Format("  {0} -> {1} ", Source, Destination));
+            writer.Write(string.Format("  {0} -> {1} ", ToID(Source), ToID(Destination)));
             WriteAttributes(writer);
         }
     }

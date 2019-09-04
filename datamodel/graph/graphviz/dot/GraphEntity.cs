@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace datamodel.graphviz.dot {
     public abstract class GraphEntity {
@@ -19,6 +20,11 @@ namespace datamodel.graphviz.dot {
                 writer.Write(" ");
             }
             writer.WriteLine("]");
+        }
+
+        // Replace any non-allowed characters with '_'
+        protected static string ToID(string text) {
+            return new String(text.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
         }
     }
 

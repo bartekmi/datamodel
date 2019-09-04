@@ -166,6 +166,8 @@ namespace datamodel.schema {
             if (stripColons)
                 value = value.Replace(":", "");
 
+            value = value.Replace("\"", "");
+
             return value;
         }
 

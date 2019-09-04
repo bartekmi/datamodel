@@ -5,6 +5,9 @@ using System.IO;
 
 namespace datamodel.graphviz.dot {
     public static class HtmlUtils {
+
+        public const string LINE_BREAK = "&#013;";
+
         public static string MakeBold(string text) {
             return string.Format("<b>{0}</b>", text);
         }

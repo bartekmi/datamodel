@@ -30,7 +30,7 @@ namespace datamodel.schema {
         // Name of the corresponding Database table
         public string DbName { get; set; }
 
-        public List<Column> AllColumns = new List<Column>();
+        public List<Column> AllColumns { get; internal set; }
         #endregion
 
 

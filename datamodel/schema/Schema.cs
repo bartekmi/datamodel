@@ -32,6 +32,7 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
         private Dictionary<string, Model> _byClassName;
         private Dictionary<Model, List<Column>> _incomingFkColumns;
+        private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
         private HashSet<string> _teamNames;
         private HashSet<string> _unqualifiedClassNames;
 
@@ -231,9 +232,65 @@ namespace datamodel.schema {
         }
 
         private void Rehydrate() {
-            ResolveSuperClasses();
+            RehydrateSuperClasses();
+            RemoveDuplicatePolymorphicInterfaces();
             RehydrateModelsOnAssociations();
+            RehydrateIncomingAssociations();
+            RehydratePolymorphicFkColumns();
+            RehydratePolymorphicAssociations();
+        }
 
+        // E.g. see OperationalRoute::Graph and OperationalRoute::ConfirmedGraph
+        // The models both have a polymorphic interface, but they really refer to the same thing
+        private void RemoveDuplicatePolymorphicInterfaces() {
+            foreach (var keyValue in new Dictionary<string, PolymorphicInterface>(Interfaces)) {        // Clone to allow remove while iterating
+                Column column = keyValue.Value.Column;
+                Model superclass = keyValue.Value.Model.Superclass;
+
+                // Too lazy to make recursive
+                while (superclass != null) {
+                    if (superclass.FindColumn(column.DbName) != null) {
+                        Interfaces.Remove(keyValue.Key);
+                        Error.Log("Removing duplicate Polymorphic Interface: " + keyValue.Key);
+                        break;
+                    }
+                    superclass = superclass.Superclass;
+                }
+            }
+        }
+
+        private void RehydratePolymorphicFkColumns() {
+            foreach (PolymorphicInterface _interface in Interfaces.Values) {
+                _interface.Column.IsPolymorphicId = true;
+                Model model = _interface.Column.Owner;
+                string idColumnName = _interface.Column.DbName;
+                string typeColumnName = idColumnName
+                    .Substring(0, idColumnName.Length - "_id".Length)
+                    + "_type";
+                Column typeColumn = model.FindColumn(typeColumnName);
+                typeColumn.IsPolymorphicType = true;
+            }
+        }
+
+        private void RehydratePolymorphicAssociations() {
+            _polymorphicAssociations = Associations
+              .Where(x => x.IsPolymorphic)
+              .GroupBy(x => x.PolymorphicName)
+              .Where(x => Interfaces.ContainsKey(x.Key))
+              .ToDictionary(x => Interfaces[x.Key], x => x.ToList());
+
+            Console.WriteLine("Filtered out: " +
+              string.Join("\n", Associations
+                  .Where(x => x.IsPolymorphic)
+                  .Select(x => x.PolymorphicName)
+                  .Except(_polymorphicAssociations.Keys.Select(x => x.Name))));
+
+            Console.WriteLine("\nInterfaces: " + string.Join("\n", Interfaces.Keys));
+
+            Console.WriteLine("\nPAs: " + string.Join("\n", _polymorphicAssociations.Keys.Select(x => x.Name)));
+        }
+
+        private void RehydrateIncomingAssociations() {
             _incomingFkColumns = Models
                 .SelectMany(x => x.FkColumns)
                 .GroupBy(x => x.FkInfo.ReferencedModel)
@@ -241,11 +298,9 @@ namespace datamodel.schema {
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
-        private void ResolveSuperClasses() {
-            Dictionary<string, Model> byClass = Models.ToDictionary(x => x.ClassName);
-
+        private void RehydrateSuperClasses() {
             foreach (Model table in Models) {
-                if (byClass.TryGetValue(table.SuperClassName, out Model parent)) {
+                if (_byClassName.TryGetValue(table.SuperClassName, out Model parent)) {
                     table.Superclass = parent;
                     foreach (Column column in parent.AllColumns) {
                         Column duplicate = table.FindColumn(column.DbName);
@@ -304,6 +359,12 @@ namespace datamodel.schema {
             if (_incomingFkColumns.TryGetValue(model, out List<Column> columns))
                 return columns;
             return new Column[0];
+        }
+
+        public IEnumerable<Association> PolymorphicAssociationsForInterface(PolymorphicInterface _interface) {
+            if (!_polymorphicAssociations.TryGetValue(_interface, out List<Association> associations))
+                return new Association[0];
+            return associations;
         }
 
         private Column FindByClassNameAndColumn(string className, string columnName) {

@@ -26,6 +26,7 @@ namespace datamodel {
         public static void Log(Error error) {
             using (TextWriter writer = new StreamWriter(ERROR_LOG, true))
                 writer.WriteLine(error.ToString());
+            Console.WriteLine(error);
         }
     }
 }

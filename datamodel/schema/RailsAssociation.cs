@@ -98,8 +98,17 @@ namespace datamodel.schema {
             }
         }
         internal bool IsPolymorphicAssociation { get { return Options.As != null; } }
+        internal string PolymorphicAssociationName {
+            get {
+                if (IsPolymorphicAssociation)
+                    return string.Format("{0}.{1}", OtherModel, Options.As);
+                else if (IsPolymorphicInterface)
+                    return string.Format("{0}.{1}", OwningModel, Name);
+                return null;
+            }
+        }
 
-        // Set in post-processing
-        internal Column FkColumn;
+        // Rehydrated
+        internal Column FkColumn { get; set; }
     }
 }

@@ -62,6 +62,10 @@ namespace datamodel.schema {
             }
         }
 
+        // Rehydrated
+        public bool IsPolymorphicId { get; internal set; }
+        public bool IsPolymorphicType { get; internal set; }
+
         // Relationships
         public FkInfo FkInfo { get; set; }
 

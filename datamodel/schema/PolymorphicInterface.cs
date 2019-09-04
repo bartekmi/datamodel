@@ -7,12 +7,16 @@ namespace datamodel.schema {
         // Derived
         public Column Column { get { return BelongsToAssociation.FkColumn; } }
         public Model Model { get { return Column.Owner; } }
-        public string Name { get { return BelongsToAssociation.Name; } }
+        public string Name { get { return BelongsToAssociation.PolymorphicAssociationName; } }
 
         internal PolymorphicInterface(RailsAssociation association) {
             BelongsToAssociation = association;
             if (association.Name == null)
                 throw new Exception("Polymorphic association does not have name");
+        }
+
+        public override string ToString() {
+            return Name;
         }
     }
 }

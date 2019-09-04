@@ -37,8 +37,18 @@ namespace datamodel.schema {
                 return FkColumn.Description == null ? FkColumn.HumanName : FkColumn.Description;
             }
         }
-        public bool IsPolymorphic { get { return OtherSidePolymorphicName != null; } }
-        public string OtherSidePolymorphicName { get { return RailsAssociations.First().Options.As; } }
+        public bool IsPolymorphic { get { return PolymorphicName != null; } }
+        public string PolymorphicName {
+            get {
+                return RailsAssociations.First().PolymorphicAssociationName;
+            }
+        }
+        public string PolymorphicReverseName {
+            get {
+                RailsAssociation first = RailsAssociations.First();
+                return string.Format("{0}.{1}", first.OwningModel, first.ForeignKey);
+            }
+        }
 
         public string RoleOppositeFK {
             get {

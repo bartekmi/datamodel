@@ -55,7 +55,7 @@ namespace datamodel.toplevel {
 
             List<Association> associations = Schema.Singleton.Associations
                 .Where(x => tablesDict.ContainsKey(x.OtherSide) &&
-                            (tablesDict.ContainsKey(x.FkSide) || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.OtherSidePolymorphicName)))
+                            (tablesDict.ContainsKey(x.FkSide) || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.PolymorphicName)))
                 .ToList();
 
             (new GraphvizGenerator()).GenerateGraph(

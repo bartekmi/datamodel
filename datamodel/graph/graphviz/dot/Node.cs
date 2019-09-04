@@ -7,7 +7,7 @@ namespace datamodel.graphviz.dot {
         public string Name { get; set; }
 
         override public void ToDot(TextWriter writer) {
-            writer.Write(Name);
+            writer.Write(ToID(Name));
             writer.Write(" ");
             WriteAttributes(writer);
         }
