@@ -34,7 +34,8 @@ namespace datamodel.datadict {
 
             GenerateModelHeader(body, model);
             GenerateModelAttributes(body, model);
-            GenerateModelAssociations(body, model);
+            GenerateModelOutgoingAssociations(body, model);
+            GenerateModelIncomingAssociations(body, model);
 
             using (StreamWriter writer = new StreamWriter(path))
                 html.ToHtml(writer, 0);
@@ -92,37 +93,44 @@ namespace datamodel.datadict {
                 }
         }
 
-        private static void GenerateModelAssociations(HtmlElement body, Model dbModel) {
+        private static void GenerateModelOutgoingAssociations(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(new HtmlTh("Links / Associations").Class("heading2")));
+            table.AddTr(new HtmlTr(new HtmlTh("Outgoing Foreign Key Links / Associations").Class("heading2")));
 
             foreach (Column column in dbModel.FkColumns)
-                if (Schema.IsInteresting(column)) {
-                    Model referencedModel = column.FkInfo.ReferencedModel;
+                AddFkColumnInfo(table, column, column.FkInfo.ReferencedModel, x => x.HumanName);
+        }
 
-                    HtmlBase docIcon = null;
-                    HtmlBase diagramIcon = null;
-                    if (referencedModel != null) {
-                        docIcon = HtmlUtils.MakeIconForDocs(referencedModel);
-                        diagramIcon = HtmlUtils.MakeIconsForDiagrams(referencedModel, "text-icon");
-                    }
+        private static void GenerateModelIncomingAssociations(HtmlElement body, Model dbModel) {
+            HtmlTable table = body.Add(new HtmlTable());
 
-                    // Column Header
-                    table.AddTr(new HtmlTr(
-                        new HtmlTd(
-                            new HtmlElement("span", column.HumanName).Class("heading3"),
-                            new HtmlElement("span").Class("gap-left"),
-                            diagramIcon,
-                            new HtmlElement("span").Class("gap-left"),
-                            docIcon,
-                            DeprecatedSpan(column)
-                        )
-                    ).Attr("id", column.DbName));        // Id for anchor
+            table.AddTr(new HtmlTr(new HtmlTh("Incoming Foreign Key Links / Associations").Class("heading2")));
 
-                    // Column Description
-                    AddDescriptionRow(table, column);
-                }
+            foreach (Column column in Schema.Singleton.IncomingFkColumns(dbModel))
+                AddFkColumnInfo(table, column, column.Owner, x => string.Format("{0}.{1}", x.Owner.HumanName, x.HumanName));
+        }
+
+        private static void AddFkColumnInfo(HtmlTable table, Column column, Model other, Func<Column, string> nameFunc) {
+            if (Schema.IsInteresting(column)) {
+                HtmlBase docIcon = other == null ? null : HtmlUtils.MakeIconForDocs(other);
+                HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
+
+                // Column Header
+                table.AddTr(new HtmlTr(
+                    new HtmlTd(
+                        new HtmlElement("span", nameFunc(column)).Class("heading3"),
+                        new HtmlElement("span").Class("gap-left"),
+                        diagramIcon,
+                        new HtmlElement("span").Class("gap-left"),
+                        docIcon,
+                        DeprecatedSpan(column)
+                    )
+                ).Attr("id", column.DbName));        // Id for anchor
+
+                // Column Description
+                AddDescriptionRow(table, column);
+            }
         }
 
         private static void AddDescriptionRow(HtmlTable table, Column column) {

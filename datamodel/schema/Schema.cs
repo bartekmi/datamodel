@@ -31,6 +31,7 @@ namespace datamodel.schema {
         public List<Association> Associations { get; private set; }
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
         private Dictionary<string, Model> _byClassName;
+        private Dictionary<Model, List<Column>> _incomingFkColumns;
         private HashSet<string> _teamNames;
         private HashSet<string> _unqualifiedClassNames;
 
@@ -232,6 +233,12 @@ namespace datamodel.schema {
         private void Rehydrate() {
             ResolveSuperClasses();
             RehydrateModelsOnAssociations();
+
+            _incomingFkColumns = Models
+                .SelectMany(x => x.FkColumns)
+                .GroupBy(x => x.FkInfo.ReferencedModel)
+                .Where(x => x.Key != null)
+                .ToDictionary(x => x.Key, x => x.ToList());
         }
 
         private void ResolveSuperClasses() {
@@ -293,6 +300,12 @@ namespace datamodel.schema {
             return Models.SingleOrDefault(x => x.DbName == dbName);
         }
 
+        public IEnumerable<Column> IncomingFkColumns(Model model) {
+            if (_incomingFkColumns.TryGetValue(model, out List<Column> columns))
+                return columns;
+            return new Column[0];
+        }
+
         private Column FindByClassNameAndColumn(string className, string columnName) {
             Model table = FindByClassName(className);
             if (table == null)
@@ -300,6 +313,7 @@ namespace datamodel.schema {
             Column column = table.FindColumn(columnName);
             return column;
         }
+
         #endregion
     }
 }
