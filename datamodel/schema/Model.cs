@@ -86,6 +86,14 @@ namespace datamodel.schema {
             }
         }
 
+        public string RelativeModelPath {
+            get {
+                if (ModelPath == null)
+                    return null;
+                return ModelPath.Substring(Env.REPO_ROOT.Length);
+            }
+        }
+
         public static string ExtractUnqualifiedClassName(string qualifiedClassName) {
             return qualifiedClassName.Split("::").Last();
         }

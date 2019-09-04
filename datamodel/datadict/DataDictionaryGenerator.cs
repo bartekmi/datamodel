@@ -41,30 +41,32 @@ namespace datamodel.datadict {
                 html.ToHtml(writer, 0);
         }
 
-        private static void GenerateModelHeader(HtmlElement body, Model dbModel) {
+        private static void GenerateModelHeader(HtmlElement body, Model model) {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
-                    new HtmlElement("span", dbModel.HumanName).Class("heading1"),
+                    new HtmlElement("span", model.HumanName).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
-                    HtmlUtils.MakeIconsForDiagrams(dbModel, "h1-text-icon")
+                    HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
                 )));
 
-            AddLabelAndData(table, "Team", dbModel.Team);
-            AddLabelAndData(table, "Engine", dbModel.Engine);
-            AddLabelAndData(table, "Database Table", dbModel.DbName);
-            AddLabelAndData(table, "Super-Class", dbModel.SuperClassName);
+            AddLabelAndData(table, "Team", model.Team);
+            AddLabelAndData(table, "Engine", model.Engine);
+            AddLabelAndData(table, "Model Source Code", UrlUtils.ToFlexportRepoLink(model.RelativeModelPath), true);
+            AddLabelAndData(table, "Database Table", model.DbName);
+            AddLabelAndData(table, "Super-Class", model.SuperClassName);
 
-            if (!string.IsNullOrEmpty(dbModel.Description))
-                table.Add(new HtmlTr(dbModel.Description));
+            if (!string.IsNullOrEmpty(model.Description))
+                table.Add(new HtmlTr(model.Description));
         }
 
-        private static void AddLabelAndData(HtmlTable table, string label, string value) {
+        private static void AddLabelAndData(HtmlTable table, string label, string value, bool isLink = false) {
             if (string.IsNullOrWhiteSpace(value))
                 return;
 
-            string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label), value);
+            string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label),
+                isLink ? HtmlUtils.MakeLink(value, value).ToString() : value);
             table.Add(new HtmlTr(text));
         }
 

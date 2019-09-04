@@ -9,6 +9,13 @@ namespace datamodel.datadict.html {
 
         public abstract void ToHtml(TextWriter writer, int indent);
 
+        public override string ToString() {
+            using (StringWriter writer = new StringWriter()) {
+                ToHtml(writer, 0);
+                return writer.ToString();
+            }
+        }
+
         protected void WriteIndent(TextWriter writer, int indent) {
             writer.Write(new string(' ', indent * INDENT_STEP));
         }
