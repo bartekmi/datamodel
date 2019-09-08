@@ -23,7 +23,9 @@ namespace datamodel.graphviz {
             List<PolymorphicInterface> interfaces) {
 
             Graph graph = CreateGraph(tables, associations, extraModels, interfaces)
-                .SetAttrGraph("margin", "0.5")
+                .SetAttrGraph("pad", "0.5")
+                .SetAttrGraph("nodesep", "1")
+                .SetAttrGraph("ranksep", "1")
                 .SetAttrGraph("notranslate", true);
 
             if (graphDef.Sep != null)
