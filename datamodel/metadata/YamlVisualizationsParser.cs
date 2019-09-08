@@ -20,19 +20,27 @@ namespace datamodel.metadata {
         public static IEnumerable<GraphDefinition> Parse(string dir) {
             string path = Path.Combine(dir, MODELS_YAML_FILENAME);
             YamlSequenceNode root = (YamlSequenceNode)YamlUtils.ReadYaml(path).RootNode;
-            return root.Select(x => ParseGraphDefinitioin((YamlMappingNode)x));
+            return root.Select(x => ParseGraphDefinition((YamlMappingNode)x));
         }
 
-        private static GraphDefinition ParseGraphDefinitioin(YamlMappingNode yamlGraphDef) {
+        private static GraphDefinition ParseGraphDefinition(YamlMappingNode yamlGraphDef) {
             string[] coreModels = YamlUtils.GetCommaSeparatedString(yamlGraphDef, "coreModels");
             string[] extraModels = YamlUtils.GetCommaSeparatedString(yamlGraphDef, "extraModels");
 
-            return new GraphDefinition {
-                Style = RenderingStyle.Dot,     // TODO
+            GraphDefinition graphDef = new GraphDefinition {
+                Style = EnumUtils.TryParse(YamlUtils.GetString(yamlGraphDef, "style"), RenderingStyle.Dot),
                 CoreModels = ToModelsWithValidation(coreModels),
                 ExtraModels = ToModelsWithValidation(extraModels),
                 NameComponents = YamlUtils.GetCommaSeparatedString(yamlGraphDef, "nameComponents"),
             };
+
+            // Set some defaults
+            if (graphDef.Style == RenderingStyle.Neato || graphDef.Style == RenderingStyle.Fdp) {
+                if (graphDef.Sep == null)
+                    graphDef.Sep = 1.0;
+            }
+
+            return graphDef;
         }
 
         private static Model[] ToModelsWithValidation(string[] modelNames) {

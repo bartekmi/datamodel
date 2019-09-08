@@ -9,8 +9,11 @@ using datamodel.utils;
 namespace datamodel.metadata {
 
     public enum RenderingStyle {
+        // This style essentially lays out its nodes on a grid. This is the default.
         Dot,
+        // Like balls and springs - works with "energy"
         Neato,
+        // Like balls and springs - works with "forces"
         Fdp,
     }
 
