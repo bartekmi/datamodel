@@ -53,9 +53,13 @@ namespace datamodel.datadict {
 
             AddLabelAndData(table, "Team", model.Team);
             AddLabelAndData(table, "Engine", model.Engine);
-            AddLabelAndData(table, "Model Source Code", UrlUtils.ToFlexportRepoLink(model.RelativeModelPath), true);
             AddLabelAndData(table, "Database Table", model.DbName);
-            AddLabelAndData(table, "Super-Class", model.SuperClassName);
+
+            AddLabelAndData(table, "Class Name", model.ClassName);
+            if (model.Superclass != null)
+                AddLabelAndData(table, "Super-Class", model.SuperClassName);
+
+            AddLabelAndData(table, "Model Source Code", UrlUtils.ToFlexportRepoLink(model.RelativeModelPath), true);
 
             if (!string.IsNullOrEmpty(model.Description))
                 table.Add(new HtmlTr(model.Description));

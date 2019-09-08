@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Linq;
 using YamlDotNet.RepresentationModel;
 
 namespace datamodel.utils {
@@ -31,6 +31,14 @@ namespace datamodel.utils {
                 throw new Exception("Key not found: " + key);
 
             return child == null ? null : child.ToString();
+        }
+
+        public static string[] GetCommaSeparatedString(YamlMappingNode node, string key, bool exceptionIfMissing = false) {
+            string value = GetString(node, key, exceptionIfMissing);
+            if (value == null)
+                return new string[0];
+            string[] pieces = value.Split(",");
+            return pieces.Select(x => x.Trim()).ToArray();
         }
 
         public static bool GetBoolean(YamlMappingNode node, string key) {

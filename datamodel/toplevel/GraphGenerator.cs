@@ -4,16 +4,26 @@ using System.Collections.Generic;
 
 using datamodel.schema;
 using datamodel.graphviz;
+using datamodel.metadata;
 
 namespace datamodel.toplevel {
 
     public static class GraphGenerator {
 
-        internal static void Generate(HierarchyItem item) {
+        internal static void Generate(HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
             Recurse(item, CreateGraphDefinition);
-            Recurse(item, x => {
-                if (x.Graph != null)
-                    Generate(x.Graph);
+
+            Recurse(item, hierItem => {
+                // First, see if a GraphDef was specified explicitly in a visualization.yaml file...
+                IEnumerable<string> nameComponents = hierItem.CumulativeName.Skip(1);       // Skip the root node
+                GraphDefinition graphDef = graphDefsFromMetadata.SingleOrDefault(gd => gd.HasSameNameAs(nameComponents));
+
+                // If not, just use the generic Graph Definition 
+                if (graphDef == null)
+                    graphDef = hierItem.Graph;
+
+                if (graphDef != null)
+                    Generate(graphDef);
             });
         }
 
@@ -27,14 +37,14 @@ namespace datamodel.toplevel {
             if (!item.IsTop || Env.GENERATE_TOP_LEVEL_GRAPH) {
                 item.Graph = new GraphDefinition() {
                     CoreModels = item.CumulativeModels.ToArray(),
-                    NameComponents = item.CumulativeTitle.ToArray(),
+                    NameComponents = item.CumulativeName.Skip(1).ToArray(),
+                    HumanName = item.HumanName,
                 };
                 UrlService.Singleton.AddGraph(item.Graph);
             }
         }
 
         internal static void Generate(GraphDefinition graphDef) {
-
 
             IEnumerable<Model> externalSuperclasses = graphDef.CoreModels
                 .Where(x => x.Superclass != null)

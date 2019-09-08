@@ -5,6 +5,7 @@ using System.IO;
 using datamodel.utils;
 using datamodel.schema;
 using datamodel.toplevel;
+using datamodel.metadata;
 
 namespace datamodel.datadict.html {
     public static class HtmlUtils {
@@ -19,13 +20,13 @@ namespace datamodel.datadict.html {
             return MakeImage(relativeSource, url, cssClass, toolTip);
         }
 
-        public static HtmlRaw MakeIconForDocs(Model table) {
-            string docToolTip = string.Format("Go to Data Dictionary of linked table: {0}", table.HumanName);
-            return MakeIcon(IconUtils.DOCS, UrlService.Singleton.DocUrl(table), docToolTip);
+        public static HtmlRaw MakeIconForDocs(Model model) {
+            string docToolTip = string.Format("Go to Data Dictionary of linked table: {0}", model.HumanName);
+            return MakeIcon(IconUtils.DOCS, UrlService.Singleton.DocUrl(model), docToolTip);
         }
 
-        public static HtmlBase MakeIconsForDiagrams(Model table, string cssClass) {
-            List<GraphDefinition> graphs = UrlService.Singleton.GetGraphs(table);
+        public static HtmlBase MakeIconsForDiagrams(Model model, string cssClass) {
+            List<GraphDefinition> graphs = UrlService.Singleton.GetGraphs(model);
             HtmlElement span = new HtmlElement("span");
 
             foreach (GraphDefinition graph in graphs)
@@ -35,8 +36,12 @@ namespace datamodel.datadict.html {
         }
 
         public static HtmlBase MakeIconForDiagram(GraphDefinition graph, string cssClass) {
-            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}", LINE_BREAK, graph.Name, graph.CoreModels.Length);
-            HtmlBase link = MakeLink(graph.SvgUrl, graph.CoreModels.Length.ToString(), cssClass, toolTip);
+            string text = string.Format("{0} ({1})", graph.HumanName, graph.CoreModels.Length);
+            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
+                LINE_BREAK, graph.HumanName, graph.CoreModels.Length);
+
+            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip);
+
             return link;
         }
 

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Xunit;
 
-namespace datamodel.parser {
+namespace datamodel.metadata {
     public class ModelDirParserTest {
         [Fact]
         public void IsActiveRecord() {

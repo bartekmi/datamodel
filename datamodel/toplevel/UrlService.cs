@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 using datamodel.utils;
 using datamodel.schema;
+using datamodel.metadata;
 
 namespace datamodel.toplevel {
     public class UrlService {

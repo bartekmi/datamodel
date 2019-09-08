@@ -4,7 +4,7 @@ using YamlDotNet.RepresentationModel;
 using datamodel.schema;
 using datamodel.utils;
 
-namespace datamodel.parser {
+namespace datamodel.metadata {
     public static class YamlAnnotationParser {
         public static void Parse(Model table) {
             string path = table.AnnotationFilePath;

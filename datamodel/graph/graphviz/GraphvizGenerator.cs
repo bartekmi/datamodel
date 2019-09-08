@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using datamodel.schema;
 using datamodel.graphviz.dot;
 using datamodel.utils;
 using datamodel.toplevel;
+using datamodel.metadata;
 
 namespace datamodel.graphviz {
 
@@ -44,7 +46,7 @@ namespace datamodel.graphviz {
             Graph graph = new Graph();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
             // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
-            // I've left the following line commented out in case this is ever needed.
+            // I've left the following line commented out in case this ever actually works as it should.
             //.SetAttrGraph("imagepath", IMAGE_PATH);
 
             IEnumerable<Model> allModels = tables.Union(extraModels);
@@ -160,7 +162,8 @@ namespace datamodel.graphviz {
         }
         #endregion
 
-        #region Common Node Creation
+        #region Common Node Creation - for both Models and Extra Models
+
         private HtmlEntity CreateLabel(IEnumerable<Model> tables, Model dbModel, bool includeColumns) {
 
             HtmlTable table = new HtmlTable()
@@ -172,7 +175,7 @@ namespace datamodel.graphviz {
             string headerText = HtmlUtils.SetFont(HtmlUtils.MakeBold(dbModel.HumanName), 16);
 
             HtmlTd headerTd = new HtmlTd(headerText)
-                .SetAttrHtml("tooltip", string.IsNullOrEmpty(dbModel.Description) ? "No description provided" : dbModel.Description)
+                .SetAttrHtml("tooltip", CreateModelToolTip(dbModel))
                 .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbModel));
 
             table.AddTr(new HtmlTr(headerTd));
@@ -231,6 +234,22 @@ namespace datamodel.graphviz {
             }
 
             return table;
+        }
+
+        private string CreateModelToolTip(Model model) {
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendLine("Team: " + model.Team + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Engine: " + model.Engine + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Database Table: " + model.DbName + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Class Name: " + model.ClassName + HtmlUtils.LINE_BREAK);
+
+            if (!string.IsNullOrWhiteSpace(model.Description)) {
+                builder.AppendLine(HtmlUtils.LINE_BREAK);
+                builder.AppendLine(model.Description);
+            }
+
+            return builder.ToString();
         }
 
         private string ToShortType(Column column) {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-using datamodel.parser;
+using datamodel.metadata;
 using datamodel.schema;
 using datamodel.tools;
 using datamodel.datadict;
@@ -48,7 +48,9 @@ namespace datamodel {
         }
 
         private static void GenerateGraphsAndDataDictionary() {
-            ParseModelDirs();        // Extract teams and find paths of Ruby files
+            // Extract teams, parse "visualizations.yaml" files, and match paths of Ruby files with models
+            List<GraphDefinition> graphDefsFromMetadata = ParseModelDirs();
+            ApplyGraphDefsToSchema(graphDefsFromMetadata);
 
             foreach (Model table in Schema.Singleton.Models)
                 if (table.ModelPath != null)
@@ -59,17 +61,39 @@ namespace datamodel {
                                         Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
-            GraphGenerator.Generate(topLevel);
+            GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 
             IndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
             DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
 
-        private static void ParseModelDirs() {
+        private static List<GraphDefinition> ParseModelDirs() {
             ModelDirParser parser = new ModelDirParser();
+            List<GraphDefinition> graphDefs = new List<GraphDefinition>();
 
             foreach (string dir in Env.MODEL_DIRS)
-                parser.ParseDir(Path.Combine(Env.ROOT_MODEL_DIR, dir));
+                graphDefs.AddRange(parser.ParseRootDir(Path.Combine(Env.ROOT_MODEL_DIR, dir)));
+
+            return graphDefs;
+        }
+
+        private static void ApplyGraphDefsToSchema(List<GraphDefinition> graphDefs) {
+            foreach (GraphDefinition graphDef in graphDefs) {
+                string[] nameComponents = graphDef.NameComponents;
+                if (nameComponents.Length > 1) {
+                    // It is expected that if overriding name components are provided at all, they would be:
+                    // Team, Engine, [Module]
+                    string team = nameComponents[0];
+                    string engine = nameComponents[1];
+                    string module = nameComponents.Length >= 3 ? nameComponents[2] : null;
+
+                    foreach (Model model in graphDef.CoreModels) {
+                        model.Team = team;
+                        model.Engine = engine;
+                        model.ModuleOverride = module;
+                    }
+                }
+            }
         }
     }
 }

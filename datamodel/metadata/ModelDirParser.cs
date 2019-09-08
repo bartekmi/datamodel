@@ -5,19 +5,32 @@ using System.IO;
 using datamodel.schema;
 using datamodel.utils;
 
-namespace datamodel.parser {
+namespace datamodel.metadata {
 
     // This parser parses (nearly) all Models in our code-base, extracting the following
     // 1) Team Name, 2) Class Name
     public class ModelDirParser {
 
-        private List<Error> _errors;
+        public List<GraphDefinition> ParseRootDir(string dirPath) {
+            List<GraphDefinition> graphDefs = new List<GraphDefinition>();
+            ParseDir(graphDefs, dirPath);
+            return graphDefs;
+        }
 
-        public void ParseDir(string dirPath) {
+        private void ParseDir(List<GraphDefinition> graphDefs, string dirPath) {
+            ParseModelsYamlFile(graphDefs, dirPath);
             ParseFilesInDir(dirPath);
 
             foreach (string childDirPath in Directory.GetDirectories(dirPath))
-                ParseDir(childDirPath);
+                ParseDir(graphDefs, childDirPath);
+        }
+
+        private void ParseModelsYamlFile(List<GraphDefinition> graphDefs, string dirPath) {
+            if (YamlVisualizationsParser.ExistsInThisDirectory(dirPath)) {
+                foreach (GraphDefinition graphDef in YamlVisualizationsParser.Parse(dirPath)) {
+                    graphDefs.Add(graphDef);
+                }
+            }
         }
 
         private void ParseFilesInDir(string dirPath) {

@@ -6,7 +6,7 @@ using System.Linq;
 using datamodel.schema;
 using datamodel.utils;
 
-namespace datamodel.toplevel {
+namespace datamodel.metadata {
 
     public enum RenderingStyle {
         Dot,
@@ -45,9 +45,10 @@ namespace datamodel.toplevel {
         // Name components of this graph from general to specified - e.g. team/engine/module
         public string[] NameComponents { get; set; }
 
+        // Human-friendly name of the Graph
+        public string HumanName { get; set; }
 
         // Derived
-        public string Name { get { return NameComponents.Last(); } }
         public string FullyQualifiedName {      // Used for both filenames and URL's
             get { return string.Join("__", NameComponents).Replace(' ', '_'); }
         }
@@ -60,20 +61,10 @@ namespace datamodel.toplevel {
             ExtraModels = new Model[0];
         }
 
-        // Validation code will kick-in once we import these from YAML
-        public string[] Validate() {
-            List<string> errors = new List<string>();
-
-            // Validate(errors, CoreModels);
-            // Validate(errors, ExtraModels);
-
-            return errors.ToArray();
-        }
-
-        private void Validate(List<string> errors, string[] tables) {
-            foreach (string className in tables)
-                if (Schema.Singleton.FindByClassName(className) == null)
-                    errors.Add("Unknown Class Name: " + className);
+        public bool HasSameNameAs(IEnumerable<string> other) {
+            return
+                string.Join("|", NameComponents) ==
+                string.Join("|", other);
         }
     }
 }

@@ -46,6 +46,10 @@ namespace datamodel.schema {
         // Engine to which this Model belongs, as extracted from the directory hierarchy
         public string Engine { get; set; }
 
+        // Set if module, normally extracted from ClassName, was over-ridden in a
+        // visualizations.yaml file
+        public string ModuleOverride { get; set; }
+
         // Description of the Model as extracted from Yaml annotation files
         public string Description { get; set; }
 

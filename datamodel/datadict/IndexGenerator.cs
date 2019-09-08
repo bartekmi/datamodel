@@ -49,14 +49,12 @@ namespace datamodel.datadict {
             HtmlElement itemHtml = new HtmlElement("li");
             parent.Add(itemHtml);
 
-            if (itemHier.HasDiagram) {
-                HtmlElement span = new HtmlElement("span");
-                span.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, itemHier.Title, itemHier.ToolTip));
-                span.Add(HtmlUtils.MakeIconForDiagram(itemHier.Graph, "text-icon"));
-                itemHtml.Add(span);
-            } else {
-                itemHtml.Text = string.Format("{0} ({1} Models)", itemHier.Title, itemHier.CumulativeModelCount);
-            }
+            string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.CumulativeModelCount);
+
+            if (itemHier.HasDiagram)
+                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, itemHier.ToolTip));
+            else
+                itemHtml.Text = text;
 
             return itemHtml;
         }
@@ -75,19 +73,19 @@ namespace datamodel.datadict {
         private static HtmlElement GenerateFlatList() {
             HtmlElement list = new HtmlElement("div").Class("index-subpanel");
 
-            foreach (Model table in Schema.Singleton.Models.OrderBy(x => x.HumanName))
-                list.Add(GenerateFlatListItem(table));
+            foreach (Model model in Schema.Singleton.Models.OrderBy(x => x.HumanName))
+                list.Add(GenerateFlatListItem(model));
 
             return list;
         }
 
-        private static HtmlElement GenerateFlatListItem(Model table) {
+        private static HtmlElement GenerateFlatListItem(Model model) {
             HtmlElement div = new HtmlElement("div");
             HtmlElement span = div.Add(new HtmlElement("span"));
 
-            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(table), table.HumanName, table.Description));
-            span.Add(HtmlUtils.MakeIconForDocs(table));
-            span.Add(HtmlUtils.MakeIconsForDiagrams(table, "text-icon"));
+            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(model), model.HumanName, model.Description));
+            span.Add(HtmlUtils.MakeIconForDocs(model));
+            span.Add(HtmlUtils.MakeIconsForDiagrams(model, "text-icon"));
 
             return div;
         }
