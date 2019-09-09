@@ -105,10 +105,10 @@ namespace datamodel.schema {
                 OtherModel = YamlUtils.GetString(assocData, "klass"),
                 ClassName = YamlUtils.GetString(assocData, "class_name"),
                 ForeignKey = YamlUtils.GetString(assocData, "foreign_key"),
-                ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
                 InverseOf = YamlUtils.GetString(assocData, "inverse_of"),
                 PluralName = YamlUtils.GetString(assocData, "plural_name"),
                 Type = YamlUtils.GetString(assocData, "type"),
+                ForeignType = YamlUtils.GetString(assocData, "foreign_type"),
                 Options = ParseOptions(YamlUtils.GetString(assocData, "options")),
                 Validations = CommaListToArray(YamlUtils.GetString(assocData, "validations")),
             };
@@ -185,7 +185,8 @@ namespace datamodel.schema {
         private static string[] CommaListToArray(string commaList) {
             if (commaList == null)
                 return new String[0];
-            return commaList.Split(",").Select(x => x.Trim()).ToArray();
+            string[] pieces = commaList.Split(",", StringSplitOptions.RemoveEmptyEntries);
+            return pieces.Select(x => x.Trim()).ToArray();
         }
         #endregion
     }

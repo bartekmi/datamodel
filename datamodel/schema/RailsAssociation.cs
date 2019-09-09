@@ -101,9 +101,9 @@ namespace datamodel.schema {
         internal string PolymorphicAssociationName {
             get {
                 if (IsPolymorphicAssociation)
-                    return string.Format("{0}.{1}", OtherModel, Options.As);
+                    return Type;
                 else if (IsPolymorphicInterface)
-                    return string.Format("{0}.{1}", OwningModel, Name);
+                    return ForeignType;
                 return null;
             }
         }

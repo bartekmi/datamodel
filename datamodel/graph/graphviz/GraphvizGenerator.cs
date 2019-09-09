@@ -44,28 +44,26 @@ namespace datamodel.graphviz {
             GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);
         }
 
-        public Graph CreateGraph(IEnumerable<Model> tables, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
+        public Graph CreateGraph(IEnumerable<Model> models, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
             Graph graph = new Graph();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
             // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
             // I've left the following line commented out in case this ever actually works as it should.
             //.SetAttrGraph("imagepath", IMAGE_PATH);
 
-            IEnumerable<Model> allModels = tables.Union(extraModels);
+            IEnumerable<Model> allModels = models.Union(extraModels);
 
-            foreach (Model table in tables)
-                graph.AddNode(ModelToNode(allModels, table));
+            foreach (Model model in models.Where(x => !x.HasPolymorphicInterfaces))
+                graph.AddNode(ModelToNode(allModels, model));
 
-            foreach (Model table in extraModels)
-                graph.AddNode(ExtraModelToNode(null, table));
+            foreach (Model model in models.Where(x => x.HasPolymorphicInterfaces))
+                graph.AddSubgraph(PolymorphicModelToSubgraph(allModels, model));
+
+            foreach (Model model in extraModels)
+                graph.AddNode(ExtraModelToNode(null, model));
 
             foreach (Association association in associations)
                 graph.AddEdge(AssociationToEdge(association));
-
-            foreach (PolymorphicInterface _interface in interfaces) {
-                graph.AddNode(PolymorphicInterfaceToNode(_interface));
-                graph.AddEdge(PolymorphicInterfaceToEdge(_interface));
-            }
 
             foreach (Model model in allModels.Where(x => x.Superclass != null))
                 if (allModels.Contains(model.Superclass))
@@ -96,6 +94,22 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Polymorphic Associations
+
+        private Subgraph PolymorphicModelToSubgraph(IEnumerable<Model> allModels, Model model) {
+            Subgraph container = new Subgraph() {
+                Name = "cluster_" + ModelToNodeId(model),
+            }.SetAttrGraph("pencolor", "white");
+
+            container.AddNode(ModelToNode(allModels, model));
+
+            foreach (PolymorphicInterface _interface in model.PolymorphicInterfaces) {
+                container.AddNode(PolymorphicInterfaceToNode(_interface));
+                container.AddEdge(PolymorphicInterfaceToEdge(_interface));
+            }
+
+            return container;
+        }
+
         private Node PolymorphicInterfaceToNode(PolymorphicInterface _interface) {
             Node node = new Node() {
                 Name = _interface.Name,
@@ -133,16 +147,16 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Models
-        private Node ModelToNode(IEnumerable<Model> tables, Model table) {
+        private Node ModelToNode(IEnumerable<Model> allModels, Model model) {
             Node node = new Node() {
-                Name = ModelToNodeId(table),
+                Name = ModelToNodeId(model),
             };
 
             node.SetAttrGraph("style", "filled")
                 .SetAttrGraph("fillcolor", "pink")
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("label", CreateLabel(tables, table, true));
+                .SetAttrGraph("label", CreateLabel(allModels, model, true));
 
             return node;
         }

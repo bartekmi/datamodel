@@ -81,6 +81,8 @@ namespace datamodel.schema {
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
         public string SanitizedClassName { get { return FileUtils.SanitizeFilename(ClassName); } }
+        public IEnumerable<PolymorphicInterface> PolymorphicInterfaces { get { return Schema.Singleton.InterfacesForModel(this); } }
+        public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
 
         public string AnnotationFilePath {
             get {

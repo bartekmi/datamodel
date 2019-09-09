@@ -13,16 +13,20 @@ namespace datamodel.graphviz {
             string path = Path.Combine(Env.GRAPHVIZ_BIN_DIR, exec);
             string commandLine = string.Format("-Tsvg -o{0} {1}", output, input);
 
+            if (File.Exists(output))
+                File.Delete(output);
+
             Console.WriteLine("About to run...");
             Console.WriteLine("{0} {1}", path, commandLine);
 
             Process process = Process.Start(path, commandLine);
             process.WaitForExit();
 
-            // TODO: Capture stderr and display
-
-            if (process.ExitCode != 0)
-                throw new Exception("Exit Code: " + process.ExitCode);
+            // I used to check just on the exit code, but it looks like there is a bug in GraphViz where it can exit with a bogus
+            // error message, yet all seems well. 
+            // https://github.com/mdaines/viz.js/issues/134
+            if (!File.Exists(output))
+                throw new Exception("File not created. Exit Code: " + process.ExitCode);
         }
     }
 }

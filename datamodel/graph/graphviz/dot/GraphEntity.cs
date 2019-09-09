@@ -24,6 +24,8 @@ namespace datamodel.graphviz.dot {
 
         // Replace any non-allowed characters with '_'
         protected static string ToID(string text) {
+            if (text == null)
+                return null;
             return new String(text.Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
         }
     }

@@ -32,6 +32,7 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
         private Dictionary<string, Model> _byClassName;
         private Dictionary<Model, List<Column>> _incomingFkColumns;
+        private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
         private HashSet<string> _teamNames;
         private HashSet<string> _unqualifiedClassNames;
@@ -234,8 +235,10 @@ namespace datamodel.schema {
         private void Rehydrate() {
             RehydrateSuperClasses();
             RemoveDuplicatePolymorphicInterfaces();
+
             RehydrateModelsOnAssociations();
             RehydrateIncomingAssociations();
+            RehydrateInterfacesForModels();
             RehydratePolymorphicFkColumns();
             RehydratePolymorphicAssociations();
         }
@@ -288,6 +291,12 @@ namespace datamodel.schema {
             Console.WriteLine("\nInterfaces: " + string.Join("\n", Interfaces.Keys));
 
             Console.WriteLine("\nPAs: " + string.Join("\n", _polymorphicAssociations.Keys.Select(x => x.Name)));
+        }
+
+        private void RehydrateInterfacesForModels() {
+            _interfacesForModel = Interfaces.Values
+                .GroupBy(x => x.Model)
+                .ToDictionary(x => x.Key, x => x.ToList());
         }
 
         private void RehydrateIncomingAssociations() {
@@ -359,6 +368,12 @@ namespace datamodel.schema {
             if (_incomingFkColumns.TryGetValue(model, out List<Column> columns))
                 return columns;
             return new Column[0];
+        }
+
+        public IEnumerable<PolymorphicInterface> InterfacesForModel(Model model) {
+            if (_interfacesForModel.TryGetValue(model, out List<PolymorphicInterface> interfaces))
+                return interfaces;
+            return new PolymorphicInterface[0];
         }
 
         public IEnumerable<Association> PolymorphicAssociationsForInterface(PolymorphicInterface _interface) {
