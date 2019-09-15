@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+
 using datamodel.metadata;
+using datamodel.graphviz.dot;
 
 namespace datamodel.graphviz {
     public static class GraphvizRunner {
@@ -27,6 +29,16 @@ namespace datamodel.graphviz {
             // https://github.com/mdaines/viz.js/issues/134
             if (!File.Exists(output))
                 throw new Exception("File not created. Exit Code: " + process.ExitCode);
+        }
+
+        public static void CreateDotAndrun(Graph graph, string baseName, RenderingStyle style) {
+            string dotPath = Path.Combine(Env.TEMP_DIR, baseName + ".dot");
+
+            using (TextWriter writer = new StreamWriter(dotPath))
+                graph.ToDot(writer);
+
+            string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".svg");
+            Run(dotPath, svgPath, style);
         }
     }
 }

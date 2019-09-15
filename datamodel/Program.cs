@@ -10,6 +10,7 @@ using datamodel.tools;
 using datamodel.datadict;
 using datamodel.toplevel;
 using datamodel.utils;
+using datamodel.graphviz;
 
 [assembly: InternalsVisibleTo("datamodel_test2")]
 
@@ -63,7 +64,8 @@ namespace datamodel {
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 
-            IndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
+            HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
+            GraphvizIndexGenerator.GenerateIndex(topLevel);
             DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
 

@@ -35,13 +35,7 @@ namespace datamodel.graphviz {
                 graph.SetAttrGraph("len", graphDef.Len.Value);
 
             string baseName = graphDef.FullyQualifiedName;
-            string dotPath = Path.Combine(Env.TEMP_DIR, baseName + ".dot");
-
-            using (TextWriter writer = new StreamWriter(dotPath))
-                graph.ToDot(writer);
-
-            string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".svg");
-            GraphvizRunner.Run(dotPath, svgPath, graphDef.Style);
+            GraphvizRunner.CreateDotAndrun(graph, baseName, graphDef.Style);
         }
 
         public Graph CreateGraph(IEnumerable<Model> models, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {

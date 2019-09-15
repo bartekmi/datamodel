@@ -60,6 +60,10 @@ namespace datamodel.toplevel {
             Parent = parent;
         }
 
+        public override string ToString() {
+            return HumanName;
+        }
+
         public static HierarchyItem CreateHierarchyTree() {
             HierarchyItem topLevel = new HierarchyItem(null) {
                 Name = "All Teams",
