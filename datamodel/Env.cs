@@ -32,6 +32,9 @@ namespace datamodel {
         // Generate a graph for the top level of the team hierarchy?
         public static bool GENERATE_TOP_LEVEL_GRAPH;
 
+        // Minimum number of models in the graph index before creating a sub-graph
+        public static int MIN_MODELS_TO_SHOW_AS_NODE;
+
         private static void ConfigureMacTrinity() {
             OUTPUT_ROOT_DIR = UserPath(@"Sites");
             TEMP_DIR = UserPath(@"temp");
@@ -44,6 +47,7 @@ namespace datamodel {
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
             GENERATE_TOP_LEVEL_GRAPH = true;
+            MIN_MODELS_TO_SHOW_AS_NODE = 1;
         }
 
         private static void ConfigureMacFlexport() {
@@ -57,6 +61,7 @@ namespace datamodel {
             GRAPHVIZ_BIN_DIR = "/usr/local/bin";
             HTTP_ROOT = "/~bmuszynski";
             GENERATE_TOP_LEVEL_GRAPH = false;
+            MIN_MODELS_TO_SHOW_AS_NODE = 20;
         }
 
         private static string[] FindModelDirs() {
@@ -95,8 +100,8 @@ namespace datamodel {
 
         internal static void Configure() {
             // Obviously add code here to set appropriate env once working on Windows again.
-            ConfigureMacTrinity();
-            // ConfigureMacFlexport();
+            // ConfigureMacTrinity();
+            ConfigureMacFlexport();
         }
     }
 }

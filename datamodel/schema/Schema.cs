@@ -288,13 +288,13 @@ namespace datamodel.schema {
 
             // Set the FkSideModel for the polymorphic associations +++
             foreach (Association association in Associations.Where(x => x.IsPolymorphic)) {
-                Console.WriteLine(association);
-                PolymorphicInterface _interface = Interfaces[association.PolymorphicName];
-                Column fkColumn = _interface.Column;
-                if (fkColumn != null)
-                    association.FkSideModel = fkColumn.Owner;
-                else
-                    Error.Log("WARNING: FK Column null for " + association);
+                if (Interfaces.TryGetValue(association.PolymorphicName, out PolymorphicInterface _interface)) {
+                    Column fkColumn = _interface.Column;
+                    if (fkColumn != null)
+                        association.FkSideModel = fkColumn.Owner;
+                    else
+                        Error.Log("WARNING: FK Column null for " + association);
+                }
             }
 
             Console.WriteLine("Filtered out: " +
@@ -316,6 +316,7 @@ namespace datamodel.schema {
 
         private void RehydrateFkAssociationsForModels() {
             _fkAssociationsForModel = Associations
+                .Where(x => x.FkSideModel != null)
                 .GroupBy(x => x.FkSideModel)
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
