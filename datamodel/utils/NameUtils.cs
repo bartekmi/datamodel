@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace datamodel.utils {
     public static class NameUtils {
@@ -36,6 +37,10 @@ namespace datamodel.utils {
             }
 
             return builder.ToString();
+        }
+
+        public static string CompoundToSafe(IEnumerable<string> compound) {
+            return string.Join("__", compound).Replace(' ', '_');
         }
     }
 }

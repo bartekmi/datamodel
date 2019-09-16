@@ -32,6 +32,7 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
         private Dictionary<string, Model> _byClassName;
         private Dictionary<Model, List<Column>> _incomingFkColumns;
+        private Dictionary<Model, List<Association>> _fkAssociationsForModel;
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
         private HashSet<string> _teamNames;
@@ -56,8 +57,10 @@ namespace datamodel.schema {
 
             // Step Two: Associations
             IEnumerable<RailsAssociation> railsAssociations = parser.ParseAssociations();
+            railsAssociations = railsAssociations.Where(x => !x.OwningModel.Contains("HABTM")).ToList();        // Ignore dummy associations for "Has And Belongs To Many"
             railsAssociations = new HashSet<RailsAssociation>(railsAssociations);   // Make unique
             railsAssociations = schema.SetFkModelsAndClean(railsAssociations);
+
             schema.Associations = BuildAssociations(railsAssociations)
                 .Concat(BuildPolymorphicAssociations(railsAssociations))
                 .ToList();
@@ -214,7 +217,7 @@ namespace datamodel.schema {
                     // validations on FK columns are associated with the corresponding Rails Associations
                     column.Validations = column.Validations.Concat(ra.Validations).ToArray();
 
-                    if (ra.Options.Polymorphic) {
+                    if (ra.IsPolymorphicInterface) {
                         // In the case of a polymorphic association, its FK does not
                         // point to an actual table but to a virtual "interface",
                         // so there is nothing to set
@@ -241,6 +244,7 @@ namespace datamodel.schema {
             RehydrateInterfacesForModels();
             RehydratePolymorphicFkColumns();
             RehydratePolymorphicAssociations();
+            RehydrateFkAssociationsForModels();
         }
 
         // E.g. see OperationalRoute::Graph and OperationalRoute::ConfirmedGraph
@@ -282,6 +286,17 @@ namespace datamodel.schema {
               .Where(x => Interfaces.ContainsKey(x.Key))
               .ToDictionary(x => Interfaces[x.Key], x => x.ToList());
 
+            // Set the FkSideModel for the polymorphic associations +++
+            foreach (Association association in Associations.Where(x => x.IsPolymorphic)) {
+                Console.WriteLine(association);
+                PolymorphicInterface _interface = Interfaces[association.PolymorphicName];
+                Column fkColumn = _interface.Column;
+                if (fkColumn != null)
+                    association.FkSideModel = fkColumn.Owner;
+                else
+                    Error.Log("WARNING: FK Column null for " + association);
+            }
+
             Console.WriteLine("Filtered out: " +
               string.Join("\n", Associations
                   .Where(x => x.IsPolymorphic)
@@ -296,6 +311,12 @@ namespace datamodel.schema {
         private void RehydrateInterfacesForModels() {
             _interfacesForModel = Interfaces.Values
                 .GroupBy(x => x.Model)
+                .ToDictionary(x => x.Key, x => x.ToList());
+        }
+
+        private void RehydrateFkAssociationsForModels() {
+            _fkAssociationsForModel = Associations
+                .GroupBy(x => x.FkSideModel)
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
@@ -374,6 +395,12 @@ namespace datamodel.schema {
             if (_interfacesForModel.TryGetValue(model, out List<PolymorphicInterface> interfaces))
                 return interfaces;
             return new PolymorphicInterface[0];
+        }
+
+        public List<Association> FkAssociationsForModel(Model model) {
+            if (_fkAssociationsForModel.TryGetValue(model, out List<Association> fkAssociations))
+                return fkAssociations;
+            return new List<Association>();
         }
 
         public IEnumerable<Association> PolymorphicAssociationsForInterface(PolymorphicInterface _interface) {

@@ -11,9 +11,9 @@ namespace datamodel.toplevel {
     public static class GraphGenerator {
 
         internal static void Generate(HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
-            Recurse(item, CreateGraphDefinition);
+            HierarchyItem.Recurse(item, CreateGraphDefinition);
 
-            Recurse(item, hierItem => {
+            HierarchyItem.Recurse(item, hierItem => {
                 // First, see if a GraphDef was specified explicitly in a visualization.yaml file...
                 IEnumerable<string> nameComponents = hierItem.CumulativeName.Skip(1);       // Skip the root node
                 GraphDefinition graphDef = graphDefsFromMetadata.SingleOrDefault(gd => gd.HasSameNameAs(nameComponents));
@@ -25,12 +25,6 @@ namespace datamodel.toplevel {
                 if (graphDef != null)
                     Generate(graphDef);
             });
-        }
-
-        private static void Recurse(HierarchyItem item, Action<HierarchyItem> action) {
-            action(item);
-            foreach (HierarchyItem child in item.Children)
-                Recurse(child, action);
         }
 
         private static void CreateGraphDefinition(HierarchyItem item) {

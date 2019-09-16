@@ -69,7 +69,7 @@ namespace datamodel.schema {
         #endregion
 
 
-        #region Hydrated
+        #region Re-Hydrated
         public Model Superclass { get; set; }
         #endregion
 
@@ -81,7 +81,6 @@ namespace datamodel.schema {
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
         public string SanitizedClassName { get { return FileUtils.SanitizeFilename(ClassName); } }
-        public IEnumerable<PolymorphicInterface> PolymorphicInterfaces { get { return Schema.Singleton.InterfacesForModel(this); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
 
         public string AnnotationFilePath {
@@ -99,6 +98,23 @@ namespace datamodel.schema {
                 return ModelPath.Substring(Env.REPO_ROOT.Length);
             }
         }
+
+
+        public List<Association> FkAssociations {
+            get { return Schema.Singleton.FkAssociationsForModel(this); }
+        }
+
+        public IEnumerable<PolymorphicInterface> PolymorphicInterfaces {
+            get { return Schema.Singleton.InterfacesForModel(this); }
+        }
+
+        public IEnumerable<Association> PolymorphicAssociations {
+            get {
+                return PolymorphicInterfaces
+                    .SelectMany(x => Schema.Singleton.PolymorphicAssociationsForInterface(x));
+            }
+        }
+
 
         public static string ExtractUnqualifiedClassName(string qualifiedClassName) {
             return qualifiedClassName.Split("::").Last();

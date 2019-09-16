@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 using datamodel.schema;
 using datamodel.metadata;
+using datamodel.utils;
 
 namespace datamodel.toplevel {
 
@@ -60,8 +61,30 @@ namespace datamodel.toplevel {
             Parent = parent;
         }
 
+        // Note that 'self' is considered a descendent of 'self'
+        public bool IsDescendentOf(HierarchyItem other) {
+            if (other == this)
+                return true;
+            return Parent != null && Parent.IsDescendentOf(other);
+        }
+
+        public HierarchyItem FindAncestorAtLevel(int level) {
+            if (Level == level)
+                return this;
+            if (Level < level)
+                return null;
+            return Parent.FindAncestorAtLevel(level);
+        }
+
         public override string ToString() {
             return HumanName;
+        }
+
+        // Utility method to apply <action> recursively to all items
+        public static void Recurse(HierarchyItem item, Action<HierarchyItem> action) {
+            action(item);
+            foreach (HierarchyItem child in item.Children)
+                Recurse(child, action);
         }
 
         public static HierarchyItem CreateHierarchyTree() {
@@ -118,6 +141,14 @@ namespace datamodel.toplevel {
                 } else
                     Children = onlyChild.Children;
             }
+        }
+
+        public static void DebugPrint(HierarchyItem item, int indent = 0) {
+            Console.Write(new string(' ', indent * 2));
+            Console.WriteLine(NameUtils.CompoundToSafe(item.CumulativeName));
+
+            foreach (HierarchyItem child in item.Children)
+                DebugPrint(child, indent + 1);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace datamodel.graphviz {
                 throw new Exception("File not created. Exit Code: " + process.ExitCode);
         }
 
-        public static void CreateDotAndrun(Graph graph, string baseName, RenderingStyle style) {
+        public static void CreateDotAndRun(Graph graph, string baseName, RenderingStyle style) {
             string dotPath = Path.Combine(Env.TEMP_DIR, baseName + ".dot");
 
             using (TextWriter writer = new StreamWriter(dotPath))

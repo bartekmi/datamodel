@@ -35,7 +35,7 @@ namespace datamodel.graphviz {
                 graph.SetAttrGraph("len", graphDef.Len.Value);
 
             string baseName = graphDef.FullyQualifiedName;
-            GraphvizRunner.CreateDotAndrun(graph, baseName, graphDef.Style);
+            GraphvizRunner.CreateDotAndRun(graph, baseName, graphDef.Style);
         }
 
         public Graph CreateGraph(IEnumerable<Model> models, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
