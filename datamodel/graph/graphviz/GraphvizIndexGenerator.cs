@@ -119,8 +119,8 @@ namespace datamodel.graphviz {
 
         private static Edge ToEdge(AggregatedAssociation aa) {
             Edge edge = new Edge() {
-                Source = HI_ToNodeIdInEdge(aa.From),
-                Destination = HI_ToNodeIdInEdge(aa.To),
+                Source = HI_ToNodeId(aa.From),
+                Destination = HI_ToNodeId(aa.To),
             };
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
@@ -263,13 +263,15 @@ namespace datamodel.graphviz {
             return uniqueName;
         }
 
+        // NOTE: This code only applies to 'dot' rendering style, but that style
+        // produces undreadable output, so we don't use it.
         // When specifying node names in an edge, Graphviz does NOT allow specifying
         // the cluster name. Instead, you must link to a node within the cluster
         // and set the lhead/ltail attributes.
         // https://github.com/glejeune/Ruby-Graphviz/issues/35
-        private static string HI_ToNodeIdInEdge(HierarchyItem item) {
+        private static string HI_ToNodeIdInEdgeForDot(HierarchyItem item) {
             if (ShowAsSubgraph(item))
-                return HI_ToNodeIdInEdge(item.Children.First(x => x.ShouldShowOnIndex));
+                return HI_ToNodeIdInEdgeForDot(item.Children.First(x => x.ShouldShowOnIndex));
             return HI_ToNodeId(item);
         }
 
