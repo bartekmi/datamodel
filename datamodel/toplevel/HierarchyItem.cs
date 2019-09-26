@@ -49,8 +49,8 @@ namespace datamodel.toplevel {
             get {
                 switch (Level) {
                     case 0: return "All Models";
-                    case 1: return Name == null ? "No Team" : Name + " Team";
-                    case 2: return Name == null ? "No Engine" : Name + " Engine";
+                    case 1: return Name == null ? "Orphans (No Team)" : Name + " Team";
+                    case 2: return Name == null ? string.Format("{0} (No Engine)", Parent.Name) : Name + " Engine";
                     case 3: return Name + " Module";        // If this had no name, it wouldn't exist
                     default:
                         throw new Exception("Unexpected Level: " + Level);

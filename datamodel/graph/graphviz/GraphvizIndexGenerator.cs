@@ -124,7 +124,7 @@ namespace datamodel.graphviz {
             };
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
-                .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
+                .SetAttrGraph("arrowsize", 1.0)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("tooltip", CreateEdgeToolTip(aa))
                 .SetAttrGraph("arrowhead", "normal")
@@ -205,14 +205,32 @@ namespace datamodel.graphviz {
                 .SetAttrHtml("cellborder", 0)
                 .SetAttrHtml("cellspacing", 0);
 
-            // Header
-            string headerText = HtmlUtils.SetFont(HtmlUtils.MakeBold(item.HumanName), 16);
+            List<HierarchyItem> parentage = new List<HierarchyItem>();
+            HierarchyItem pointer = item;
+            while (pointer.Parent != null) {
+                parentage.Insert(0, pointer);
+                pointer = pointer.Parent;
+            }
 
-            HtmlTd headerTd = new HtmlTd(headerText)
-                .SetAttrHtml("tooltip", CreateNodeToolTip(item))
-                .SetAttrHtml("href", item.Graph.SvgUrl);
+            foreach (HierarchyItem level in parentage) {
+                string label = null;
+                switch (level.Level) {
+                    case 1: label = "Team: "; break;
+                    case 2: label = "Engine: "; break;
+                    case 3: label = "Module: "; break;
+                    default:
+                        throw new Exception("Unexpected level");
+                }
 
-            table.AddTr(new HtmlTr(headerTd));
+                table.AddTr(new HtmlTr(
+                    new HtmlTd(label),
+                    new HtmlTd(string.IsNullOrWhiteSpace(level.Name) ? "None" : level.Name)
+                ));
+            }
+
+            table.SetAttrHtml("tooltip", CreateNodeToolTip(item))
+                 .SetAttrHtml("href", item.Graph.SvgUrl);
+
             return table;
         }
 
