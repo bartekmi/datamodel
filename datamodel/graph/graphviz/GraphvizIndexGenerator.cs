@@ -191,7 +191,7 @@ namespace datamodel.graphviz {
             };
 
             node.SetAttrGraph("style", "filled")
-                .SetAttrGraph("fillcolor", "pink")      // TODO
+                .SetAttrGraph("fillcolor", item.ColorString)
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("label", CreateLabel(item));

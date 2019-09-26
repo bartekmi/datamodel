@@ -58,6 +58,12 @@ namespace datamodel.toplevel {
                 }
             }
         }
+        public string ColorString {
+            get {
+                HierarchyItem teamItem = ParentAtLevel(1);
+                return TeamInfo.GetHtmlColorForTeam(teamItem.Name);
+            }
+        }
 
         private HierarchyItem(HierarchyItem parent) {
             Children = new List<HierarchyItem>();
@@ -144,6 +150,14 @@ namespace datamodel.toplevel {
                 } else
                     Children = onlyChild.Children;
             }
+        }
+
+        public HierarchyItem ParentAtLevel(int level) {
+            if (level > Level)
+                return null;
+            if (Level == level)
+                return this;
+            return Parent.ParentAtLevel(level);
         }
 
         public static void DebugPrint(HierarchyItem item, int indent = 0) {
