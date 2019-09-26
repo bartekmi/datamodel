@@ -10,9 +10,22 @@ namespace datamodel.toplevel {
 
     public static class GraphGenerator {
 
-        internal static void Generate(HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
-            HierarchyItem.Recurse(item, CreateGraphDefinition);
+        internal static void CreateGraphDefinitions(HierarchyItem top) {
+            HierarchyItem.Recurse(top, CreateGraphDefinition);
+        }
 
+        private static void CreateGraphDefinition(HierarchyItem item) {
+            if (!item.IsTop || Env.GENERATE_TOP_LEVEL_GRAPH) {
+                item.Graph = new GraphDefinition() {
+                    CoreModels = item.CumulativeModels.ToArray(),
+                    NameComponents = item.CumulativeName.Skip(1).ToArray(),
+                    HumanName = item.HumanName,
+                };
+                UrlService.Singleton.AddGraph(item.Graph);
+            }
+        }
+
+        internal static void Generate(HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
             HierarchyItem.Recurse(item, hierItem => {
                 // First, see if a GraphDef was specified explicitly in a visualization.yaml file...
                 IEnumerable<string> nameComponents = hierItem.CumulativeName.Skip(1);       // Skip the root node
@@ -25,17 +38,6 @@ namespace datamodel.toplevel {
                 if (graphDef != null)
                     Generate(graphDef);
             });
-        }
-
-        private static void CreateGraphDefinition(HierarchyItem item) {
-            if (!item.IsTop || Env.GENERATE_TOP_LEVEL_GRAPH) {
-                item.Graph = new GraphDefinition() {
-                    CoreModels = item.CumulativeModels.ToArray(),
-                    NameComponents = item.CumulativeName.Skip(1).ToArray(),
-                    HumanName = item.HumanName,
-                };
-                UrlService.Singleton.AddGraph(item.Graph);
-            }
         }
 
         internal static void Generate(GraphDefinition graphDef) {

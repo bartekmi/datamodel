@@ -62,7 +62,8 @@ namespace datamodel {
                                         Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
-            GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
+            GraphGenerator.CreateGraphDefinitions(topLevel);
+            // GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 
             HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
             GraphvizIndexGenerator.GenerateIndex(topLevel);

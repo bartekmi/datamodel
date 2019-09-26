@@ -48,6 +48,7 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("pad", "0.5")
                 .SetAttrGraph("nodesep", "1")
                 .SetAttrGraph("ranksep", "1")
+                .SetAttrGraph("overlap", "false")
                 .SetAttrGraph("notranslate", true);
 
 
@@ -71,7 +72,7 @@ namespace datamodel.graphviz {
                 Subgraph subgraph = ToSubgraph(childItem);
                 parent.AddSubgraph(subgraph);
                 foreach (HierarchyItem grandchild in childItem.Children)
-                    if (grandchild.CumulativeModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE)
+                    if (grandchild.ShouldShowOnIndex)
                         GenerateIndexRecursive(modelToHI, subgraph, grandchild);
                 AddAssociations(modelToHI, subgraph, childItem);    // Edges for subgraph
             } else {
@@ -90,14 +91,15 @@ namespace datamodel.graphviz {
 
             // First iteration is to collect associations that should be drawn for this level and aggregate them,
             // since we don't want to draw multiple lines between same subgraphs
-            foreach (HierarchyItem childItem in item.Children) {
+            foreach (HierarchyItem childItem in item.Children.Where(x => x.ShouldShowOnIndex)) {
                 foreach (Model model in childItem.CumulativeModels) {
                     foreach (Association association in model.FkAssociations.Where(x => x.OtherSideModel != null)) {
                         HierarchyItem otherSide = modelToHI[association.OtherSideModel];
                         HierarchyItem otherSideSibling = otherSide.FindAncestorAtLevel(childItem.Level);
                         if (otherSideSibling == null ||                      // No sibling
-                            otherSideSibling.Parent != childItem.Parent ||   // Other side no in direct parent
-                            otherSideSibling == childItem)                   // Other side in same subgraph
+                            otherSideSibling.Parent != childItem.Parent ||   // Other side not in direct parent
+                            otherSideSibling == childItem ||                 // Other side in same subgraph
+                            !otherSideSibling.ShouldShowOnIndex)             // Too few models to bother showing
                             continue;
 
                         string key = AggregatedAssociation.CreateKey(childItem, otherSideSibling);
@@ -163,7 +165,7 @@ namespace datamodel.graphviz {
             }
 
             internal static string CreateKey(HierarchyItem from, HierarchyItem to) {
-                IEnumerable<string> ordered = new string[] { from.Name, to.Name }.OrderBy(x => x);
+                IEnumerable<string> ordered = new string[] { from.UniqueName, to.UniqueName }.OrderBy(x => x);
                 return string.Join("|", ordered);
             }
         }
@@ -244,7 +246,7 @@ namespace datamodel.graphviz {
         // https://github.com/glejeune/Ruby-Graphviz/issues/35
         private static string HI_ToNodeIdInEdge(HierarchyItem item) {
             if (ShowAsSubgraph(item))
-                return HI_ToNodeIdInEdge(item.Children.First());
+                return HI_ToNodeIdInEdge(item.Children.First(x => x.ShouldShowOnIndex));
             return HI_ToNodeId(item);
         }
 

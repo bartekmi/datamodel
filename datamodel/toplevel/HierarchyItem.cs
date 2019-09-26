@@ -39,7 +39,9 @@ namespace datamodel.toplevel {
                     Parent.CumulativeName.Concat(asEnumerable);
             }
         }
+        public string UniqueName { get { return string.Join("_", CumulativeName); } }
         public int CumulativeModelCount { get { return CumulativeModels.Count(); } }
+        public bool ShouldShowOnIndex { get { return CumulativeModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE; } }
 
         // This is the only place in the entire codebase that has the knowledge of what the 
         // three levels of the hierachy mean: team, engine, module (in case this changes in the future)
