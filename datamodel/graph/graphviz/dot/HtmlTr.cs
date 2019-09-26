@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace datamodel.graphviz.dot {
     public class HtmlTr : HtmlEntity {

@@ -60,7 +60,7 @@ namespace datamodel.graphviz {
 
 
             string baseName = "index";
-            GraphvizRunner.CreateDotAndRun(graph, baseName, RenderingStyle.Neato);
+            GraphvizRunner.CreateDotAndRun(graph, baseName, RenderingStyle.Fdp);
         }
 
         private static void GenerateIndexRecursive(
@@ -227,6 +227,11 @@ namespace datamodel.graphviz {
                     new HtmlTd(string.IsNullOrWhiteSpace(level.Name) ? "None" : level.Name)
                 ));
             }
+
+            table.AddTr(new HtmlTr(
+                new HtmlTd(""),
+                new HtmlTd(string.Format("{0} Models", item.CumulativeModelCount))
+            ));
 
             table.SetAttrHtml("tooltip", CreateNodeToolTip(item))
                  .SetAttrHtml("href", item.Graph.SvgUrl);
