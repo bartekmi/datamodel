@@ -92,7 +92,12 @@ th {
 }
 
 /* Index Classes */
-.index-container {
+.index-top-level {
+  display: flex;
+  flex-direction: column;
+}
+
+.index-side-by-side {
   display: flex;
   width: 100%;
 }

@@ -15,18 +15,28 @@ namespace datamodel.datadict {
         public static void GenerateIndex(string rootDir, HierarchyItem topLevel) {
 
             HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
-            HtmlElement topContainer = GenerateTopContainer();
-            body.Add(topContainer);
+            HtmlElement topDiv = CreateStyledDiv("index-top-level");
+            body.Add(topDiv);
 
-            topContainer.Add(GenerateHierarchy(topLevel));
-            topContainer.Add(GenerateFlatList());
+            // Title/Header
+            topDiv.Add(new HtmlElement("h1", "Flexport Data Model"));
+
+            // Picture Index
+            topDiv.Add(new HtmlElement("img")
+                .Attr("src", UrlUtils.ToAbsolute("index.svg")));
+
+            // Text Index
+            HtmlElement sideBySideDiv = CreateStyledDiv("index-side-by-side");
+            body.Add(sideBySideDiv);
+            sideBySideDiv.Add(GenerateHierarchy(topLevel));
+            sideBySideDiv.Add(GenerateFlatList());
 
             string path = Path.Combine(rootDir, "index.html");
             using (StreamWriter writer = new StreamWriter(path))
                 html.ToHtml(writer, 0);
         }
 
-        private static HtmlElement GenerateTopContainer() {
+        private static HtmlElement CreateStyledDiv(string cssClass) {
             HtmlElement topContainer = new HtmlElement("div")
                 .Class("index-container");
             return topContainer;
@@ -36,6 +46,7 @@ namespace datamodel.datadict {
         #region Hierarchy
         private static HtmlElement GenerateHierarchy(HierarchyItem hierarchyItem) {
             HtmlElement hierarchyHtml = new HtmlElement("div").Class("index-subpanel");
+            hierarchyHtml.Add(new HtmlElement("h2", "By Team, then Engine, then Module"));
             AddHierarchyToParentRecursively(hierarchyHtml, hierarchyItem);
             return hierarchyHtml;
         }
@@ -72,6 +83,7 @@ namespace datamodel.datadict {
         #region Flat List
         private static HtmlElement GenerateFlatList() {
             HtmlElement list = new HtmlElement("div").Class("index-subpanel");
+            list.Add(new HtmlElement("h2", "All Models, Alphabetical"));
 
             foreach (Model model in Schema.Singleton.Models.OrderBy(x => x.HumanName))
                 list.Add(GenerateFlatListItem(model));
