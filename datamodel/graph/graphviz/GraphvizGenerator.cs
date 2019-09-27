@@ -240,9 +240,7 @@ namespace datamodel.graphviz {
                     // Attributes for the column name Html-like element
                     columnNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", string.IsNullOrEmpty(column.Description) ?
-                            string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName) :
-                            column.DescriptionParagraphs.First())
+                        .SetAttrHtml("tooltip", CreateColumntoolTip(column))
                         .SetAttrHtml("href", column.DocUrl);
 
                     table.AddTr(row);
@@ -250,6 +248,28 @@ namespace datamodel.graphviz {
             }
 
             return table;
+        }
+
+        private static string CreateColumntoolTip(Column column) {
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendLine(string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName));
+
+            if (!string.IsNullOrEmpty(column.Description)) {
+                builder.AppendLine(HtmlUtils.LINE_BREAK);
+                builder.AppendLine(column.DescriptionParagraphs.First());
+            }
+
+            if (column.Enum != null) {
+                builder.AppendLine(HtmlUtils.LINE_BREAK);
+                foreach (var value in column.Enum.Values)
+                    builder.AppendLine(string.Format("{0}{1}: {2}",
+                        HtmlUtils.LINE_BREAK,
+                        value.Key,
+                        value.Value));
+            }
+
+            return builder.ToString();
         }
 
         private string CreateModelToolTip(Model model) {
