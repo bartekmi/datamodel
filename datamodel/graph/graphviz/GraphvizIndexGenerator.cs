@@ -180,6 +180,7 @@ namespace datamodel.graphviz {
 
             subgraph.SetAttrGraph("pencolor", "black")
                     .SetAttrGraph("label", item.HumanName)
+                    .SetAttrGraph("href", item.Graph.SvgUrl)
                     .SetAttrGraph("fontname", "Helvetica");
 
             return subgraph;
@@ -194,6 +195,7 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fillcolor", item.ColorString)
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
+                .SetAttrGraph("href", item.Graph.SvgUrl)
                 .SetAttrGraph("label", CreateLabel(item));
 
             return node;
@@ -233,8 +235,7 @@ namespace datamodel.graphviz {
                 new HtmlTd(string.Format("{0} Models", item.CumulativeModelCount))
             ));
 
-            table.SetAttrHtml("tooltip", CreateNodeToolTip(item))
-                 .SetAttrHtml("href", item.Graph.SvgUrl);
+            table.SetAttrHtml("tooltip", CreateNodeToolTip(item));
 
             return table;
         }
