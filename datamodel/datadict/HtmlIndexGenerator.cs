@@ -22,8 +22,9 @@ namespace datamodel.datadict {
             topDiv.Add(new HtmlElement("h1", "Flexport Data Model"));
 
             // Picture Index
-            topDiv.Add(new HtmlElement("img")
-                .Attr("src", UrlUtils.ToAbsolute("index.svg")));
+            topDiv.Add(new HtmlElement("object")
+                .Attr("type", "image/svg+xml")
+                .Attr("data", UrlUtils.ToAbsolute("index.svg")));
 
             // Text Index
             HtmlElement sideBySideDiv = CreateStyledDiv("index-side-by-side");
