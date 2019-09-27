@@ -217,11 +217,11 @@ namespace datamodel.graphviz {
                             // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
                             GraphDefinition graphDef = UrlService.Singleton.GetGraphs(referencedModel).First();
 
-                            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
+                            string graphToolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
                                 HtmlUtils.LINE_BREAK, graphDef.HumanName, graphDef.CoreModels.Length);
 
                             row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
-                               .SetAttrHtml("tooltip", toolTip)
+                               .SetAttrHtml("tooltip", graphToolTip)
                                .SetAttrHtml("href", graphDef.SvgUrl));
 
                             row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))

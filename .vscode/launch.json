@@ -27,6 +27,17 @@
       "stopAtEntry": false
     },
     {
+      "name": "Custom",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp2.2/datamodel.dll",
+      "args": ["custom"],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach",

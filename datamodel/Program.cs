@@ -31,6 +31,9 @@ namespace datamodel {
                 case "gendocs":
                     GenerateGraphsAndDataDictionary();
                     break;
+                case "custom":
+                    DoCustomTestCode();
+                    break;
                 default:
                     throw new Exception("Unexpected command: " + command);
             }
@@ -41,6 +44,10 @@ namespace datamodel {
                 throw new Exception("Exactly one arg expected");
 
             return args[0];
+        }
+
+        private static void DoCustomTestCode() {
+            ModelDirParser.ParseFile(@"/Users/bmuszynski/flexport/engines/network_engine/app/models/network_engine/port.rb");
         }
 
         private static void GenerateYamls() {

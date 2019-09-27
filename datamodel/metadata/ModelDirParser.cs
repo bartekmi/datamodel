@@ -37,29 +37,32 @@ namespace datamodel.metadata {
             int count = 0;
 
             foreach (string path in Directory.GetFiles(dirPath)) {
-                using (StreamReader reader = new StreamReader(path)) {
-                    if (!IsActiveRecord(reader, out string className, out string team))
-                        continue;
+                ParseFile(path);
+                count++;
+            }
+        }
 
-                    Model table = Schema.Singleton.FindByClassName(className);
+        internal static void ParseFile(string path) {
+            using (StreamReader reader = new StreamReader(path)) {
+                if (!IsActiveRecord(reader, out string className, out string team))
+                    return;
 
-                    if (table == null) {
-                        Error.Log(new Error() {
-                            Path = path,
-                            Message = string.Format("Model '{0}' not found in schema", className)
-                        });
-                        continue;
-                    }
+                Model model = Schema.Singleton.FindByClassName(className);
 
-                    table.ModelPath = path;
-                    table.Team = team;
+                if (model == null) {
+                    Error.Log(new Error() {
+                        Path = path,
+                        Message = string.Format("Model '{0}' not found in schema", className)
+                    });
+                    return;
+                }
 
-                    if (path.Contains("engine")) {
-                        string directory = Path.GetDirectoryName(path);
-                        table.Engine = Path.GetFileName(directory);         // Assumes that the last path element of all engines is unique
-                    }
+                model.ModelPath = path;
+                model.Team = team;
 
-                    count++;
+                if (path.Contains("engine")) {
+                    string directory = Path.GetDirectoryName(path);
+                    model.Engine = Path.GetFileName(directory);         // Assumes that the last path element of all engines is unique
                 }
             }
         }
@@ -69,8 +72,8 @@ namespace datamodel.metadata {
             team = null;
 
             string teamPattern = "#\\s*TEAM:\\s*([a-zA-Z0-9_]+)";
-            string modulePattern = "\\s*module\\s+([a-zA-Z0-9_:]+)";
-            string classDefPattern = "class\\s+([a-zA-Z0-9_:]+)\\s*<\\s*([a-zA-Z0-9_:]+)";
+            string modulePattern = "^\\s*module\\s+([a-zA-Z0-9_:]+)";
+            string classDefPattern = "^\\s*class\\s+([a-zA-Z0-9_:]+)\\s*<\\s*([a-zA-Z0-9_:]+)";
 
             string line = null;
             List<string> modules = new List<string>();

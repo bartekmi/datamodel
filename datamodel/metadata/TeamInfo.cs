@@ -11,14 +11,14 @@ namespace datamodel.metadata {
                 case "bookings": return "lightsalmon";
                 case "customs": return "#00ff00";
                 case "dot_org": return "lemonchiffon";
-                case "enterprise_enablement": return "#b8860b";
+                case "enterprise_enablement": return "#ffe4e1";
                 case "finance": return "#98fb98";
                 case "growth": return "greenyellow";
                 case "marketplace": return "#ffa500";
                 case "ocean_fcl": return "deepskyblue";
                 case "ocean_lcl": return "cyan";
                 case "quoting": return "palevioletred";
-                case "shipment_activity": return "darkgoldenrod";
+                case "shipment_activity": return "#f0e68c";
                 case "shipment_data": return "#8fbc8f";
                 case "squad_tools": return "honeydew";
                 case "trucking": return "#ffff00";
