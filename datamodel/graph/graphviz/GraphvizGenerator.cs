@@ -147,7 +147,7 @@ namespace datamodel.graphviz {
             };
 
             node.SetAttrGraph("style", "filled")
-                .SetAttrGraph("fillcolor", "pink")
+                .SetAttrGraph("fillcolor", model.ColorString)
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("label", CreateLabel(allModels, model, true));
@@ -200,6 +200,7 @@ namespace datamodel.graphviz {
                     !(column.IsPolymorphicId || column.IsPolymorphicType)) {
 
                     HtmlTr row = new HtmlTr();
+                    Model referencedModel = column.IsFk ? column.FkInfo.ReferencedModel : null;
 
                     string columnName = HtmlUtils.Bullet() + column.HumanName;
                     HtmlTd columnNameTd = new HtmlTd();
@@ -207,32 +208,32 @@ namespace datamodel.graphviz {
 
                     // Foreign Key Column
                     if (column.IsFk) {
-                        Model referencedModel = column.FkInfo.ReferencedModel;
                         if (tables.Contains(referencedModel))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
-                        else {
-                            columnNameTd.Text = columnName;
 
-                            if (referencedModel != null) {
-                                // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
-                                GraphDefinition graphDef = UrlService.Singleton.GetGraphs(referencedModel).First();
+                        columnNameTd.Text = columnName;
 
-                                string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
-                                    HtmlUtils.LINE_BREAK, graphDef.HumanName, graphDef.CoreModels.Length);
+                        if (referencedModel != null) {
+                            // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
+                            GraphDefinition graphDef = UrlService.Singleton.GetGraphs(referencedModel).First();
 
-                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
-                                   .SetAttrHtml("tooltip", toolTip)
-                                   .SetAttrHtml("href", graphDef.SvgUrl));
+                            string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
+                                HtmlUtils.LINE_BREAK, graphDef.HumanName, graphDef.CoreModels.Length);
 
-                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
-                                   .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedModel.HumanName))
-                                   .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
-                            }
+                            row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
+                               .SetAttrHtml("tooltip", toolTip)
+                               .SetAttrHtml("href", graphDef.SvgUrl));
+
+                            row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
+                               .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedModel.HumanName))
+                               .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
+
+                            row.SetAttrAllChildren("bgcolor", referencedModel.ColorString);
                         }
                     }
                     // Regular Column
                     else {
-                        string dataType = string.Format("<FONT COLOR=\"gray50\">({0})</FONT>", ToShortType(column));
+                        string dataType = string.Format("<FONT COLOR=\"gray25\">({0})</FONT>", ToShortType(column));
                         columnNameTd.Text = string.Format("{0} {1}", columnName, dataType);
                     }
 

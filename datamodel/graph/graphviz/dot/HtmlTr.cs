@@ -21,6 +21,11 @@ namespace datamodel.graphviz.dot {
             _tds.Add(td);
         }
 
+        public void SetAttrAllChildren(string name, object value) {
+            foreach (HtmlTd td in _tds)
+                td.SetAttrHtml(name, value);
+        }
+
         override public void ToHtml(TextWriter writer) {
             WriteOpeningTag(writer, "tr");
             foreach (HtmlTd td in _tds)

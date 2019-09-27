@@ -63,7 +63,7 @@ namespace datamodel {
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             GraphGenerator.CreateGraphDefinitions(topLevel);
-            // GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
+            GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 
             HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
             GraphvizIndexGenerator.GenerateIndex(topLevel);

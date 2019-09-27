@@ -4,25 +4,27 @@ namespace datamodel.metadata {
     public static class TeamInfo {
         // Once this is integrated, add a color for each team in teams.json
         public static string GetHtmlColorForTeam(string team) {
-            if (team == null)
-                return "#d0d0d0";
+            switch (team) {
+                case "air": return "skyblue";
+                case "backend_infra": return "#c0c0c0";
+                case "bid_app": return "orchid";
+                case "bookings": return "lightsalmon";
+                case "customs": return "#00ff00";
+                case "dot_org": return "lemonchiffon";
+                case "enterprise_enablement": return "#b8860b";
+                case "finance": return "#98fb98";
+                case "growth": return "greenyellow";
+                case "marketplace": return "#ffa500";
+                case "ocean_fcl": return "deepskyblue";
+                case "ocean_lcl": return "cyan";
+                case "quoting": return "palevioletred";
+                case "shipment_activity": return "darkgoldenrod";
+                case "shipment_data": return "#8fbc8f";
+                case "squad_tools": return "honeydew";
+                case "trucking": return "#ffff00";
+            }
 
-            Random random = new Random(team.GetHashCode());
-
-            return string.Format("#{0}{1}{2}",
-                RandomColorComponent(random),
-                RandomColorComponent(random),
-                RandomColorComponent(random)
-            );
-        }
-
-        private static string RandomColorComponent(Random random) {
-            double range = 0.2;
-
-            double relativeValue = 1.0 - random.NextDouble() * range;
-            int absoluteValue = (int)(relativeValue * 256);
-
-            return absoluteValue.ToString("X2");
+            return "lightgrey";
         }
     }
 }

@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+
 using datamodel.utils;
+using datamodel.metadata;
 
 namespace datamodel.schema {
     public enum Visibility {
@@ -82,6 +84,7 @@ namespace datamodel.schema {
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
         public string SanitizedClassName { get { return FileUtils.SanitizeFilename(ClassName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
+        public string ColorString { get { return TeamInfo.GetHtmlColorForTeam(Team); } }
 
         public string AnnotationFilePath {
             get {
@@ -114,6 +117,7 @@ namespace datamodel.schema {
                     .SelectMany(x => Schema.Singleton.PolymorphicAssociationsForInterface(x));
             }
         }
+
 
 
         public static string ExtractUnqualifiedClassName(string qualifiedClassName) {
