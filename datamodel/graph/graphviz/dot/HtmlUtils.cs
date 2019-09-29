@@ -7,6 +7,8 @@ namespace datamodel.graphviz.dot {
     public static class HtmlUtils {
 
         public const string LINE_BREAK = "&#013;";
+        public const string BULLET = "&bull; ";
+        public const string ASTERISK = "*";
 
         public static string MakeBold(string text) {
             return string.Format("<b>{0}</b>", text);
@@ -19,10 +21,6 @@ namespace datamodel.graphviz.dot {
 
         public static string SetFont(string text, double pointSize) {
             return string.Format("<font point-size=\"{0}\">{1}</font>", pointSize, text);
-        }
-
-        public static string Bullet() {
-            return "&bull; ";
         }
     }
 }

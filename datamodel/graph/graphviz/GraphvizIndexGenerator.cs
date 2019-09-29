@@ -145,7 +145,7 @@ namespace datamodel.graphviz {
 
             IEnumerable<string> associations = aa.Associations
                 .OrderBy(x => x.ToString())
-                .Select(x => string.Format("{0} {1}", HtmlUtils.Bullet(), x));
+                .Select(x => string.Format("{0} {1}", HtmlUtils.ASTERISK, x));
 
             builder.AppendLine(string.Join(HtmlUtils.LINE_BREAK, associations));
 
@@ -247,7 +247,7 @@ namespace datamodel.graphviz {
         private static string CreateNodeToolTip(HierarchyItem item) {
             IEnumerable<string> models = item.CumulativeModels
                 .OrderBy(x => x.HumanName)
-                .Select(x => string.Format("{0} {1}", HtmlUtils.Bullet(), x.HumanName));
+                .Select(x => string.Format("{0} {1}", HtmlUtils.ASTERISK, x.HumanName));
 
             return string.Format("Models: {0}{0}{1}",
                 HtmlUtils.LINE_BREAK,

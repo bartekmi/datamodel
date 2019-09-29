@@ -22,9 +22,10 @@ namespace datamodel.datadict {
             topDiv.Add(new HtmlElement("h1", "Flexport Data Model"));
 
             // Picture Index
-            topDiv.Add(new HtmlElement("object")
-                .Attr("type", "image/svg+xml")
-                .Attr("data", UrlUtils.ToAbsolute("index.svg")));
+            // I originally tried using the HTML <object> tag for this but there were several issues
+            // around this... the navigation would behave as if the SVG was in a frame
+            string svgIndexPath = Path.Combine(rootDir, "index.svg");
+            topDiv.Add(new HtmlInclude(svgIndexPath));
 
             // Text Index
             HtmlElement sideBySideDiv = CreateStyledDiv("index-side-by-side");

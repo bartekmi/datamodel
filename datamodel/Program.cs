@@ -72,8 +72,11 @@ namespace datamodel {
             GraphGenerator.CreateGraphDefinitions(topLevel);
             GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 
-            HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
+            // Since the SVG index is ***embedded*** within the HTML index file,
+            // it must be generated first
             GraphvizIndexGenerator.GenerateIndex(topLevel);
+            HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
+
             DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
 

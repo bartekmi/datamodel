@@ -111,7 +111,7 @@ namespace datamodel.graphviz {
 
             IEnumerable<string> links = Schema.Singleton.PolymorphicAssociationsForInterface(_interface)
                 .Select(x => string.Format("{0} {1}",
-                    HtmlUtils.Bullet(),
+                    HtmlUtils.BULLET,
                     x.PolymorphicReverseName));
 
             string tooltip = string.Format("Polymorphic Association: {0}{1}{1}Used By:{1}{2}",
@@ -202,7 +202,7 @@ namespace datamodel.graphviz {
                     HtmlTr row = new HtmlTr();
                     Model referencedModel = column.IsFk ? column.FkInfo.ReferencedModel : null;
 
-                    string columnName = HtmlUtils.Bullet() + column.HumanName;
+                    string columnName = HtmlUtils.BULLET + column.HumanName;
                     HtmlTd columnNameTd = new HtmlTd();
                     row.AddTd(columnNameTd);
 
