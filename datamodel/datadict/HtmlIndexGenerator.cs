@@ -40,7 +40,7 @@ namespace datamodel.datadict {
 
         private static HtmlElement CreateStyledDiv(string cssClass) {
             HtmlElement topContainer = new HtmlElement("div")
-                .Class("index-container");
+                .Class(cssClass);
             return topContainer;
         }
         #endregion
