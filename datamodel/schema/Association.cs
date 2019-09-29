@@ -101,7 +101,7 @@ namespace datamodel.schema {
         }
 
         override public string ToString() {
-            return string.Format("Association from {0} to {1} {2}", FkSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
+            return string.Format("FK: {0} to {1} {2}", FkSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
         }
     }
 }

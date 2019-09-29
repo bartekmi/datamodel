@@ -124,7 +124,7 @@ namespace datamodel.graphviz {
             };
 
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
-                .SetAttrGraph("arrowsize", 1.0)     // I wanted to make this larger but the arrow icons overlap
+                .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("tooltip", CreateEdgeToolTip(aa))
                 .SetAttrGraph("arrowhead", "normal")
@@ -143,8 +143,11 @@ namespace datamodel.graphviz {
             builder.AppendLine(string.Format("Arrow(s) show direction of FK's{0}{0}", HtmlUtils.LINE_BREAK));
             builder.AppendLine(string.Format("{0} Foreign keys: {1}{1}", aa.Associations.Count, HtmlUtils.LINE_BREAK));
 
-            foreach (Association association in aa.Associations)
-                builder.AppendLine(association + HtmlUtils.LINE_BREAK);
+            IEnumerable<string> associations = aa.Associations
+                .OrderBy(x => x.ToString())
+                .Select(x => string.Format("{0} {1}", HtmlUtils.Bullet(), x));
+
+            builder.AppendLine(string.Join(HtmlUtils.LINE_BREAK, associations));
 
             return builder.ToString();
         }
