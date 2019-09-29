@@ -128,6 +128,8 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("tooltip", CreateEdgeToolTip(aa))
                 .SetAttrGraph("arrowhead", "normal")
+                .SetAttrGraph("penwidth", 2.0)
+                .SetAttrGraph("color", GetColorForAssociationCount(aa.Associations.Count))
                 .SetAttrGraph("arrowtail", aa.IncludeReverseArrow ? "normal" : "none");
 
             if (ShowAsSubgraph(aa.From))
@@ -136,6 +138,20 @@ namespace datamodel.graphviz {
                 edge.SetAttrGraph("lhead", HI_ToNodeId(aa.To));
 
             return edge;
+        }
+
+        // Get a gray-scale color, with 1 being the lightest, and certain max value (and above) being black
+        private static string GetColorForAssociationCount(int count) {
+            int lightest = 220;
+            int darkest = 40;
+
+            // double intensityFract = Math.Min((count - minCount) / (maxCount - minCount), 1.0);
+            double intensityFract = Math.Min(1.0, Math.Log(count, 2.0) / 5.0);        // 2^5 = 32 maps to 1.0 (full black)
+            int intensityAbs = (int)(lightest - (lightest - darkest) * intensityFract);
+
+            string intensityString = intensityAbs.ToString("X2");
+
+            return string.Format("#{0}{0}{0}", intensityString);
         }
 
         private static string CreateEdgeToolTip(AggregatedAssociation aa) {
