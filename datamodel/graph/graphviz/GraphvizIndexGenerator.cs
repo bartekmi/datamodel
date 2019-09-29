@@ -191,11 +191,14 @@ namespace datamodel.graphviz {
                 Name = HI_ToNodeId(item),
             };
 
+            // Through painful trial and error, I learned that hyperlinks and tooltips
+            // only work on <td> elements and nodes, but not on <table> or <tr> elements
             node.SetAttrGraph("style", "filled")
                 .SetAttrGraph("fillcolor", item.ColorString)
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("href", item.Graph.SvgUrl)
+                .SetAttrGraph("tooltip", CreateNodeToolTip(item))
                 .SetAttrGraph("label", CreateLabel(item));
 
             return node;
@@ -235,19 +238,17 @@ namespace datamodel.graphviz {
                 new HtmlTd(string.Format("{0} Models", item.CumulativeModelCount))
             ));
 
-            table.SetAttrHtml("tooltip", CreateNodeToolTip(item));
-
             return table;
         }
 
         private static string CreateNodeToolTip(HierarchyItem item) {
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine("Models: " + HtmlUtils.LINE_BREAK + HtmlUtils.LINE_BREAK);
+            IEnumerable<string> models = item.CumulativeModels
+                .OrderBy(x => x.HumanName)
+                .Select(x => string.Format("{0} {1}", HtmlUtils.Bullet(), x.HumanName));
 
-            foreach (Model model in item.CumulativeModels.OrderBy(x => x.HumanName))
-                builder.AppendLine(model.HumanName + HtmlUtils.LINE_BREAK);
-
-            return builder.ToString();
+            return string.Format("Models: {0}{0}{1}",
+                HtmlUtils.LINE_BREAK,
+                string.Join(HtmlUtils.LINE_BREAK, models));
         }
         #endregion
 
