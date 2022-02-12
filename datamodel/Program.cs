@@ -29,6 +29,9 @@ namespace datamodel {
             schema.Level2 = "Sub-component";
             schema.Level3 = "Folder";
 
+            Level1Info.AssignColor("files", "skyblue");
+            Level1Info.AssignColor("run", "lightsalmon");
+
             GenerateGraphsAndDataDictionary();
         }
         
