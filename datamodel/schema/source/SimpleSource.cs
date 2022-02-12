@@ -19,9 +19,7 @@ namespace datamodel.schema.source {
 
             foreach (SModel sModel in _schema.Models) {
                 Model model = new Model() {
-                    // TODO: Remove the need for both
-                    DbName = sModel.Name,
-                    ClassName = sModel.Name,
+                    Name = sModel.Name,
                     Description = sModel.Description,
                     IsAbstract = sModel.IsAbstract,
                     SuperClassName = sModel.SuperClass,
@@ -45,7 +43,7 @@ namespace datamodel.schema.source {
             foreach (SProperty sProp in properties) {
                 // TODO: Better to set owner in Schema code
                 Column column = new Column(model) {
-                    DbName = sProp.Name,
+                    Name = sProp.Name,
                     Description = sProp.Description,
                 };
                 columns.Add(column);
@@ -62,14 +60,12 @@ namespace datamodel.schema.source {
             foreach (SAssociation sAssoc in _schema.Associations) {
                 Association assoc = new Association() {
                     FkSide = sAssoc.A_Model,
-                    // TODO: Redundant data - remove from Association class
-                    SourceOptional = sAssoc.A_Card == Multiplicity.ZeroOrOne,
                     FkSideMultiplicity = sAssoc.A_Card,
-                    // TODO... Add roles
+                    RoleByFK = sAssoc.A_Role,
 
                     OtherSide = sAssoc.B_Model,
-                    DestinationOptional = sAssoc.B_Card == Multiplicity.ZeroOrOne,
                     OtherSideMultiplicity = sAssoc.B_Card,
+                    RoleOppositeFK = sAssoc.B_Role,
                 };
                 associations.Add(assoc);
             }
@@ -110,7 +106,7 @@ namespace datamodel.schema.source {
 
     public class SAssociation {
         public bool IsDeprecated;
-        
+
         public string A_Model;
         public Multiplicity A_Card;
         public string A_Role;

@@ -2,17 +2,12 @@ using System;
 
 namespace datamodel.schema {
     public class PolymorphicInterface {
-        public RailsAssociation BelongsToAssociation { get; private set; }
-
         // Derived
-        public Column Column { get { return BelongsToAssociation.FkColumn; } }
+        public Column Column { get { throw new NotImplementedException(); } }
         public Model Model { get { return Column.Owner; } }
-        public string Name { get { return BelongsToAssociation.PolymorphicAssociationName; } }
+        public string Name { get { throw new NotImplementedException(); } }
 
-        internal PolymorphicInterface(RailsAssociation association) {
-            BelongsToAssociation = association;
-            if (association.Name == null)
-                throw new Exception("Polymorphic association does not have name");
+        internal PolymorphicInterface() {
         }
 
         public override string ToString() {

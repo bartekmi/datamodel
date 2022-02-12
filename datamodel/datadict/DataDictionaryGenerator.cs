@@ -14,7 +14,7 @@ namespace datamodel.datadict {
         public static void Generate(string rootDir, IEnumerable<Model> models) {
             foreach (Model model in models) {
                 if (string.IsNullOrWhiteSpace(model.Team)) {
-                    Console.WriteLine("Warning: Model '{0}' has no team", model.ClassName);
+                    Console.WriteLine("Warning: Model '{0}' has no team", model.Name);
                     continue;
                 }
 
@@ -53,13 +53,12 @@ namespace datamodel.datadict {
 
             AddLabelAndData(table, "Team", model.Team);
             AddLabelAndData(table, "Engine", model.Engine);
-            AddLabelAndData(table, "Database Table", model.DbName);
+            AddLabelAndData(table, "Database Table", model.Name);
 
-            AddLabelAndData(table, "Class Name", model.ClassName);
+            AddLabelAndData(table, "Class Name", model.Name);
             if (model.Superclass != null)
                 AddLabelAndData(table, "Super-Class", model.SuperClassName);
 
-            AddLabelAndData(table, "Model Source Code", UrlUtils.ToFlexportRepoLink(model.RelativeModelPath), true);
 
             if (!string.IsNullOrEmpty(model.Description))
                 table.Add(new HtmlTr(model.Description));
@@ -88,7 +87,7 @@ namespace datamodel.datadict {
                             new HtmlElement("span", "(" + column.DbType + ")").Class("faded gap-left"),
                             DeprecatedSpan(column)
                         )
-                      ).Attr("id", column.DbName)
+                      ).Attr("id", column.Name)
                        .Class("attribute"));        // Id for anchor
 
                     // Column Description
@@ -132,7 +131,7 @@ namespace datamodel.datadict {
                         docIcon,
                         DeprecatedSpan(column)
                     )
-                ).Attr("id", column.DbName));        // Id for anchor
+                ).Attr("id", column.Name));        // Id for anchor
 
                 // Column Description
                 AddDescriptionRow(table, column);

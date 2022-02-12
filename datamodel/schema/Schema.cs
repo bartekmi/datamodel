@@ -32,7 +32,7 @@ namespace datamodel.schema {
                 Associations = source.GetAssociations().ToList(),
             };
 
-            _schema._byClassName = _schema.Models.ToDictionary(x => x.ClassName);
+            _schema._byClassName = _schema.Models.ToDictionary(x => x.Name);
             _schema.CreateFkColumns();
 
             _schema.Rehydrate();
@@ -42,17 +42,21 @@ namespace datamodel.schema {
             foreach (Association assoc in Associations) {
                 // TODO: Validate unknown models in associations
                 if (!_byClassName.TryGetValue(assoc.FkSide, out Model aModel) ||
-                    !_byClassName.TryGetValue(assoc.OtherSide, out Model bModel)) 
+                    !_byClassName.TryGetValue(assoc.OtherSide, out Model bModel))
                     continue;
 
-                aModel.AllColumns.Add(new Column(aModel) {
-                    DbName = bModel.DbName,
+                Column fkColumn = new Column(aModel) {
+                    Name = bModel.Name,
                     DbType = DataType.Integer,
                     IsNull = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {
                         ReferencedModel = bModel,
                     },
-                });
+                };
+
+                aModel.AllColumns.Add(fkColumn);
+                assoc.FkColumn = fkColumn;
+
             }
         }
 
@@ -73,195 +77,7 @@ namespace datamodel.schema {
         }
         #endregion
 
-        #region Creation
-        private static Schema ParseSchema() {
-
-            // Step One: Entities
-            YamlSchemaParser parser = new YamlSchemaParser();
-            List<Model> tables = parser.ParseModels();
-            tables = tables.Where(x => !x.ClassName.Contains("HABTM")).ToList();        // Ignore dummy tables for "Has And Belongs To Many"
-
-            Schema schema = new Schema();
-
-            // Step Two: Associations
-            IEnumerable<RailsAssociation> railsAssociations = parser.ParseAssociations();
-            railsAssociations = railsAssociations.Where(x => !x.OwningModel.Contains("HABTM")).ToList();        // Ignore dummy associations for "Has And Belongs To Many"
-            railsAssociations = new HashSet<RailsAssociation>(railsAssociations);   // Make unique
-            railsAssociations = schema.SetFkModelsAndClean(railsAssociations);
-
-            schema.Associations = BuildAssociations(railsAssociations)
-                .Concat(BuildPolymorphicAssociations(railsAssociations))
-                .ToList();
-
-            schema.BuildPolymorphicInterfaces(railsAssociations);
-
-            schema.Rehydrate();
-
-            return schema;
-        }
-
-        # region Polymorphic Interfaces
-        private void BuildPolymorphicInterfaces(IEnumerable<RailsAssociation> railsAssociations) {
-            foreach (RailsAssociation railsAssoc in railsAssociations) {
-                if (railsAssoc.IsPolymorphicInterface) {
-                    PolymorphicInterface _interface = new PolymorphicInterface(railsAssoc);
-                    Interfaces[_interface.Name] = _interface;
-                }
-            }
-        }
-
-        private static List<Association> BuildPolymorphicAssociations(IEnumerable<RailsAssociation> railsAssociations) {
-            List<Association> associations = new List<Association>();
-
-            foreach (RailsAssociation railsAssoc in railsAssociations) {
-                if (railsAssoc.IsPolymorphicAssociation) {
-                    associations.Add(new Association(railsAssoc, null) {
-                        FkSide = railsAssoc.Options.As,
-                        FkSideMultiplicity = DetermineFkSideMultiplicity(railsAssoc),
-                        OtherSide = railsAssoc.OwningModel,
-                        OtherSideMultiplicity = Multiplicity.ZeroOrOne,
-                    });
-                }
-            }
-
-            return associations;
-        }
-        #endregion
-
-        #region Associations
-
-        private static List<Association> BuildAssociations(IEnumerable<RailsAssociation> railsAssociations) {
-            Dictionary<string, RailsAssociation> reverseAssociationDict = new Dictionary<string, RailsAssociation>();
-            foreach (RailsAssociation ra in railsAssociations.Where(x => x.IsReverse)) {
-                string key = MakeKey(ra, false);
-                if (reverseAssociationDict.ContainsKey(key))
-                    Error.Log("Duplicate association: " + key);
-                else
-                    reverseAssociationDict[key] = ra;
-            }
-
-            List<Association> associations = new List<Association>();
-            foreach (RailsAssociation railsAssoc in railsAssociations) {
-                if (railsAssoc.IsReverse ||                 // Avoid duplicates (i.e. fwd and rev only create on Association)
-                    railsAssoc.IsPolymorphicInterface ||    // These are handled separately
-                    railsAssoc.IsHABTM)                     // These don't seem to contribute anything
-                    continue;
-
-                reverseAssociationDict.TryGetValue(MakeKey(railsAssoc, true), out RailsAssociation reverseAssoc);
-
-                associations.Add(new Association(railsAssoc, reverseAssoc) {
-                    FkSide = railsAssoc.OwningModel,
-                    FkSideMultiplicity = DetermineFkSideMultiplicity(reverseAssoc),
-                    OtherSide = railsAssoc.OtherModel,
-                    OtherSideMultiplicity = DetermineOtherSideMultiplicity(railsAssoc, reverseAssoc),
-                });
-            }
-
-            return associations;
-        }
-
-        private static string MakeKey(RailsAssociation association, bool forward) {
-            // There is a special case for HasAndBelongsToMany between same table
-            // (There is a couple of them on CompanyEntity)
-            if (association.Kind == AssociationKind.HasAndBelongsToMany &&
-                association.OwningModel == association.OtherModel) {
-
-                string source = forward ? association.ForeignKey : association.InverseOf;
-                string destination = forward ? association.InverseOf : association.ForeignKey;
-
-                return string.Format("{0}|{1}", source, destination);
-            } else {
-                string source = forward ? association.OwningModel : association.OtherModel;
-                string destination = forward ? association.OtherModel : association.OwningModel;
-
-                return string.Format("{0}|{1}|{2}", source, destination, association.ForeignKey);
-            }
-        }
-
-        #region Multiplicity
-        private static Multiplicity DetermineFkSideMultiplicity(RailsAssociation reverseAssociation) {
-            // If there is no reverse association, by default, we assume that many entities
-            // with the FK can point to the same entity
-            if (reverseAssociation == null)
-                return Multiplicity.Many;
-
-            switch (reverseAssociation.Kind) {
-                case AssociationKind.HasOne:
-                    // I think that, in principle, this could also be ZeroOrOne, but can I tell?
-                    // Can any information be garnered from the presence of 'dependent: :destroy' option?
-                    return Multiplicity.ZeroOrOne;
-                case AssociationKind.HasMany:
-                    return Multiplicity.Many;
-                case AssociationKind.HasAndBelongsToMany:
-                    return Multiplicity.Many;
-                default:
-                    throw new Exception("Unexpected Kind: " + reverseAssociation.Kind);
-            }
-        }
-
-        private static Multiplicity DetermineOtherSideMultiplicity(
-            RailsAssociation forwardAssociation,
-            RailsAssociation reverseAssociation
-        ) {
-            if (forwardAssociation.Kind == AssociationKind.HasAndBelongsToMany)
-                return Multiplicity.Many;
-
-            if (forwardAssociation.IsPolymorphicInterface)
-                // In theory, we could take this from the FkColumn.IsMandatory
-                // Which is better? I seriously doubt there is a use-case for things with
-                // a polymorphic association that can live independently.
-                return Multiplicity.One;
-
-            if (forwardAssociation.FkColumn.IsMandatory)
-                if (reverseAssociation != null && reverseAssociation.Options.Destroy)
-                    return Multiplicity.Aggregation;
-                else
-                    return Multiplicity.One;
-
-            return Multiplicity.ZeroOrOne;
-        }
-        #endregion
-        #endregion
-        #endregion
-
         #region Rehydrate
-
-        private List<RailsAssociation> SetFkModelsAndClean(IEnumerable<RailsAssociation> dirties) {
-            List<RailsAssociation> cleans = new List<RailsAssociation>();
-
-            foreach (RailsAssociation ra in dirties) {
-                // Through associations, by definition, are redundant data and not shown 
-                if (ra.Kind == AssociationKind.Through)
-                    continue;
-
-                if (ra.Kind == AssociationKind.BelongsTo) {
-                    Column column = FindByClassNameAndColumn(ra.OwningModel, ra.ForeignKey);
-                    if (column == null)
-                        continue;
-
-                    ra.FkColumn = column;
-
-                    // While validations on ordinary columns are associated with the columns themselves,
-                    // validations on FK columns are associated with the corresponding Rails Associations
-                    column.Validations = column.Validations.Concat(ra.Validations).ToArray();
-
-                    if (ra.IsPolymorphicInterface) {
-                        // In the case of a polymorphic association, its FK does not
-                        // point to an actual table but to a virtual "interface",
-                        // so there is nothing to set
-                    } else {
-                        Model referencedModel = FindByClassName(ra.OtherModel);
-                        column.FkInfo = new FkInfo() {
-                            ReferencedModel = referencedModel,
-                        };
-                    }
-                }
-
-                cleans.Add(ra);
-            }
-
-            return cleans;
-        }
 
         private void Rehydrate() {
             RehydrateSuperClasses();
@@ -284,7 +100,7 @@ namespace datamodel.schema {
 
                 // Too lazy to make recursive
                 while (superclass != null) {
-                    if (superclass.FindColumn(column.DbName) != null) {
+                    if (superclass.FindColumn(column.Name) != null) {
                         Interfaces.Remove(keyValue.Key);
                         Error.Log("Removing duplicate Polymorphic Interface: " + keyValue.Key);
                         break;
@@ -298,7 +114,7 @@ namespace datamodel.schema {
             foreach (PolymorphicInterface _interface in Interfaces.Values) {
                 _interface.Column.IsPolymorphicId = true;
                 Model model = _interface.Column.Owner;
-                string idColumnName = _interface.Column.DbName;
+                string idColumnName = _interface.Column.Name;
                 string typeColumnName = idColumnName
                     .Substring(0, idColumnName.Length - "_id".Length)
                     + "_type";
@@ -363,7 +179,7 @@ namespace datamodel.schema {
                     if (_byClassName.TryGetValue(table.SuperClassName, out Model parent)) {
                         table.Superclass = parent;
                         foreach (Column column in parent.AllColumns) {
-                            Column duplicate = table.FindColumn(column.DbName);
+                            Column duplicate = table.FindColumn(column.Name);
                             if (duplicate != null)
                                 table.AllColumns.Remove(duplicate);
                         }
@@ -384,7 +200,7 @@ namespace datamodel.schema {
         #region Utility Methods
 
         public static bool IsInteresting(Column column) {
-            return UNINTERESTING_COLUMNS.Contains(column.DbName) ? false : true;
+            return UNINTERESTING_COLUMNS.Contains(column.Name) ? false : true;
         }
 
         public bool UnqualifiedClassNameExists(string unqualifiedClassName) {

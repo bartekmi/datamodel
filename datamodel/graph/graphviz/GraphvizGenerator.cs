@@ -277,8 +277,8 @@ namespace datamodel.graphviz {
 
             builder.AppendLine("Team: " + model.Team + HtmlUtils.LINE_BREAK);
             builder.AppendLine("Engine: " + model.Engine + HtmlUtils.LINE_BREAK);
-            builder.AppendLine("Database Table: " + model.DbName + HtmlUtils.LINE_BREAK);
-            builder.AppendLine("Class Name: " + model.ClassName + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Database Table: " + model.Name + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Class Name: " + model.Name + HtmlUtils.LINE_BREAK);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
@@ -344,7 +344,7 @@ namespace datamodel.graphviz {
 
         #region Misc
         private static string ModelToNodeId(Model table) {
-            return table.ClassName;
+            return table.Name;
         }
         #endregion
     }

@@ -15,7 +15,7 @@ namespace datamodel.schema.source {
 
             // Hydration = Inheritance
             Model dir = schema.FindByClassName("Directory");
-            Assert.Equal("FileSystemObject", dir.Superclass.DbName);
+            Assert.Equal("FileSystemObject", dir.Superclass.Name);
         }
     }
 }

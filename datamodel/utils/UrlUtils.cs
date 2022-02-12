@@ -18,9 +18,5 @@ namespace datamodel.utils {
                 return Env.HTTP_ROOT + relativeUrl;
             return Env.HTTP_ROOT + "/" + relativeUrl;
         }
-
-        public static string ToFlexportRepoLink(string relativeUrl) {
-            return "http://github.com/flexport/flexport/blob/master/" + relativeUrl;
-        }
     }
 }
