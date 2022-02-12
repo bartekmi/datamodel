@@ -29,7 +29,7 @@ namespace datamodel.schema {
         public string Name { get; set; }
         public string DbTypeString { get; set; }
         public DataType DbType { get; set; }
-        public bool IsNull { get; set; }
+        public bool CanBeEmpty { get; set; }
         public string[] Validations { get; set; }
         public string Level1 { get; set; }
         public string Description { get; set; }
@@ -50,7 +50,7 @@ namespace datamodel.schema {
         }
         public bool IsMandatory {
             get {
-                return !IsNull || Validations.Contains("presence");
+                return !CanBeEmpty || Validations.Contains("presence");
             }
         }
 

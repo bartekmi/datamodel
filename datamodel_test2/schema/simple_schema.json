@@ -36,6 +36,76 @@
                     "Type": "Bytes"
                 }
             ]
+        },
+        {
+            "Name": "SymLink",
+            "SuperClass": "FileSystemObject",
+            "Description": "A symbolic link that has a path - like a pointer",
+            "Level1": "files",
+            "Properties": [
+                {
+                    "Name": "Path",
+                    "Description": "This is a relative or absolute path that should point to another File System Object. Link may be broken.",
+                    "Type": "String"
+                }
+            ]
+        },
+
+        {
+            "Name": "Process",
+            "Description": "A symbolic link that has a path - like a pointer",
+            "Level1": "run",
+            "Level2": "process",
+            "Properties": [
+                {
+                    "Name": "Pid",
+                    "Description": "Unique process id",
+                    "Type": "Integer"
+                },
+                {
+                    "Name": "State",
+                    "Description": "Possible state of the process at the current instant in time",
+                    "Type": "String"
+                }
+            ]
+        },
+        {
+            "Name": "FileDescriptor",
+            "Description": "A process'es handle to a file that's being read or written",
+            "Level1": "run",
+            "Level2": "process",
+            "Properties": [
+                {
+                    "Name": "Mode",
+                    "Description": "How is the process accessing the file?",
+                    "Type": "String"
+                }
+            ]
+        },
+        {
+            "Name": "Thread",
+            "Description": "An execution thread within a Process",
+            "Level1": "run",
+            "Level2": "process",
+            "Properties": [
+                {
+                    "Name": "Id",
+                    "Description": "Id of thread - unique only within its parent process",
+                    "Type": "Integer"
+                },
+                {
+                    "Name": "Name",
+                    "Description": "Optional name of the thread - often used for debugging",
+                    "Type": "String",
+                    "CanBeEmpty": "True"
+                }
+            ]
+        },
+
+        {
+            "Name": "ProcessManager",
+            "Description": "Singleton controller responsible for scheduling and overseeing all running processes",
+            "Level1": "run"
         }
     ],
     "Associations": [
@@ -45,6 +115,40 @@
             "B_Model": "Directory",
             "B_Card": "Aggregation",
             "Description": "File System Objects held by this directory"
+        },
+        {
+            "A_Model": "FileSystemObject",
+            "A_Card": "ZeroOrOne",
+            "B_Model": "SymLink",
+            "B_Card": "Many",
+            "Description": "The File System Object pointed-to by the path of the link"
+        },
+        {
+            "A_Model": "FileDescriptor",
+            "A_Card": "Many",
+            "B_Model": "Process",
+            "B_Card": "Aggregation",
+            "Description": "A process may have several open file descriptors, each representing an open file or directory"
+        },
+        {
+            "A_Model": "FileDescriptor",
+            "A_Card": "Many",
+            "B_Model": "FileSystemObject",
+            "B_Card": "One",
+            "Description": "A file descriptor points to a specific FileSystemObject"
+        },
+        {
+            "A_Model": "Thread",
+            "A_Card": "Many",
+            "B_Model": "Process",
+            "B_Card": "Aggregation"
+        },
+
+        {
+            "A_Model": "ProcessManager",
+            "A_Card": "Aggregation",
+            "B_Model": "Process",
+            "B_Card": "Many"
         }
     ]
 }

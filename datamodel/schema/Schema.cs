@@ -68,7 +68,7 @@ namespace datamodel.schema {
                 Column fkColumn = new Column(aModel) {
                     Name = bModel.Name,
                     DbType = DataType.Integer,
-                    IsNull = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
+                    CanBeEmpty = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {
                         ReferencedModel = bModel,
                     },
@@ -203,6 +203,9 @@ namespace datamodel.schema {
         #region Utility Methods
 
         public bool IsInteresting(Column column) {
+            if (BoringColumns == null)
+                return true;
+                
             return BoringColumns.Contains(column.Name) ? false : true;
         }
 
