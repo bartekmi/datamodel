@@ -13,12 +13,10 @@ namespace datamodel.datadict {
 
         public static void Generate(string rootDir, IEnumerable<Model> models) {
             foreach (Model model in models) {
-                if (string.IsNullOrWhiteSpace(model.Team)) {
-                    Console.WriteLine("Warning: Model '{0}' has no team", model.Name);
+                if (string.IsNullOrWhiteSpace(model.Level1))
                     continue;
-                }
 
-                string dir = Path.Combine(rootDir, model.Team);
+                string dir = Path.Combine(rootDir, model.Level1);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
@@ -42,6 +40,7 @@ namespace datamodel.datadict {
         }
 
         private static void GenerateModelHeader(HtmlElement body, Model model) {
+            Schema schema = Schema.Singleton;
             HtmlTable table = body.Add(new HtmlTable());
 
             table.Add(new HtmlElement("tr",
@@ -51,11 +50,11 @@ namespace datamodel.datadict {
                     HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
                 )));
 
-            AddLabelAndData(table, "Team", model.Team);
-            AddLabelAndData(table, "Engine", model.Engine);
-            AddLabelAndData(table, "Database Table", model.Name);
+            AddLabelAndData(table, schema.Level1, model.Level1);
+            AddLabelAndData(table, schema.Level2, model.Level2);
+            AddLabelAndData(table, schema.Level3, model.Level3);
 
-            AddLabelAndData(table, "Class Name", model.Name);
+            AddLabelAndData(table, "Name", model.Name);
             if (model.Superclass != null)
                 AddLabelAndData(table, "Super-Class", model.SuperClassName);
 

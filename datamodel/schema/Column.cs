@@ -31,7 +31,7 @@ namespace datamodel.schema {
         public DataType DbType { get; set; }
         public bool IsNull { get; set; }
         public string[] Validations { get; set; }
-        public string Team { get; set; }
+        public string Level1 { get; set; }
         public string Description { get; set; }
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }

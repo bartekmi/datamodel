@@ -19,15 +19,40 @@ namespace datamodel.schema {
             "lock_version"
         };
 
-        // This is a singleton
+        public string Title {get; private set; }
+        public string Level1 {get; set; }
+        public string Level2 {get; set; }
+        public string Level3 {get; set; }
+        public List<Model> Models { get; private set; }
+        public List<Association> Associations { get; private set; }
+        public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
+
+        private Dictionary<string, Model> _byClassName;
+        private Dictionary<Model, List<Column>> _incomingFkColumns;
+        private Dictionary<Model, List<Association>> _fkAssociationsForModel;
+        private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
+        private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
+        private HashSet<string> _unqualifiedClassNames;
+
+        private Schema() {
+            Interfaces = new Dictionary<string, PolymorphicInterface>();
+        }
+        #endregion
+
+        #region Creation
         private static Schema _schema;
         public static Schema Singleton {
             get {
+                if (_schema == null)
+                    throw new Exception("Call CreateSchema() first");
                 return _schema;
             }
         }
-        public static void CreateSchema(SchemaSource source) {
+
+        // Create the Singleton schema. Normally, it is then accessed by 'Schema.Singleton'
+        public static Schema CreateSchema(SchemaSource source) {
             _schema = new Schema() {
+                Title = source.GetTitle(),
                 Models = source.GetModels().ToList(),
                 Associations = source.GetAssociations().ToList(),
             };
@@ -36,6 +61,8 @@ namespace datamodel.schema {
             _schema.CreateFkColumns();
 
             _schema.Rehydrate();
+
+            return _schema;
         }
 
         private void CreateFkColumns() {
@@ -56,24 +83,7 @@ namespace datamodel.schema {
 
                 aModel.AllColumns.Add(fkColumn);
                 assoc.FkColumn = fkColumn;
-
             }
-        }
-
-
-        public List<Model> Models { get; private set; }
-        public List<Association> Associations { get; private set; }
-        public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
-
-        private Dictionary<string, Model> _byClassName;
-        private Dictionary<Model, List<Column>> _incomingFkColumns;
-        private Dictionary<Model, List<Association>> _fkAssociationsForModel;
-        private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
-        private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
-        private HashSet<string> _unqualifiedClassNames;
-
-        private Schema() {
-            Interfaces = new Dictionary<string, PolymorphicInterface>();
         }
         #endregion
 

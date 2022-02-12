@@ -16,12 +16,12 @@ namespace datamodel.graphviz {
     // - Put a lower limit on nodes that have too few leaf children to avoid cluttering the graph
     // - Use a subgraph for each nested level
     // - Nodes:
-    //      - Name of the node: Team, Engine, Module
+    //      - Name of the node: Level1, Leve2, Level3
     //          - Links to diagram
     //          - Tooltip contains list of leaf nodes (by human name, alphabetical)
-    //      - Type of node (Team Engine Module)
+    //      - Type of node (Level1, Leve2, Level3)
     //      - Leaf count
-    //      - (NTH) Background color according to team
+    //      - (NTH) Background color according to Level1
     // - Edges:
     //      - Link all entities that have associations of any kind
     //      - Links are at the highest level possible (a link would never go through a bounding-box of its sub-graph) 
@@ -236,15 +236,19 @@ namespace datamodel.graphviz {
                 pointer = pointer.Parent;
             }
 
+            Schema schema = Schema.Singleton;
+
             foreach (HierarchyItem level in parentage) {
                 string label = null;
                 switch (level.Level) {
-                    case 1: label = "Team: "; break;
-                    case 2: label = "Engine: "; break;
-                    case 3: label = "Module: "; break;
+                    case 1: label = schema.Level1; break;
+                    case 2: label = schema.Level2; break;
+                    case 3: label = schema.Level3; break;
                     default:
                         throw new Exception("Unexpected level");
                 }
+
+                label += ": ";
 
                 table.AddTr(new HtmlTr(
                     new HtmlTd(label),

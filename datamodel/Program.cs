@@ -24,14 +24,16 @@ namespace datamodel {
 
             // Path is relative to 'CWD' attribute in launch.json
             SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");
-            Schema.CreateSchema(source);
-            Schema schema = Schema.Singleton;
+            Schema schema = Schema.CreateSchema(source);
+            schema.Level1 = "Component";
+            schema.Level2 = "Sub-component";
+            schema.Level3 = "Folder";
 
             GenerateGraphsAndDataDictionary();
         }
         
         private static void GenerateGraphsAndDataDictionary() {
-            // Extract teams, parse "visualizations.yaml" files, and match paths of Ruby files with models
+            // Parse "visualizations.yaml" files
             List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
             ApplyGraphDefsToSchema(graphDefsFromMetadata);
 
@@ -56,15 +58,15 @@ namespace datamodel {
                 string[] nameComponents = graphDef.NameComponents;
                 if (nameComponents.Length > 1) {
                     // It is expected that if overriding name components are provided at all, they would be:
-                    // Team, Engine, [Module]
-                    string team = nameComponents[0];
-                    string engine = nameComponents[1];
-                    string module = nameComponents.Length >= 3 ? nameComponents[2] : null;
+                    // Level1, Level2, [Level3]
+                    string level1 = nameComponents[0];
+                    string level2 = nameComponents[1];
+                    string level3 = nameComponents.Length >= 3 ? nameComponents[2] : null;
 
                     foreach (Model model in graphDef.CoreModels) {
-                        model.Team = team;
-                        model.Engine = engine;
-                        model.ModuleOverride = module;
+                        model.Level1 = level1;
+                        model.Level2 = level2;
+                        model.Level3 = level3;
                     }
                 }
             }

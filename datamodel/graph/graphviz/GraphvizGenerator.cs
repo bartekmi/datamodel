@@ -274,11 +274,11 @@ namespace datamodel.graphviz {
 
         private string CreateModelToolTip(Model model) {
             StringBuilder builder = new StringBuilder();
+            Schema schema = Schema.Singleton;
 
-            builder.AppendLine("Team: " + model.Team + HtmlUtils.LINE_BREAK);
-            builder.AppendLine("Engine: " + model.Engine + HtmlUtils.LINE_BREAK);
-            builder.AppendLine("Database Table: " + model.Name + HtmlUtils.LINE_BREAK);
-            builder.AppendLine("Class Name: " + model.Name + HtmlUtils.LINE_BREAK);
+            builder.AppendLine(schema.Level1 + ": " + model.Level1 + HtmlUtils.LINE_BREAK);
+            builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
+            builder.AppendLine("Name: " + model.Name + HtmlUtils.LINE_BREAK);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);

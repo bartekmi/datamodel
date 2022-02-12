@@ -12,9 +12,9 @@ namespace datamodel.toplevel {
         public List<HierarchyItem> Children { get; private set; }
         public HierarchyItem Parent { get; private set; }
 
-        // The name of the Hierarchy Item - the team, engine, or module
+        // The name of the Hierarchy Item - i.e. Level1, Level2, Level3
         public string Name { get; private set; }
-        public bool IsUncategorizedCatchall { get; set; }  // E.g. Team items that don't belong to any Engine
+        public bool IsUncategorizedCatchall { get; set; }  // E.g. items with no Level1 label
         public string ToolTip { get; set; }
         public GraphDefinition Graph { get; set; }
 
@@ -44,15 +44,23 @@ namespace datamodel.toplevel {
         public bool ShouldShowOnIndex { get { return CumulativeModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE || Level == 1; } }
         public bool ShouldShowOnIndexAsNode { get { return ShouldShowOnIndex && !Children.Any(x => x.ShouldShowOnIndex); } }
 
-        // This is the only place in the entire codebase that has the knowledge of what the 
-        // three levels of the hierachy mean: team, engine, module (in case this changes in the future)
         public string HumanName {
             get {
+                Schema schema = Schema.Singleton;
+
                 switch (Level) {
                     case 0: return "All Models";
-                    case 1: return Name == null ? "Orphans (No Team)" : Name + " Team";
-                    case 2: return Name == null ? string.Format("{0} (No Engine)", Parent.Name) : Name + " Engine";
-                    case 3: return Name + " Module";        // If this had no name, it wouldn't exist
+
+                    case 1: return Name == null ? 
+                        string.Format("Orphans (No {0})", schema.Level1) : 
+                        string.Format("{0} {1}", Name, schema.Level1);
+
+                    case 2: return Name == null ? 
+                        string.Format("{0} (No {1})", Parent.Name, schema.Level2) : 
+                        string.Format("{0} {1}", Name, schema.Level2);
+
+                    case 3: return string.Format("{0} {1}", Name, schema.Level3);    // If this had no name, it wouldn't exist
+
                     default:
                         throw new Exception("Unexpected Level: " + Level);
                 }
@@ -60,8 +68,8 @@ namespace datamodel.toplevel {
         }
         public string ColorString {
             get {
-                HierarchyItem teamItem = ParentAtLevel(1);
-                return TeamInfo.GetHtmlColorForTeam(teamItem.Name);
+                HierarchyItem level1_Item = ParentAtLevel(1);
+                return Level1Info.GetHtmlColorForLevel1(level1_Item.Name);
             }
         }
 
@@ -98,31 +106,31 @@ namespace datamodel.toplevel {
 
         public static HierarchyItem CreateHierarchyTree() {
             HierarchyItem topLevel = new HierarchyItem(null) {
-                Name = "All Teams",
+                Name = string.Format("All {0}s", Schema.Singleton.Level1),      // Note: need a proper pluralizer
             };
 
-            foreach (var teamGroup in Schema.Singleton.Models.GroupBy(x => x.Team).OrderBy(x => x.Key)) {
-                HierarchyItem teamItem = new HierarchyItem(topLevel) {
-                    Name = teamGroup.Key,
-                    IsUncategorizedCatchall = teamGroup.Key == null,
+            foreach (var l1_Group in Schema.Singleton.Models.GroupBy(x => x.Level1).OrderBy(x => x.Key)) {
+                HierarchyItem l1_Item = new HierarchyItem(topLevel) {
+                    Name = l1_Group.Key,
+                    IsUncategorizedCatchall = l1_Group.Key == null,
                 };
-                topLevel.Children.Add(teamItem);
+                topLevel.Children.Add(l1_Item);
 
-                foreach (var engineGroup in teamGroup.GroupBy(x => x.Engine).OrderBy(x => x.Key)) {
+                foreach (var l2_Group in l1_Group.GroupBy(x => x.Level2).OrderBy(x => x.Key)) {
 
-                    HierarchyItem engineItem = new HierarchyItem(teamItem) {
-                        Name = engineGroup.Key,
-                        IsUncategorizedCatchall = engineGroup.Key == null,
+                    HierarchyItem l2_Item = new HierarchyItem(l1_Item) {
+                        Name = l2_Group.Key,
+                        IsUncategorizedCatchall = l2_Group.Key == null,
                     };
-                    teamItem.Children.Add(engineItem);
+                    l1_Item.Children.Add(l2_Item);
 
-                    foreach (var moduleGroup in engineGroup.GroupBy(x => x.Module).OrderBy(x => x.Key)) {
-                        HierarchyItem moduleItem = new HierarchyItem(engineItem) {
-                            Name = moduleGroup.Key,
-                            IsUncategorizedCatchall = moduleGroup.Key == null,
-                            Models = moduleGroup.ToArray(),
+                    foreach (var l3_Group in l2_Group.GroupBy(x => x.Level3).OrderBy(x => x.Key)) {
+                        HierarchyItem l3_Item = new HierarchyItem(l2_Item) {
+                            Name = l3_Group.Key,
+                            IsUncategorizedCatchall = l3_Group.Key == null,
+                            Models = l3_Group.ToArray(),
                         };
-                        engineItem.Children.Add(moduleItem);
+                        l2_Item.Children.Add(l3_Item);
                     }
                 }
             }
@@ -132,7 +140,7 @@ namespace datamodel.toplevel {
         }
 
         // A child is "redundant" if...
-        // 1) It is an un-categorized placeholder (e.g. no-engine), and
+        // 1) It is an un-categorized placeholder (e.g. no-Level2), and
         // 2) It has no other siblings
         private void CollapseRedundantChildren() {
 

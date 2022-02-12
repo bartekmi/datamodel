@@ -17,15 +17,10 @@ namespace datamodel.schema {
         // Name of the corresponding Database table
         public string Name { get; set; }
 
-        // Team to which this Model belongs, as extracted from the header of the Ruby file.
-        public string Team { get; set; }
-
-        // Engine to which this Model belongs, as extracted from the directory hierarchy
-        public string Engine { get; set; }
-
-        // Set if module, normally extracted from ClassName, was over-ridden in a
-        // visualizations.yaml file
-        public string ModuleOverride { get; set; }
+        // Three level of hierarcy... Eventually, we'd like to make depth arbitrary
+        public string Level1 { get; set; }
+        public string Level2 { get; set; }
+        public string Level3 { get; set; }
 
         // Description of the Model as extracted from Yaml annotation files
         public string Description { get; set; }
@@ -45,12 +40,11 @@ namespace datamodel.schema {
         #region Derived
         public string HumanName { get { return NameUtils.MixedCaseToHuman(UnqualifiedClassName); } }
         public string UnqualifiedClassName { get { return ExtractUnqualifiedClassName(Name); } }
-        public string Module { get { return ExtractModule(Name); } }
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
         public string SanitizedClassName { get { return FileUtils.SanitizeFilename(Name); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
-        public string ColorString { get { return TeamInfo.GetHtmlColorForTeam(Team); } }
+        public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
         public List<Association> FkAssociations {
             get { return Schema.Singleton.FkAssociationsForModel(this); }
@@ -71,13 +65,6 @@ namespace datamodel.schema {
 
         public static string ExtractUnqualifiedClassName(string qualifiedClassName) {
             return qualifiedClassName.Split("::").Last();
-        }
-
-        public static string ExtractModule(string qualifiedClassName) {
-            string[] pieces = qualifiedClassName.Split("::");
-            if (pieces.Length > 1)
-                return string.Join("::", pieces.Take(pieces.Length - 1));
-            return null;
         }
 
         #endregion

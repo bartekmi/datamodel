@@ -19,7 +19,7 @@ namespace datamodel.datadict {
             body.Add(topDiv);
 
             // Title/Header
-            topDiv.Add(new HtmlElement("h1", "Flexport Data Model"));
+            topDiv.Add(new HtmlElement("h1", Schema.Singleton.Title));
 
             // Picture Index
             // I originally tried using the HTML <object> tag for this but there were several issues
@@ -47,8 +47,11 @@ namespace datamodel.datadict {
 
         #region Hierarchy
         private static HtmlElement GenerateHierarchy(HierarchyItem hierarchyItem) {
+            Schema schema = Schema.Singleton;
             HtmlElement hierarchyHtml = new HtmlElement("div").Class("index-subpanel");
-            hierarchyHtml.Add(new HtmlElement("h2", "By Team, then Engine, then Module"));
+            string text = string.Format("By {0}, then {1}, then {2}",
+                schema.Level1, schema.Level2, schema.Level3);
+            hierarchyHtml.Add(new HtmlElement("h2", text));
             AddHierarchyToParentRecursively(hierarchyHtml, hierarchyItem);
             return hierarchyHtml;
         }

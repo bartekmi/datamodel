@@ -12,6 +12,10 @@ namespace datamodel.schema.source {
             _schema = JsonConvert.DeserializeObject<SSchema>(json);
         }
 
+        public override string GetTitle() {
+            return _schema.Title;
+        }
+
         public override IEnumerable<Model> GetModels() {
             List<Model> models = new List<Model>();
             if (_schema.Models == null)
@@ -24,9 +28,9 @@ namespace datamodel.schema.source {
                     IsAbstract = sModel.IsAbstract,
                     SuperClassName = sModel.SuperClass,
 
-                    Team = sModel.Level1,
-                    Engine = sModel.Level2,
-                    ModuleOverride = sModel.Level3,
+                    Level1 = sModel.Level1,
+                    Level2 = sModel.Level2,
+                    Level3 = sModel.Level3,
                 };
                 model.AllColumns = GetColumns(model, sModel.Properties);
                 models.Add(model);
@@ -76,6 +80,7 @@ namespace datamodel.schema.source {
     }
 
     public class SSchema {
+        public string Title;
         public List<SModel> Models;
         public List<SAssociation> Associations;
     }

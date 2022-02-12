@@ -20,7 +20,7 @@ namespace datamodel.metadata {
     // This class encapsulates specifis about a particular diagram/graph. It contains things that do not 
     // belong in the schema itself. Examples:
     // * Color assignments
-    // * Extra tables to bring in from outside the team/group
+    // * Extra tables to bring in from outside
     // * Rules for which tables or columns to include or omit
     // The intention is that these definitions will eventually be read from a yaml config file.
     // This class exists to provide separation between the logical information contained in the schema yaml files
@@ -45,7 +45,7 @@ namespace datamodel.metadata {
         // Extra tables (defined by class names) - no attributes will be shown
         public Model[] ExtraModels { get; set; }
 
-        // Name components of this graph from general to specified - e.g. team/engine/module
+        // Name components of this graph from general to specified - i.e. Level1, Level2, Level3
         public string[] NameComponents { get; set; }
 
         // Human-friendly name of the Graph

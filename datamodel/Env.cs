@@ -12,9 +12,6 @@ namespace datamodel {
         // The path to this repository. Used for the source when copying assets (images, css) to the final output
         public static string REPO_ROOT;
 
-        // Directory of the Flexport Repo
-        public static string ROOT_MODEL_DIR;
-
         // List of directory paths where to look for models, relative to ROOT_MODEL_DIR
         public static string[] MODEL_DIRS;
 
@@ -29,7 +26,7 @@ namespace datamodel {
         // We need this because on the Mac, all user-accessible content lives in http://localhost/~user
         public static string HTTP_ROOT;
 
-        // Generate a graph for the top level of the team hierarchy?
+        // Generate a graph for the top level of the hierarchy?
         public static bool GENERATE_TOP_LEVEL_GRAPH;
 
         // Minimum number of models in the graph index before creating a sub-graph
@@ -40,7 +37,6 @@ namespace datamodel {
             OUTPUT_ROOT_DIR = @"C:\TEMP\datamodel";
             TEMP_DIR = @"C:\TEMP";
             REPO_ROOT = @"C:\github\datamodel";
-            ROOT_MODEL_DIR = @"C:\github\datamodel";
             MODEL_DIRS = new string[] { };
             GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";
             HTTP_ROOT = "";
