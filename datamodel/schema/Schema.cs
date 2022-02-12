@@ -9,20 +9,13 @@ namespace datamodel.schema {
 
         #region Properties and Constructor
 
-        // These columns automatically added by Rails and are of no interest
-        private static readonly string[] UNINTERESTING_COLUMNS = new string[] {
-            "id",
-            "created_at",
-            "updated_at",
-            "deleted_at",
-            "archived_at",
-            "lock_version"
-        };
 
-        public string Title {get; private set; }
-        public string Level1 {get; set; }
-        public string Level2 {get; set; }
-        public string Level3 {get; set; }
+        public string Title { get; private set; }
+        public string Level1 { get; set; }
+        public string Level2 { get; set; }
+        public string Level3 { get; set; }
+        public string[] BoringColumns { get; set; }
+
         public List<Model> Models { get; private set; }
         public List<Association> Associations { get; private set; }
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
@@ -209,8 +202,8 @@ namespace datamodel.schema {
 
         #region Utility Methods
 
-        public static bool IsInteresting(Column column) {
-            return UNINTERESTING_COLUMNS.Contains(column.Name) ? false : true;
+        public bool IsInteresting(Column column) {
+            return BoringColumns.Contains(column.Name) ? false : true;
         }
 
         public bool UnqualifiedClassNameExists(string unqualifiedClassName) {

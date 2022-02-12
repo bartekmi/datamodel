@@ -195,7 +195,7 @@ namespace datamodel.graphviz {
 
             // Columns
             foreach (Column column in dbModel.AllColumns) {
-                if (Schema.IsInteresting(column) &&
+                if (Schema.Singleton.IsInteresting(column) &&
                     !column.Deprecated &&
                     !(column.IsPolymorphicId || column.IsPolymorphicType)) {
 
@@ -279,7 +279,7 @@ namespace datamodel.graphviz {
             builder.AppendLine(schema.Level1 + ": " + model.Level1 + HtmlUtils.LINE_BREAK);
             if (!string.IsNullOrEmpty(model.Level2))
                 builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
-                
+
             builder.AppendLine("Name: " + model.Name + HtmlUtils.LINE_BREAK);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {

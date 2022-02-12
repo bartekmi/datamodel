@@ -8,6 +8,10 @@
             "Level1": "files",
             "Properties": [
                 {
+                    "Name": "Id",
+                    "Type": "Integer"
+                },
+                {
                     "Name": "Name",
                     "Description": "The name of this object",
                     "Type": "String"

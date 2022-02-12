@@ -28,6 +28,7 @@ namespace datamodel {
             schema.Level1 = "Component";
             schema.Level2 = "Sub-component";
             schema.Level3 = "Folder";
+            schema.BoringColumns = new string[] { "Id" };
 
             GenerateGraphsAndDataDictionary();
         }

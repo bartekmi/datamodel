@@ -78,7 +78,7 @@ namespace datamodel.datadict {
             table.AddTr(new HtmlTr(new HtmlTh("Attributes").Class("heading2")));
 
             foreach (Column column in dbModel.RegularColumns)
-                if (Schema.IsInteresting(column)) {
+                if (Schema.Singleton.IsInteresting(column)) {
                     // Column Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
@@ -116,7 +116,7 @@ namespace datamodel.datadict {
         }
 
         private static void AddFkColumnInfo(HtmlTable table, Column column, Model other, Func<Column, string> nameFunc) {
-            if (Schema.IsInteresting(column)) {
+            if (Schema.Singleton.IsInteresting(column)) {
                 HtmlBase docIcon = other == null ? null : HtmlUtils.MakeIconForDocs(other);
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
