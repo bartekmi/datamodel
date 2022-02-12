@@ -291,15 +291,8 @@ namespace datamodel.graphviz {
         }
 
         private string ToShortType(Column column) {
-            switch (column.DbType) {
-                case DataType.Integer: return "int";
-                case DataType.Text: return "txt";
-                case DataType.String: return "str";
-                case DataType.Decimal: return "dec";
-                case DataType.Boolean: return "bool";
-            }
-
-            return column.DbType.ToString();
+            // Potential to inject shortened data types here...
+            return column.DbType;
         }
         #endregion
 

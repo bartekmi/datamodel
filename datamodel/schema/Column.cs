@@ -8,27 +8,10 @@ using datamodel.utils;
 using datamodel.toplevel;
 
 namespace datamodel.schema {
-    public enum DataType {
-        String,
-        Text,     // Long string
-        Integer,
-        Enum,
-        BigInt,
-        Decimal,
-        Float,
-        Boolean,
-        DateTime,
-        Date,
-        Json,
-        Uuid,
-        Bytes,
-        Other
-    }
-
     public class Column : IDbElement {
         public string Name { get; set; }
         public string DbTypeString { get; set; }
-        public DataType DbType { get; set; }
+        public string DbType { get; set; }
         public bool CanBeEmpty { get; set; }
         public string[] Validations { get; set; }
         public string Level1 { get; set; }

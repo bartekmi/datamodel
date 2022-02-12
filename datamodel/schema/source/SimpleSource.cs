@@ -49,6 +49,7 @@ namespace datamodel.schema.source {
                 Column column = new Column(model) {
                     Name = sProp.Name,
                     Description = sProp.Description,
+                    DbType = sProp.Type,
                     CanBeEmpty = sProp.CanBeEmpty,
                 };
                 columns.Add(column);
@@ -108,7 +109,7 @@ namespace datamodel.schema.source {
         public string Description;
         public bool IsDeprecated;
 
-        public DataType Type;
+        public string Type;
         public bool CanBeEmpty;
     }
 
