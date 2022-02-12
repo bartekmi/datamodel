@@ -87,21 +87,22 @@ namespace datamodel {
 
         #region Windows
         private static void ConfigureWindows() {
-            OUTPUT_ROOT_DIR = @"C:\inetpub\wwwroot\datamodel";
+            OUTPUT_ROOT_DIR = @"C:\TEMP\datamodel";
             TEMP_DIR = @"C:\TEMP";
-            REPO_ROOT = @"C:\datamodel";
-            ROOT_MODEL_DIR = @"C:\datamodel";
-            MODEL_DIRS = new string[] { "models", "customs_models" };
-            SCHEMA_FILE = @"C:\datamodel\bartek_raw.txt";
-            GRAPHVIZ_BIN_DIR = @"C:\Program Files (x86)\Graphviz2.38\bin";
-            HTTP_ROOT = "/datamodel";
+            REPO_ROOT = @"C:\github\datamodel";
+            ROOT_MODEL_DIR = @"C:\github\datamodel";
+            MODEL_DIRS = new string[] { };
+            GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";
+            HTTP_ROOT = "";
+            GENERATE_TOP_LEVEL_GRAPH = true;
+            MIN_MODELS_TO_SHOW_AS_NODE = 1;
         }
         #endregion
 
         internal static void Configure() {
-            // Obviously add code here to set appropriate env once working on Windows again.
             // ConfigureMacTrinity();
-            ConfigureMacFlexport();
+            // ConfigureMacFlexport();
+            ConfigureWindows();
         }
     }
 }

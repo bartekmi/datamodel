@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 using datamodel.metadata;
 using datamodel.schema;
+using datamodel.schema.source;
 using datamodel.tools;
 using datamodel.datadict;
 using datamodel.toplevel;
@@ -18,7 +19,21 @@ namespace datamodel {
 
     class Program {
 
+        // Once files are generated, use this command to start local web server:
+        // If using python3:
+        //  python -m http.server 80
         static void Main(string[] args) {
+            Env.Configure();
+
+            // Path is relative to 'CWD' attribute in launch.json
+            SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");
+            Schema.CreateSchema(source);
+            Schema schema = Schema.Singleton;
+
+            GenerateGraphsAndDataDictionary();
+        }
+        
+        static void MainOld(string[] args) {
 
             Env.Configure();
 
@@ -57,7 +72,7 @@ namespace datamodel {
 
         private static void GenerateGraphsAndDataDictionary() {
             // Extract teams, parse "visualizations.yaml" files, and match paths of Ruby files with models
-            List<GraphDefinition> graphDefsFromMetadata = ParseModelDirs();
+            List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
             ApplyGraphDefsToSchema(graphDefsFromMetadata);
 
             foreach (Model table in Schema.Singleton.Models)

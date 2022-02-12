@@ -1,0 +1,44 @@
+{
+    "Models": [
+        {
+            "Name": "FileSystemObject",
+            "Description": "Anything you can stuff in",
+            "IsAbstract": "True",
+            "Level1": "files",
+            "Properties": [
+                {
+                    "Name": "Name",
+                    "Description": "The name of this object",
+                    "Type": "String"
+                }
+            ]
+        },
+        {
+            "Name": "Directory",
+            "SuperClass": "FileSystemObject",
+            "Description": "A grouping of FileSystemObjects",
+            "Level1": "files"
+        },
+        {
+            "Name": "File",
+            "SuperClass": "FileSystemObject",
+            "Description": "Holds actual data",
+            "Level1": "files",
+            "Properties": [
+                {
+                    "Name": "Data",
+                    "Description": "The data",
+                    "Type": "Bytes"
+                }
+            ]
+        }
+    ],
+    "Associations": [
+        {
+            "A_Model": "FileSystemObject",
+            "A_Card": "Many",
+            "B_Model": "Directory",
+            "B_Card": "Aggregation"
+        }
+    ]
+}

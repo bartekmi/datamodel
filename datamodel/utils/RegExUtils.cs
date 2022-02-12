@@ -15,7 +15,8 @@ namespace datamodel.utils {
                 else
                     throw exceptionMaker(string.Format("No match for {0} in {1} at line {2}", pattern, line));
 
-            return match.Groups.Skip(1).Select(x => x.ToString()).ToArray();
+            // return match.Groups.Skip(1).Select(x => x.ToString()).ToArray();
+            return null;
         }
     }
 }

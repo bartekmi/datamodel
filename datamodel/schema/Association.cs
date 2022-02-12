@@ -20,6 +20,7 @@ namespace datamodel.schema {
         public string OtherSide { get; set; }
         public bool SourceOptional { get; set; }
         public bool DestinationOptional { get; set; }
+
         public List<RailsAssociation> RailsAssociations = new List<RailsAssociation>();
 
         // Hydrated
@@ -40,59 +41,64 @@ namespace datamodel.schema {
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         public string PolymorphicName {
             get {
-                return RailsAssociations.First().PolymorphicAssociationName;
+                return "Not Impl - PMN";
             }
         }
         public string PolymorphicReverseName {
             get {
-                RailsAssociation first = RailsAssociations.First();
-                return string.Format("{0}.{1}", first.OwningModel, first.ForeignKey);
+                return "Not Impl - PMrN";
             }
         }
 
         public string RoleOppositeFK {
             get {
-                RailsAssociation belongsTo = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.BelongsTo);
-                if (belongsTo == null)
-                    return null;
+                return "Not Impl - ROFK";
+                // RailsAssociation belongsTo = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.BelongsTo);
+                // if (belongsTo == null)
+                //     return null;
 
-                if (FkInfo.StripId(belongsTo.ForeignKey).Replace("_", "").ToLower() ==
-                    belongsTo.UnqualifiedClassName.ToLower())
-                    return null;        // The FK name is no different from the entity it points to. Boring.
+                // if (FkInfo.StripId(belongsTo.ForeignKey).Replace("_", "").ToLower() ==
+                //     belongsTo.UnqualifiedClassName.ToLower())
+                //     return null;        // The FK name is no different from the entity it points to. Boring.
 
-                return FkInfo.FkColumnToHuman(belongsTo.ForeignKey);
+                // return FkInfo.FkColumnToHuman(belongsTo.ForeignKey);
             }
         }
         public string RoleByFK {
             get {
+                return "Not Impl - RBFK";
                 // For now, assuming that the FK side of a polymorphic association is boring
-                if (IsPolymorphic)
-                    return null;
+                // if (IsPolymorphic)
+                //     return null;
 
-                RailsAssociation hasOne = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasOne);
-                if (hasOne != null) {
-                    if (hasOne.Name.Replace("_", "").ToLower() ==
-                        hasOne.UnqualifiedClassName.ToLower())
-                        return null;        // Boring
-                    else
-                        return NameUtils.SnakeCaseToHuman(hasOne.Name);
-                }
+                // RailsAssociation hasOne = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasOne);
+                // if (hasOne != null) {
+                //     if (hasOne.Name.Replace("_", "").ToLower() ==
+                //         hasOne.UnqualifiedClassName.ToLower())
+                //         return null;        // Boring
+                //     else
+                //         return NameUtils.SnakeCaseToHuman(hasOne.Name);
+                // }
 
-                RailsAssociation hasMany = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasMany);
-                if (hasMany != null) {
-                    if (hasMany.Name.ToLower() ==
-                        hasMany.PluralName.ToLower())
-                        return null;        // Boring
-                    else
-                        return NameUtils.SnakeCaseToHuman(hasMany.Name);
-                }
+                // RailsAssociation hasMany = RailsAssociations.FirstOrDefault(x => x.Kind == AssociationKind.HasMany);
+                // if (hasMany != null) {
+                //     if (hasMany.Name.ToLower() ==
+                //         hasMany.PluralName.ToLower())
+                //         return null;        // Boring
+                //     else
+                //         return NameUtils.SnakeCaseToHuman(hasMany.Name);
+                // }
 
-                return null;
+                // return null;
             }
         }
 
         public Multiplicity FkSideMultiplicity { get; set; }
         public Multiplicity OtherSideMultiplicity { get; set; }
+
+        public Association() {
+
+        }
 
         public Association(RailsAssociation railsAssociation, RailsAssociation reverseRailsAssociation) {
             RailsAssociations.Add(railsAssociation);

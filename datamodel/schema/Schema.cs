@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using datamodel.utils;
+
+using datamodel.schema.source;
 
 namespace datamodel.schema {
     public class Schema {
@@ -22,25 +23,52 @@ namespace datamodel.schema {
         private static Schema _schema;
         public static Schema Singleton {
             get {
-                if (_schema == null)
-                    _schema = ParseSchema();
                 return _schema;
             }
         }
+        public static void CreateSchema(SchemaSource source) {
+            _schema = new Schema() {
+                Models = source.GetModels().ToList(),
+                Associations = source.GetAssociations().ToList(),
+            };
+
+            _schema._byClassName = _schema.Models.ToDictionary(x => x.ClassName);
+            _schema.CreateFkColumns();
+
+            _schema.Rehydrate();
+        }
+
+        private void CreateFkColumns() {
+            foreach (Association assoc in Associations) {
+                // TODO: Validate unknown models in associations
+                if (!_byClassName.TryGetValue(assoc.FkSide, out Model aModel) ||
+                    !_byClassName.TryGetValue(assoc.OtherSide, out Model bModel)) 
+                    continue;
+
+                aModel.AllColumns.Add(new Column(aModel) {
+                    DbName = bModel.DbName,
+                    DbType = DataType.Integer,
+                    IsNull = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
+                    FkInfo = new FkInfo() {
+                        ReferencedModel = bModel,
+                    },
+                });
+            }
+        }
+
+
         public List<Model> Models { get; private set; }
         public List<Association> Associations { get; private set; }
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
+
         private Dictionary<string, Model> _byClassName;
         private Dictionary<Model, List<Column>> _incomingFkColumns;
         private Dictionary<Model, List<Association>> _fkAssociationsForModel;
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
-        private HashSet<string> _teamNames;
         private HashSet<string> _unqualifiedClassNames;
 
-        private Schema(List<Model> tables) {
-            Models = tables;
-            _byClassName = tables.ToDictionary(x => x.ClassName);
+        private Schema() {
             Interfaces = new Dictionary<string, PolymorphicInterface>();
         }
         #endregion
@@ -53,7 +81,7 @@ namespace datamodel.schema {
             List<Model> tables = parser.ParseModels();
             tables = tables.Where(x => !x.ClassName.Contains("HABTM")).ToList();        // Ignore dummy tables for "Has And Belongs To Many"
 
-            Schema schema = new Schema(tables);
+            Schema schema = new Schema();
 
             // Step Two: Associations
             IEnumerable<RailsAssociation> railsAssociations = parser.ParseAssociations();
@@ -331,14 +359,15 @@ namespace datamodel.schema {
 
         private void RehydrateSuperClasses() {
             foreach (Model table in Models) {
-                if (_byClassName.TryGetValue(table.SuperClassName, out Model parent)) {
-                    table.Superclass = parent;
-                    foreach (Column column in parent.AllColumns) {
-                        Column duplicate = table.FindColumn(column.DbName);
-                        if (duplicate != null)
-                            table.AllColumns.Remove(duplicate);
+                if (table.SuperClassName != null)
+                    if (_byClassName.TryGetValue(table.SuperClassName, out Model parent)) {
+                        table.Superclass = parent;
+                        foreach (Column column in parent.AllColumns) {
+                            Column duplicate = table.FindColumn(column.DbName);
+                            if (duplicate != null)
+                                table.AllColumns.Remove(duplicate);
+                        }
                     }
-                }
             }
         }
 
@@ -358,13 +387,6 @@ namespace datamodel.schema {
             return UNINTERESTING_COLUMNS.Contains(column.DbName) ? false : true;
         }
 
-        public bool TeamExists(string team) {
-            if (_teamNames == null)
-                _teamNames = new HashSet<string>(Models.Select(x => x.Team));
-
-            return _teamNames.Contains(team);
-        }
-
         public bool UnqualifiedClassNameExists(string unqualifiedClassName) {
             if (_unqualifiedClassNames == null)
                 _unqualifiedClassNames = new HashSet<string>(Models.Select(x => x.UnqualifiedClassName));
@@ -376,14 +398,6 @@ namespace datamodel.schema {
             if (_byClassName.TryGetValue(className, out Model table))
                 return table;
             return null;
-        }
-
-        public bool IsValidClassName(string className) {
-            return _byClassName.ContainsKey(className);
-        }
-
-        public Model FindByDbName(string dbName) {
-            return Models.SingleOrDefault(x => x.DbName == dbName);
         }
 
         public IEnumerable<Column> IncomingFkColumns(Model model) {

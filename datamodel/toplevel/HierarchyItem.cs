@@ -143,12 +143,12 @@ namespace datamodel.toplevel {
             if (Children.Count == 1) {                          // See 2) above
                 HierarchyItem onlyChild = Children.Single();
 
-                //if (onlyChild.IsUncategorizedCatchall)          // See 1) above
-                if (onlyChild.IsLeaf) {
-                    Models = onlyChild.Models;
-                    Children.Clear();
-                } else
-                    Children = onlyChild.Children;
+                if (onlyChild.IsUncategorizedCatchall)          // See 1) above
+                    if (onlyChild.IsLeaf) {
+                        Models = onlyChild.Models;
+                        Children.Clear();
+                    } else
+                        Children = onlyChild.Children;
             }
         }
 

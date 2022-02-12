@@ -19,14 +19,9 @@ namespace datamodel.schema {
         Boolean,
         DateTime,
         Date,
-        NumRange,
         Json,
-        Jsonb,
         Uuid,
-        Citext,
-        Hstore,
-        Geometry,
-        Inet,
+        Bytes,
         Other
     }
 
