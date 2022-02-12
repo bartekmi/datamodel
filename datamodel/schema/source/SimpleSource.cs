@@ -70,6 +70,8 @@ namespace datamodel.schema.source {
                     OtherSide = sAssoc.B_Model,
                     OtherSideMultiplicity = sAssoc.B_Card,
                     RoleOppositeFK = sAssoc.B_Role,
+
+                    Description = sAssoc.Description,
                 };
                 associations.Add(assoc);
             }
@@ -111,6 +113,7 @@ namespace datamodel.schema.source {
 
     public class SAssociation {
         public bool IsDeprecated;
+        public string Description;
 
         public string A_Model;
         public Multiplicity A_Card;

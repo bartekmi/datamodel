@@ -22,6 +22,7 @@ namespace datamodel.schema {
         public string RoleByFK {get; set; }
         public Multiplicity FkSideMultiplicity { get; set; }
         public Multiplicity OtherSideMultiplicity { get; set; }
+        public string Description { get; set; }
 
         // Hydrated
         public Model OtherSideModel { get; set; }
@@ -33,22 +34,17 @@ namespace datamodel.schema {
         public bool DestinationOptional { get { return OtherSideMultiplicity == Multiplicity.ZeroOrOne; } }
         public bool Recursive { get { return OtherSide == FkSide; } }
         public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
-        public string Description {
-            get {
-                if (FkColumn == null)
-                    return "Unknown";
-                return FkColumn.Description == null ? FkColumn.HumanName : FkColumn.Description;
-            }
-        }
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         public string PolymorphicName {
             get {
-                return "Not Impl - PMN";
+                // At this time, there is no use-case for Polymorphic Associations
+                return null;
             }
         }
         public string PolymorphicReverseName {
             get {
-                return "Not Impl - PMrN";
+                // At this time, there is no use-case for Polymorphic Associations
+                return null;
             }
         }
 

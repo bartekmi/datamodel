@@ -39,7 +39,8 @@
             "A_Model": "FileSystemObject",
             "A_Card": "Many",
             "B_Model": "Directory",
-            "B_Card": "Aggregation"
+            "B_Card": "Aggregation",
+            "Description": "File System Objects held by this directory"
         }
     ]
 }

@@ -79,8 +79,8 @@ namespace datamodel.graphviz {
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
                 .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("arrowhead", "none")
-                .SetAttrGraph("arrowtail", "onormal")
+                .SetAttrGraph("arrowhead", "none")          // Straight connection - no decoration
+                .SetAttrGraph("arrowtail", "onormal")       // "normal" would be an arrow. "onormal" makes the arrow empty.
                 .SetAttrGraph("tailport", "s");     // Forces arrow to connect to center bottom. 
 
             return edge;
@@ -277,7 +277,9 @@ namespace datamodel.graphviz {
             Schema schema = Schema.Singleton;
 
             builder.AppendLine(schema.Level1 + ": " + model.Level1 + HtmlUtils.LINE_BREAK);
-            builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
+            if (!string.IsNullOrEmpty(model.Level2))
+                builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
+                
             builder.AppendLine("Name: " + model.Name + HtmlUtils.LINE_BREAK);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
