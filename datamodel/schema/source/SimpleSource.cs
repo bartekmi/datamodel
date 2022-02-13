@@ -49,10 +49,14 @@ namespace datamodel.schema.source {
                 Column column = new Column(model) {
                     Name = sProp.Name,
                     Description = sProp.Description,
-                    DbType = sProp.Type,
+                    DataType = sProp.Type,
                     CanBeEmpty = sProp.CanBeEmpty,
                     Enum = GetEnum(sProp.Enum),
                 };
+                
+                if (column.DataType == null && column.Enum != null)
+                    column.DataType = "Enum";
+
                 columns.Add(column);
             }
 

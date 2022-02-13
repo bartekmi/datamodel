@@ -11,7 +11,7 @@ namespace datamodel.schema {
     public class Column : IDbElement {
         public string Name { get; set; }
         public string DbTypeString { get; set; }
-        public string DbType { get; set; }
+        public string DataType { get; set; }
         public bool CanBeEmpty { get; set; }
         public string[] Validations { get; set; }
         public string Level1 { get; set; }

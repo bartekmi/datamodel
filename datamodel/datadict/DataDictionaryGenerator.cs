@@ -83,7 +83,7 @@ namespace datamodel.datadict {
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
                             new HtmlElement("span", column.HumanName).Class("heading3"),
-                            new HtmlElement("span", "(" + column.DbType + ")").Class("faded gap-left"),
+                            new HtmlElement("span", "(" + column.DataType + ")").Class("faded gap-left"),
                             DeprecatedSpan(column)
                         )
                       ).Attr("id", column.Name)

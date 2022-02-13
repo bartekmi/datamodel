@@ -67,7 +67,7 @@ namespace datamodel.schema {
 
                 Column fkColumn = new Column(aModel) {
                     Name = bModel.Name,
-                    DbType = "ID",
+                    DataType = "ID",
                     CanBeEmpty = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {
                         ReferencedModel = bModel,

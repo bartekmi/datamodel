@@ -292,7 +292,7 @@ namespace datamodel.graphviz {
 
         private string ToShortType(Column column) {
             // Potential to inject shortened data types here...
-            return column.DbType;
+            return column.DataType;
         }
         #endregion
 
