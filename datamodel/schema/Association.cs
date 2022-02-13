@@ -17,11 +17,13 @@ namespace datamodel.schema {
 
     public class Association {
         public string FkSide { get; set; }
+        public string FkRole {get; set; }
+        public Multiplicity FkMultiplicity { get; set; }
+
         public string OtherSide { get; set; }
-        public string RoleOppositeFK {get; set; }
-        public string RoleByFK {get; set; }
-        public Multiplicity FkSideMultiplicity { get; set; }
-        public Multiplicity OtherSideMultiplicity { get; set; }
+        public string OtherRole {get; set; }
+        public Multiplicity OtherMultiplicity { get; set; }
+
         public string Description { get; set; }
 
         // Hydrated
@@ -30,8 +32,8 @@ namespace datamodel.schema {
         public Column FkColumn { get; set; } 
 
         // Derived
-        public bool SourceOptional { get { return FkSideMultiplicity == Multiplicity.ZeroOrOne; } }
-        public bool DestinationOptional { get { return OtherSideMultiplicity == Multiplicity.ZeroOrOne; } }
+        public bool SourceOptional { get { return FkMultiplicity == Multiplicity.ZeroOrOne; } }
+        public bool DestinationOptional { get { return OtherMultiplicity == Multiplicity.ZeroOrOne; } }
         public bool Recursive { get { return OtherSide == FkSide; } }
         public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
         public bool IsPolymorphic { get { return PolymorphicName != null; } }

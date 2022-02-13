@@ -1,8 +1,5 @@
 using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 using datamodel.utils;
 using datamodel.toplevel;
@@ -10,14 +7,13 @@ using datamodel.toplevel;
 namespace datamodel.schema {
     public class Column : IDbElement {
         public string Name { get; set; }
-        public string DbTypeString { get; set; }
         public string DataType { get; set; }
         public bool CanBeEmpty { get; set; }
-        public string[] Validations { get; set; }
         public string Level1 { get; set; }
         public string Description { get; set; }
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }
+        [JsonIgnore]    // Owner causes a "Self referencing loop"
         public Model Owner { get; private set; }
 
         // Derived 
@@ -29,11 +25,6 @@ namespace datamodel.schema {
                 if (string.IsNullOrWhiteSpace(Description))
                     return new string[0];
                 return Description.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-            }
-        }
-        public bool IsMandatory {
-            get {
-                return !CanBeEmpty || Validations.Contains("presence");
             }
         }
 

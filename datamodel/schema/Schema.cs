@@ -50,7 +50,7 @@ namespace datamodel.schema {
                 Associations = source.GetAssociations().ToList(),
             };
 
-            _schema._byClassName = _schema.Models.ToDictionary(x => x.Name);
+            _schema._byClassName = _schema.Models.ToDictionary(x => x.FullyQualifiedName);
             _schema.CreateFkColumns();
 
             _schema.Rehydrate();
@@ -60,15 +60,19 @@ namespace datamodel.schema {
 
         private void CreateFkColumns() {
             foreach (Association assoc in Associations) {
-                // TODO: Validate unknown models in associations
-                if (!_byClassName.TryGetValue(assoc.FkSide, out Model aModel) ||
-                    !_byClassName.TryGetValue(assoc.OtherSide, out Model bModel))
+                if (!_byClassName.TryGetValue(assoc.FkSide, out Model aModel)) 
+                    Error.Log("Association refers to unknown model: {0}", assoc.FkSide);
+
+                if (!_byClassName.TryGetValue(assoc.OtherSide, out Model bModel)) 
+                    Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
+
+                if (aModel == null || bModel == null)
                     continue;
 
                 Column fkColumn = new Column(aModel) {
                     Name = bModel.Name,
                     DataType = "ID",
-                    CanBeEmpty = assoc.OtherSideMultiplicity == Multiplicity.ZeroOrOne,
+                    CanBeEmpty = assoc.OtherMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {
                         ReferencedModel = bModel,
                     },
@@ -209,13 +213,6 @@ namespace datamodel.schema {
             return BoringColumns.Contains(column.Name) ? false : true;
         }
 
-        public bool UnqualifiedClassNameExists(string unqualifiedClassName) {
-            if (_unqualifiedClassNames == null)
-                _unqualifiedClassNames = new HashSet<string>(Models.Select(x => x.UnqualifiedClassName));
-
-            return _unqualifiedClassNames.Contains(unqualifiedClassName);
-        }
-
         public Model FindByClassName(string className) {
             if (_byClassName.TryGetValue(className, out Model table))
                 return table;
@@ -244,14 +241,6 @@ namespace datamodel.schema {
             if (!_polymorphicAssociations.TryGetValue(_interface, out List<Association> associations))
                 return new Association[0];
             return associations;
-        }
-
-        private Column FindByClassNameAndColumn(string className, string columnName) {
-            Model table = FindByClassName(className);
-            if (table == null)
-                return null;
-            Column column = table.FindColumn(columnName);
-            return column;
         }
 
         #endregion

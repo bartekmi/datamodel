@@ -1,7 +1,7 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 using datamodel.utils;
 using datamodel.metadata;
@@ -14,8 +14,11 @@ namespace datamodel.schema {
         // Is this model abstract, as indicated by 'self.abstract_class = true'
         public bool IsAbstract { get; set; }
 
-        // Name of the corresponding Database table
+        // Name of the Model
         public string Name { get; set; }
+
+        // This (possibly longer) name must be guaranteed to be globally unique
+        public string FullyQualifiedName {get; set;}
 
         // Three level of hierarcy... Eventually, we'd like to make depth arbitrary
         public string Level1 { get; set; }
@@ -38,22 +41,26 @@ namespace datamodel.schema {
 
 
         #region Derived
-        public string HumanName { get { return NameUtils.MixedCaseToHuman(UnqualifiedClassName); } }
-        public string UnqualifiedClassName { get { return ExtractUnqualifiedClassName(Name); } }
+        public string HumanName { get { return NameUtils.MixedCaseToHuman(Name); } }
+        [JsonIgnore]
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
+        [JsonIgnore]
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
-        public string SanitizedClassName { get { return FileUtils.SanitizeFilename(Name); } }
+        public string SanitizedClassName { get { return FileUtils.SanitizeFilename(FullyQualifiedName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
         public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
+        [JsonIgnore]
         public List<Association> FkAssociations {
             get { return Schema.Singleton.FkAssociationsForModel(this); }
         }
 
+        [JsonIgnore]
         public IEnumerable<PolymorphicInterface> PolymorphicInterfaces {
             get { return Schema.Singleton.InterfacesForModel(this); }
         }
 
+        [JsonIgnore]
         public IEnumerable<Association> PolymorphicAssociations {
             get {
                 return PolymorphicInterfaces

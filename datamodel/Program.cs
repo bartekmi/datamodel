@@ -16,14 +16,20 @@ namespace datamodel {
 
     class Program {
 
+        //********************************************************************************
         // Once files are generated, use this command to start local web server:
-        // If using python3:
-        //  python -m http.server 80
+        //
+        //  python -m http.server 80             # Python 3
+        //
+        //********************************************************************************
+
         static void Main(string[] args) {
             Env.Configure();
+            Error.Clear();
 
-            // Path is relative to 'CWD' attribute in launch.json
-            SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");
+            //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
+            SwaggerSource source = SwaggerSource.FromUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
+
             Schema schema = Schema.CreateSchema(source);
             schema.Level1 = "Component";
             schema.Level2 = "Sub-component";

@@ -309,16 +309,16 @@ namespace datamodel.graphviz {
             edge.SetAttrGraph("dir", "both")        // Allows for both ends of line to be decorated
                 .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.OtherSideMultiplicity))
-                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.FkSideMultiplicity))
+                .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.OtherMultiplicity))
+                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.FkMultiplicity))
                 .SetAttrGraph("edgetooltip", edge.Association.Description)
                 .SetAttrGraph("edgehref", edge.Association.DocUrl);
 
-            string oppositeFK = association.RoleOppositeFK;
+            string oppositeFK = association.OtherRole;
             if (oppositeFK != null)
                 edge.SetAttrGraph("taillabel", oppositeFK.Replace(" ", "\n"));
 
-            string byFK = association.RoleByFK;
+            string byFK = association.FkRole;
             if (byFK != null)
                 edge.SetAttrGraph("headlabel", byFK.Replace(" ", "\n"));
 
@@ -339,7 +339,7 @@ namespace datamodel.graphviz {
 
         #region Misc
         private static string ModelToNodeId(Model table) {
-            return table.Name;
+            return table.FullyQualifiedName;
         }
         #endregion
     }

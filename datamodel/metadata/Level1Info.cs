@@ -13,7 +13,7 @@ namespace datamodel.metadata {
         }
 
         public static string GetHtmlColorForLevel1(string level1) {
-            if (_level1_ToColor.TryGetValue(level1, out string color))
+            if (level1 != null && _level1_ToColor.TryGetValue(level1, out string color))
                 return color;
 
             return "lightgrey";     // The default color

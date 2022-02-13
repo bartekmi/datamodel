@@ -1,0 +1,65 @@
+{
+    "info": {
+        "title": "Kubernetes",
+        "version": "unversioned"
+    },
+    "definitions": {
+        "io.k8s.api.apps.v1.DaemonSet": {
+            "description": "DaemonSet represents the configuration of a daemon set.",
+            "properties": {
+                "scalar": {
+                    "description": "Basic scalar property",
+                    "type": "string"
+                },
+                "scalar.mandatory": {
+                    "description": "Basic scalar property",
+                    "type": "string"
+                },
+                "array": {
+                    "description": "Array of scalar property",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "reference.one": {
+                    "$ref": "#/definitions/myref",
+                    "description": "Single mandatory reference"
+                },
+                "reference.one.mandatory": {
+                    "$ref": "#/definitions/myref",
+                    "description": "Single mandatory reference"
+                },
+                "reference.many": {
+                    "description": "Multi reference",
+                    "items": {
+                        "$ref": "#/definitions/myref"
+                    },
+                    "type": "array"
+                }
+            },
+            "required": [
+                "scalar.mandatory",
+                "reference.one.mandatory"
+            ],
+            "type": "object",
+            "x-kubernetes-group-version-kind": [
+                {
+                    "group": "apps",
+                    "kind": "DaemonSet",
+                    "version": "v1"
+                }
+            ]
+        }, 
+        "myref": {
+            "description": "DaemonSet represents the configuration of a daemon set.",
+            "properties": {
+                "obligatoryProp": {
+                    "description": "It would be awkward to have no props",
+                    "type": "integer",
+                    "format": "int32"
+                }
+           }
+        }
+    }
+}

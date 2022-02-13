@@ -5,8 +5,6 @@ using System.IO;
 namespace datamodel {
     public class Error {
 
-        public static string ERROR_LOG = System.IO.Path.Combine(Env.TEMP_DIR, "datamodel.log");
-
         public string Path { get; set; }
         public string Message { get; set; }
         public int? LineNumber { get; set; }
@@ -16,17 +14,25 @@ namespace datamodel {
         }
 
         public static void Clear() {
-            File.Delete(ERROR_LOG);
+            File.Delete(ErrorLog());
         }
 
-        public static void Log(string message) {
+        public static void Log(string message, params object[] args) {
+            message = string.Format(message, args);
             Log(new Error() { Message = message });
         }
 
         public static void Log(Error error) {
-            using (TextWriter writer = new StreamWriter(ERROR_LOG, true))
+            using (TextWriter writer = new StreamWriter(ErrorLog(), true))
                 writer.WriteLine(error.ToString());
             Console.WriteLine(error);
         }
+
+        private static string ErrorLog() {
+            string dir = Env.TEMP_DIR ?? ".";
+            return System.IO.Path.Combine(dir, "datamodel.log");
+        }
+
+
     }
 }

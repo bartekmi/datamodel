@@ -53,10 +53,10 @@ namespace datamodel.toplevel {
                 .Distinct();
 
             IEnumerable<Model> allModels = graphDef.CoreModels.Union(graphDef.ExtraModels);
-            Dictionary<string, Model> tablesDict = allModels.ToDictionary(x => x.Name);
+            Dictionary<string, Model> tablesDict = allModels.ToDictionary(x => x.FullyQualifiedName);
 
             Dictionary<string, PolymorphicInterface> polymorphicInterfaces = Schema.Singleton.Interfaces.Values
-                .Where(x => tablesDict.ContainsKey(x.Model.Name))
+                .Where(x => tablesDict.ContainsKey(x.Model.FullyQualifiedName))
                 .ToDictionary(x => x.Name);
 
             List<Association> associations = Schema.Singleton.Associations

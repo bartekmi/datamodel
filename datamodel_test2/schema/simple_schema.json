@@ -63,6 +63,15 @@
                     "Type": "Integer"
                 },
                 {
+                    "Name": "Priority",
+                    "Description": "Priority of the process",
+                    "Enum": {
+                        "Low": "",
+                        "Medium": "",
+                        "High": ""
+                    }
+                },
+                {
                     "Name": "State",
                     "Description": "Possible state of the process at the current instant in time",
                     "Enum": {
@@ -96,6 +105,15 @@
                     "Name": "Id",
                     "Description": "Id of thread - unique only within its parent process",
                     "Type": "Integer"
+                },
+                {
+                    "Name": "Priority",
+                    "Description": "Priority of the thread",
+                    "Enum": {
+                        "Background": "",
+                        "Normal": "",
+                        "Foreground": ""
+                    }
                 },
                 {
                     "Name": "Name",
@@ -237,6 +255,13 @@
             "A_Card": "Aggregation",
             "B_Model": "Process",
             "B_Card": "Many"
+        },
+        {
+            "A_Model": "ProcessManager",
+            "A_Card": "One",
+            "B_Model": "Process",
+            "B_Card": "ZeroOrOne",
+            "B_Role": "current"
         }
     ]
 }

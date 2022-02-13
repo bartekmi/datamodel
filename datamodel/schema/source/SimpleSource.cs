@@ -24,6 +24,7 @@ namespace datamodel.schema.source {
             foreach (SModel sModel in _schema.Models) {
                 Model model = new Model() {
                     Name = sModel.Name,
+                    FullyQualifiedName = sModel.Name,
                     Description = sModel.Description,
                     IsAbstract = sModel.IsAbstract,
                     SuperClassName = sModel.SuperClass,
@@ -83,12 +84,12 @@ namespace datamodel.schema.source {
             foreach (SAssociation sAssoc in _schema.Associations) {
                 Association assoc = new Association() {
                     FkSide = sAssoc.A_Model,
-                    FkSideMultiplicity = sAssoc.A_Card,
-                    RoleByFK = sAssoc.A_Role,
+                    FkMultiplicity = sAssoc.A_Card,
+                    FkRole = sAssoc.A_Role,
 
                     OtherSide = sAssoc.B_Model,
-                    OtherSideMultiplicity = sAssoc.B_Card,
-                    RoleOppositeFK = sAssoc.B_Role,
+                    OtherMultiplicity = sAssoc.B_Card,
+                    OtherRole = sAssoc.B_Role,
 
                     Description = sAssoc.Description,
                 };
@@ -100,6 +101,7 @@ namespace datamodel.schema.source {
 
     }
 
+    #region Json Parse Classes
     public class SSchema {
         public string Title;
         public List<SModel> Models;
@@ -143,4 +145,5 @@ namespace datamodel.schema.source {
         public Multiplicity B_Card;
         public string B_Role;
     }
+    #endregion
 }
