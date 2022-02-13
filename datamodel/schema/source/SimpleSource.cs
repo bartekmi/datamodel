@@ -51,11 +51,24 @@ namespace datamodel.schema.source {
                     Description = sProp.Description,
                     DbType = sProp.Type,
                     CanBeEmpty = sProp.CanBeEmpty,
+                    Enum = GetEnum(sProp.Enum),
                 };
                 columns.Add(column);
             }
 
             return columns;
+        }
+
+        private Enum GetEnum(Dictionary<string, string> sEnum) {
+            if (sEnum == null)
+                return null;
+
+            Enum theEnum = new Enum();
+            
+            foreach (var entry in sEnum)
+                theEnum.Add(entry.Key, entry.Value);
+
+            return theEnum;
         }
 
         public override IEnumerable<Association> GetAssociations() {
@@ -108,9 +121,10 @@ namespace datamodel.schema.source {
         public string Name;
         public string Description;
         public bool IsDeprecated;
+        public bool CanBeEmpty;
 
         public string Type;
-        public bool CanBeEmpty;
+        public Dictionary<string, string> Enum;
     }
 
     public class SAssociation {
@@ -124,9 +138,5 @@ namespace datamodel.schema.source {
         public string B_Model;
         public Multiplicity B_Card;
         public string B_Role;
-    }
-
-    public class SEnum {
-        public List<string> Values;
     }
 }

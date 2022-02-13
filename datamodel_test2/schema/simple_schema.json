@@ -65,7 +65,11 @@
                 {
                     "Name": "State",
                     "Description": "Possible state of the process at the current instant in time",
-                    "Type": "String"
+                    "Enum": {
+                        "Running": "The process is actively running",
+                        "Paused": "The process is paused, but is expected to start again",
+                        "Terminated": "The process has finished. It will not re-start",
+                    }
                 }
             ]
         },

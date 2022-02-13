@@ -1,13 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace datamodel.schema {
     public class Enum {
 
-        public List<KeyValuePair<int, string>> Values = new List<KeyValuePair<int, string>>();
+        private List<KeyValuePair<string, string>> _values = new List<KeyValuePair<string, string>>();
 
-        internal void Add(int number, string string_value) {
-            Values.Add(new KeyValuePair<int, string>(number, string_value));
+        public IEnumerable<KeyValuePair<string, string>> Values {
+            get {
+                return _values.OrderBy(x => x.Key);
+            }
+        }
+
+        internal void Add(string value, string description) {
+            _values.Add(new KeyValuePair<string, string>(value, description));
         }
     }
 }
