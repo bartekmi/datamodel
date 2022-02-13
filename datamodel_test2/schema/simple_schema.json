@@ -68,7 +68,7 @@
                     "Enum": {
                         "Running": "The process is actively running",
                         "Paused": "The process is paused, but is expected to start again",
-                        "Terminated": "The process has finished. It will not re-start",
+                        "Terminated": "The process has finished. It will not re-start"
                     }
                 }
             ]
@@ -102,6 +102,59 @@
                     "Description": "Optional name of the thread - often used for debugging",
                     "Type": "String",
                     "CanBeEmpty": "True"
+                }
+            ]
+        },
+
+        {
+            "Name": "StackFrame",
+            "Description": "A location on the stack - is location of a function call for all but top frame",
+            "Level1": "run",
+            "Level2": "stack",
+            "Properties": [
+                {
+                    "Name": "Program Counter",
+                    "Type": "Integer"
+                }
+            ]
+        },
+        {
+            "Name": "Parameter",
+            "Description": "Parameters which which the current function was invoked",
+            "Level1": "run",
+            "Level2": "stack",
+            "Properties": [
+                {
+                    "Name": "Type",
+                    "Type": "String"
+                },
+                {
+                    "Name": "Value",
+                    "Type": "String"
+                }
+            ]
+        },
+        {
+            "Name": "CodeLocation",
+            "Description": "Mapping of stack frame to a source-code location",
+            "Level1": "run",
+            "Level2": "stack",
+            "Properties": [
+                {
+                    "Name": "LineNumber",
+                    "Type": "Integer"
+                }
+            ]
+        },
+        {
+            "Name": "SourceFile",
+            "Description": "A reference to a source-code file",
+            "Level1": "run",
+            "Level2": "stack",
+            "Properties": [
+                {
+                    "Name": "Name",
+                    "Type": "String"
                 }
             ]
         },
@@ -146,6 +199,37 @@
             "A_Card": "Many",
             "B_Model": "Process",
             "B_Card": "Aggregation"
+        },
+
+        {
+            "A_Model": "Thread",
+            "A_Card": "Aggregation",
+            "B_Model": "StackFrame",
+            "B_Card": "Many"
+        },
+        {
+            "A_Model": "StackFrame",
+            "A_Card": "Aggregation",
+            "B_Model": "Parameter",
+            "B_Card": "Many"
+        },
+        {
+            "A_Model": "StackFrame",
+            "A_Card": "Aggregation",
+            "B_Model": "CodeLocation",
+            "B_Card": "ZeroOrOne"
+        },
+        {
+            "A_Model": "CodeLocation",
+            "A_Card": "Many",
+            "B_Model": "SourceFile",
+            "B_Card": "One"
+        },
+        {
+            "A_Model": "SourceFile",
+            "A_Card": "Many",
+            "B_Model": "File",
+            "B_Card": "ZeroOrOne"
         },
 
         {
