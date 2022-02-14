@@ -48,6 +48,11 @@ namespace datamodel.schema {
                 Title = source.GetTitle(),
                 Models = source.GetModels().ToList(),
                 Associations = source.GetAssociations().ToList(),
+
+                // Some default values, but these can be changed
+                Level1 = "Level1",
+                Level2 = "Level2",
+                Level3 = "Level3",
             };
 
             _schema._byClassName = _schema.Models.ToDictionary(x => x.FullyQualifiedName);

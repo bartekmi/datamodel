@@ -13,10 +13,7 @@ namespace datamodel.datadict {
 
         public static void Generate(string rootDir, IEnumerable<Model> models) {
             foreach (Model model in models) {
-                if (string.IsNullOrWhiteSpace(model.Level1))
-                    continue;
-
-                string dir = Path.Combine(rootDir, model.Level1);
+                string dir = model.Level1 == null ? rootDir : Path.Combine(rootDir, model.Level1);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
