@@ -310,7 +310,7 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("arrowsize", 1.5)     // I wanted to make this larger but the arrow icons overlap
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.OtherMultiplicity))
-                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.FkMultiplicity))
+                .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.OwnerMultiplicity))
                 .SetAttrGraph("edgetooltip", edge.Association.Description)
                 .SetAttrGraph("edgehref", edge.Association.DocUrl);
 
@@ -318,7 +318,7 @@ namespace datamodel.graphviz {
             if (oppositeFK != null)
                 edge.SetAttrGraph("taillabel", oppositeFK.Replace(" ", "\n"));
 
-            string byFK = association.FkRole;
+            string byFK = association.OwnerRole;
             if (byFK != null)
                 edge.SetAttrGraph("headlabel", byFK.Replace(" ", "\n"));
 

@@ -60,25 +60,25 @@ namespace datamodel.schema {
 
         private void CreateFkColumns() {
             foreach (Association assoc in Associations) {
-                if (!_byClassName.TryGetValue(assoc.FkSide, out Model aModel)) 
-                    Error.Log("Association refers to unknown model: {0}", assoc.FkSide);
+                if (!_byClassName.TryGetValue(assoc.OwnerSide, out Model fkModel)) 
+                    Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
 
-                if (!_byClassName.TryGetValue(assoc.OtherSide, out Model bModel)) 
+                if (!_byClassName.TryGetValue(assoc.OtherSide, out Model otherModel)) 
                     Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
 
-                if (aModel == null || bModel == null)
+                if (fkModel == null || otherModel == null)
                     continue;
 
-                Column fkColumn = new Column(aModel) {
-                    Name = bModel.Name,
+                Column fkColumn = new Column(fkModel) {
+                    Name = assoc.OtherRole,
                     DataType = "ID",
                     CanBeEmpty = assoc.OtherMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {
-                        ReferencedModel = bModel,
+                        ReferencedModel = otherModel,
                     },
                 };
 
-                aModel.AllColumns.Add(fkColumn);
+                fkModel.AllColumns.Add(fkColumn);
                 assoc.FkColumn = fkColumn;
             }
         }
@@ -198,7 +198,7 @@ namespace datamodel.schema {
             foreach (Association association in Associations) {
                 if (_byClassName.TryGetValue(association.OtherSide, out Model otherSideModel))
                     association.OtherSideModel = otherSideModel;
-                if (_byClassName.TryGetValue(association.FkSide, out Model fkSideModel))
+                if (_byClassName.TryGetValue(association.OwnerSide, out Model fkSideModel))
                     association.FkSideModel = fkSideModel;
             }
         }

@@ -53,7 +53,11 @@ namespace datamodel.metadata {
 
         // Derived
         public string FullyQualifiedName {      // Used for both filenames and URL's
-            get { return NameUtils.CompoundToSafe(NameComponents); }
+            get { 
+                if (NameComponents.Length == 0)
+                    return "all-models";
+                return NameUtils.CompoundToSafe(NameComponents); 
+            }
         }
         public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", FullyQualifiedName)); } }
 

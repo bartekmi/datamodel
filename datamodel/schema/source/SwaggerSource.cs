@@ -128,14 +128,14 @@ namespace datamodel.schema.source {
                         reference = reference.Substring(refPrefix.Length);
 
                     _associations.Add(new Association() {
-                        FkSide = model.FullyQualifiedName,
-                        FkMultiplicity = Multiplicity.Aggregation,
-                        FkRole = name,
+                        OwnerSide = model.FullyQualifiedName,
+                        OwnerMultiplicity = Multiplicity.Aggregation,
 
                         OtherSide = reference,
                         OtherMultiplicity = isArray ? 
                             Multiplicity.Many : 
                             (isRequired ? Multiplicity.One : Multiplicity.ZeroOrOne),
+                        OtherRole = name,
 
                         Description = prop.description,
                     });
@@ -150,7 +150,7 @@ namespace datamodel.schema.source {
             string dataType = prop.format == null ? prop.type : prop.format;
             if (isArray)
                 dataType = "[]" + dataType;
-                
+
             Column column = new Column(model) {
                 Name = name,
                 Description = prop.description,

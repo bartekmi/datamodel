@@ -24,7 +24,7 @@
                 },
                 "reference.one": {
                     "$ref": "#/definitions/myref",
-                    "description": "Single mandatory reference"
+                    "description": "Blurg!!!"
                 },
                 "reference.one.mandatory": {
                     "$ref": "#/definitions/myref",

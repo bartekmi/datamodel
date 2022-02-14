@@ -83,9 +83,9 @@ namespace datamodel.schema.source {
 
             foreach (SAssociation sAssoc in _schema.Associations) {
                 Association assoc = new Association() {
-                    FkSide = sAssoc.A_Model,
-                    FkMultiplicity = sAssoc.A_Card,
-                    FkRole = sAssoc.A_Role,
+                    OwnerSide = sAssoc.A_Model,
+                    OwnerMultiplicity = sAssoc.A_Card,
+                    OwnerRole = sAssoc.A_Role,
 
                     OtherSide = sAssoc.B_Model,
                     OtherMultiplicity = sAssoc.B_Card,

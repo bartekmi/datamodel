@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-
-using datamodel.utils;
+using Newtonsoft.Json;
 
 namespace datamodel.schema {
 
@@ -16,9 +12,9 @@ namespace datamodel.schema {
     }
 
     public class Association {
-        public string FkSide { get; set; }
-        public string FkRole {get; set; }
-        public Multiplicity FkMultiplicity { get; set; }
+        public string OwnerSide { get; set; }
+        public string OwnerRole {get; set; }
+        public Multiplicity OwnerMultiplicity { get; set; }
 
         public string OtherSide { get; set; }
         public string OtherRole {get; set; }
@@ -27,14 +23,14 @@ namespace datamodel.schema {
         public string Description { get; set; }
 
         // Hydrated
+        [JsonIgnore]
         public Model OtherSideModel { get; set; }
+        [JsonIgnore]
         public Model FkSideModel { get; set; }
+        [JsonIgnore]
         public Column FkColumn { get; set; } 
 
         // Derived
-        public bool SourceOptional { get { return FkMultiplicity == Multiplicity.ZeroOrOne; } }
-        public bool DestinationOptional { get { return OtherMultiplicity == Multiplicity.ZeroOrOne; } }
-        public bool Recursive { get { return OtherSide == FkSide; } }
         public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         public string PolymorphicName {
@@ -51,7 +47,7 @@ namespace datamodel.schema {
         }
 
         override public string ToString() {
-            return string.Format("FK: {0} to {1} {2}", FkSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
+            return string.Format("{0} to {1} {2}", OwnerSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
         }
     }
 }
