@@ -55,11 +55,16 @@ namespace datamodel {
         private static void GenerateGraphsAndDataDictionary() {
             // Parse "visualizations.yaml" files
             List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
+            // TODO: Note that we've temporarily lost this feature - must decide where to keep this.
             ApplyGraphDefsToSchema(graphDefsFromMetadata);
 
             // Copy static assets to output directory
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
                                         Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
+
+            // Graphviz MUST have access to images at the exact same path as it must ultimately
+            // generate in the svg file. Hence this unsavory solution...
+            DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"), "/assets");
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             GraphGenerator.CreateGraphDefinitions(topLevel);
@@ -73,6 +78,7 @@ namespace datamodel {
             DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
 
+        // TODO: This is currently dead code
         private static void ApplyGraphDefsToSchema(List<GraphDefinition> graphDefs) {
             foreach (GraphDefinition graphDef in graphDefs) {
                 string[] nameComponents = graphDef.NameComponents;

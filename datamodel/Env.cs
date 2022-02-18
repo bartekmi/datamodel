@@ -6,9 +6,6 @@ namespace datamodel {
         // The root directory where the output SVG diagrams and Data Dictionaries should be placed
         public static string OUTPUT_ROOT_DIR;
 
-        // The path to the temporary files directory. This is used for the intermediate Graphviz files.
-        public static string TEMP_DIR;
-
         // The path to this repository. Used for the source when copying assets (images, css) to the final output
         public static string REPO_ROOT;
 
@@ -35,7 +32,6 @@ namespace datamodel {
         #region Windows
         private static void ConfigureWindows() {
             OUTPUT_ROOT_DIR = @"C:\TEMP\datamodel";
-            TEMP_DIR = @"C:\TEMP";
             REPO_ROOT = @"C:\github\datamodel";
             MODEL_DIRS = new string[] { };
             GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";

@@ -29,7 +29,7 @@ namespace datamodel {
         }
 
         private static string ErrorLog() {
-            string dir = Env.TEMP_DIR ?? ".";
+            string dir = Env.OUTPUT_ROOT_DIR ?? ".";
             return System.IO.Path.Combine(dir, "datamodel.log");
         }
 

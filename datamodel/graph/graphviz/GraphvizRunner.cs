@@ -18,21 +18,20 @@ namespace datamodel.graphviz {
             if (File.Exists(output))
                 File.Delete(output);
 
-            Console.WriteLine("About to run...");
-            Console.WriteLine("{0} {1}", path, commandLine);
-
             Process process = Process.Start(path, commandLine);
             process.WaitForExit();
 
             // I used to check just on the exit code, but it looks like there is a bug in GraphViz where it can exit with a bogus
             // error message, yet all seems well. 
             // https://github.com/mdaines/viz.js/issues/134
-            if (!File.Exists(output))
+            if (!File.Exists(output)) {
+                Error.Log("{0} {1}", path, commandLine);
                 throw new Exception("File not created. Exit Code: " + process.ExitCode);
+            }
         }
 
         public static void CreateDotAndRun(Graph graph, string baseName, RenderingStyle style) {
-            string dotPath = Path.Combine(Env.TEMP_DIR, baseName + ".dot");
+            string dotPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".dot");
 
             using (TextWriter writer = new StreamWriter(dotPath))
                 graph.ToDot(writer);

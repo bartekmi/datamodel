@@ -4,8 +4,9 @@ using System.Text;
 
 namespace datamodel.utils {
     public static class UrlUtils {
-        public static string ToImageUrl(string imageFile) {
-            return ToAbsolute("assets/images/" + imageFile);
+        public static string ToImageUrl(string imageFile, bool isAbsoluate) {
+            string path = "assets/images/" + imageFile;
+            return isAbsoluate ? ToAbsolute(path) : path;
         }
 
         public static string ToCssUrl(string cssFile) {

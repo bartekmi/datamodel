@@ -15,7 +15,7 @@ namespace datamodel.graphviz.dot {
         }
 
         public static string MakeImage(string imageName) {
-            string imageUrl = UrlUtils.ToImageUrl(imageName);
+            string imageUrl = UrlUtils.ToImageUrl(imageName, true);
             return string.Format("<IMG SRC=\"{0}\"/>", imageUrl);
         }
 

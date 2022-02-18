@@ -47,7 +47,7 @@ namespace datamodel.datadict.html {
 
 
         public static HtmlRaw MakeImage(string imageName, string url, string cssClass = null, string toolTip = null) {
-            string absSource = UrlUtils.ToImageUrl(imageName);
+            string absSource = UrlUtils.ToImageUrl(imageName, true);
             string classAttr = cssClass == null ? null : string.Format("class='{0}'", cssClass);
             string titleAttr = toolTip == null ? null : string.Format("title='{0}'", Sanitize(toolTip, true));
             string rawHtml = string.Format("<a href='{0}'><img {1} {2} src='{3}'></a>", url, classAttr, titleAttr, absSource);
