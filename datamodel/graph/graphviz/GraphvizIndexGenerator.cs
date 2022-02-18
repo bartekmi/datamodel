@@ -46,6 +46,7 @@ namespace datamodel.graphviz {
             Graph graph = new Graph()
                 .SetAttrGraph("compound", true)
                 .SetAttrGraph("pad", "0.5")
+                .SetAttrGraph("K", "0.02")          // Reduce from default 0.3 to try to make graph tighter
                 .SetAttrGraph("nodesep", "1")
                 .SetAttrGraph("ranksep", "1")
                 .SetAttrGraph("overlap", "false")

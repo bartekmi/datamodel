@@ -147,7 +147,7 @@ namespace datamodel.schema {
                 if (Interfaces.TryGetValue(association.PolymorphicName, out PolymorphicInterface _interface)) {
                     Column fkColumn = _interface.Column;
                     if (fkColumn != null)
-                        association.FkSideModel = fkColumn.Owner;
+                        association.OwnerSideModel = fkColumn.Owner;
                     else
                         Error.Log("WARNING: FK Column null for " + association);
                 }
@@ -172,8 +172,8 @@ namespace datamodel.schema {
 
         private void RehydrateFkAssociationsForModels() {
             _fkAssociationsForModel = Associations
-                .Where(x => x.FkSideModel != null)
-                .GroupBy(x => x.FkSideModel)
+                .Where(x => x.OwnerSideModel != null)
+                .GroupBy(x => x.OwnerSideModel)
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
@@ -204,7 +204,7 @@ namespace datamodel.schema {
                 if (_byClassName.TryGetValue(association.OtherSide, out Model otherSideModel))
                     association.OtherSideModel = otherSideModel;
                 if (_byClassName.TryGetValue(association.OwnerSide, out Model fkSideModel))
-                    association.FkSideModel = fkSideModel;
+                    association.OwnerSideModel = fkSideModel;
             }
         }
         #endregion

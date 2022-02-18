@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
+
+using datamodel.utils;
 
 namespace datamodel.schema {
 
@@ -26,11 +29,25 @@ namespace datamodel.schema {
         [JsonIgnore]
         public Model OtherSideModel { get; set; }
         [JsonIgnore]
-        public Model FkSideModel { get; set; }
+        public Model OwnerSideModel { get; set; }
         [JsonIgnore]
         public Column FkColumn { get; set; } 
 
         // Derived
+        public string InterestingOwnerRole {
+            get {
+                if (IsBoringRoleName(OwnerRole, OwnerSideModel))
+                    return null;
+                return OwnerRole;
+            }
+        }
+        public string InterestingOtherRole {
+            get {
+                if (IsBoringRoleName(OtherRole, OtherSideModel))
+                    return null;
+                return OtherRole;
+            }
+        }
         public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         public string PolymorphicName {
@@ -44,6 +61,35 @@ namespace datamodel.schema {
                 // At this time, there is no use-case for Polymorphic Associations
                 return null;
             }
+        }
+
+
+        // A role name is considered "boring" if it contributes no meaningful information
+        // over and above the type that it lies next to. For example, if the type is
+        // "Application User", then the role "users" can be discarded
+        private bool IsBoringRoleName(string role, Model model) {
+            if (role == null)
+                return true;    // Nothing more boring than no information!
+
+            HashSet<string> modelWords = new HashSet<string>(NameUtils.ToWords(model.Name));
+
+            foreach (string roleWord in NameUtils.ToWords(role)) {
+                if (modelWords.Contains(roleWord) ||
+                    modelWords.Contains(Depluralize(roleWord))) {
+                        // Keep going... boring so far
+                    } else
+                        return false;   // We found a new role word - not boring! 
+            }
+
+            return true;    // All role words found in model words - boring.
+        }
+
+        private string Depluralize(string word) {
+            if (word.EndsWith("ses"))
+                return word[0..^2];
+            if (word.EndsWith("s"))
+                return word[0..^1];
+            return word;
         }
 
         override public string ToString() {

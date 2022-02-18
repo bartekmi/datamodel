@@ -302,7 +302,7 @@ namespace datamodel.graphviz {
                 Source = ModelToNodeId(association.OtherSideModel),
                 Destination = association.IsPolymorphic ?
                     association.PolymorphicName :
-                    ModelToNodeId(association.FkSideModel),
+                    ModelToNodeId(association.OwnerSideModel),
                 Association = association,
             };
 
@@ -314,11 +314,11 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("edgetooltip", edge.Association.Description)
                 .SetAttrGraph("edgehref", edge.Association.DocUrl);
 
-            string oppositeFK = association.OtherRole;
+            string oppositeFK = association.InterestingOtherRole;
             if (oppositeFK != null)
                 edge.SetAttrGraph("taillabel", oppositeFK.Replace(" ", "\n"));
 
-            string byFK = association.OwnerRole;
+            string byFK = association.InterestingOwnerRole;
             if (byFK != null)
                 edge.SetAttrGraph("headlabel", byFK.Replace(" ", "\n"));
 

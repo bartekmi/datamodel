@@ -20,6 +20,22 @@ namespace datamodel.utils {
                 text.Substring(1);
         }
 
+        public static string ToHuman(string nonHuman) {
+            if (nonHuman == null)
+                return null;
+            return nonHuman.Contains(' ') ?
+                SnakeCaseToHuman(nonHuman) :
+                MixedCaseToHuman(nonHuman);
+        }
+
+        public static IEnumerable<string> ToWords(string nonHuman) {
+            if (nonHuman == null)
+                return null;
+
+            return ToHuman(nonHuman).Split(" ")
+                .Select(x => x.ToLower());
+        }
+
         public static string SnakeCaseToHuman(string snake_case) {
             string[] pieces = snake_case.Split('_');
             return string.Join(" ", pieces.Select(x => Capitalize(x)));
