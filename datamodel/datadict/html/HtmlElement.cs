@@ -8,6 +8,8 @@ namespace datamodel.datadict.html {
 
         private string _tag;
         public string Text { get; set; }
+        private bool _doNotEscape;
+
         private List<HtmlBase> _children = new List<HtmlBase>();
         private List<HtmlAttribute> _attributes = new List<HtmlAttribute>();
 
@@ -18,9 +20,10 @@ namespace datamodel.datadict.html {
             }
         }
 
-        public HtmlElement(string tag, string text = null) {
+        public HtmlElement(string tag, string text = null, bool doNotEscape = false) {
             _tag = tag;
             Text = text;
+            _doNotEscape = doNotEscape;
         }
 
         public HtmlElement(string tag, params HtmlBase[] children) {
@@ -48,7 +51,7 @@ namespace datamodel.datadict.html {
 
             // Text Content
             if (Text != null)
-                writer.Write(HtmlUtils.Sanitize(Text, false));
+                writer.Write(_doNotEscape ? Text : HtmlUtils.Sanitize(Text, false));
 
             // Children
             foreach (HtmlBase child in _children)

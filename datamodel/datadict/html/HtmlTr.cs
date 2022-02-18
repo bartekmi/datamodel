@@ -8,7 +8,7 @@ namespace datamodel.datadict.html {
         public HtmlTr() : base("tr") { }
 
         // Create a row with single Td
-        public HtmlTr(string htmlText) : this(new HtmlTd(htmlText)) {
+        public HtmlTr(string htmlText, bool doNotEscape = false) : this(new HtmlTd(htmlText, doNotEscape)) {
             // Do nothing
         }
 

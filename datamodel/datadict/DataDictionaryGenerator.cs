@@ -66,7 +66,7 @@ namespace datamodel.datadict {
 
             string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label),
                 isLink ? HtmlUtils.MakeLink(value, value).ToString() : value);
-            table.Add(new HtmlTr(text));
+            table.Add(new HtmlTr(text, true));
         }
 
         private static void GenerateModelAttributes(HtmlElement body, Model dbModel) {
