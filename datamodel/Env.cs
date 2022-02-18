@@ -40,7 +40,7 @@ namespace datamodel {
             MODEL_DIRS = new string[] { };
             GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";
             HTTP_ROOT = "";
-            GENERATE_TOP_LEVEL_GRAPH = true;
+            GENERATE_TOP_LEVEL_GRAPH = false;
             MIN_MODELS_TO_SHOW_AS_NODE = 1;
         }
         #endregion

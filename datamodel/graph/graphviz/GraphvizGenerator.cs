@@ -17,12 +17,12 @@ namespace datamodel.graphviz {
         #region Top-Level
         public void GenerateGraph(
             GraphDefinition graphDef,
-            IEnumerable<Model> tables,
+            IEnumerable<Model> models,
             IEnumerable<Association> associations,
             IEnumerable<Model> extraModels,
             List<PolymorphicInterface> interfaces) {
 
-            Graph graph = CreateGraph(tables, associations, extraModels, interfaces)
+            Graph graph = CreateGraph(models, associations, extraModels, interfaces)
                 .SetAttrGraph("pad", "0.5")
                 .SetAttrGraph("nodesep", "1")
                 .SetAttrGraph("ranksep", "1")
@@ -158,15 +158,15 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Extra Models - Not part of graph but added as "glue"
-        private Node ExtraModelToNode(IEnumerable<Model> tables, Model table) {
+        private Node ExtraModelToNode(IEnumerable<Model> models, Model model) {
             Node node = new Node() {
-                Name = ModelToNodeId(table),
+                Name = ModelToNodeId(model),
             };
 
             node.SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("height", 1.0)                // Minimum height in inches... Allows for more connections
-                .SetAttrGraph("label", CreateLabel(tables, table, false));
+                .SetAttrGraph("label", CreateLabel(models, model, false));
 
             return node;
         }
@@ -174,7 +174,7 @@ namespace datamodel.graphviz {
 
         #region Common Node Creation - for both Models and Extra Models
 
-        private HtmlEntity CreateLabel(IEnumerable<Model> tables, Model dbModel, bool includeColumns) {
+        private HtmlEntity CreateLabel(IEnumerable<Model> models, Model dbModel, bool includeColumns) {
 
             HtmlTable table = new HtmlTable()
                 .SetAttrHtml("border", 0)
@@ -208,7 +208,7 @@ namespace datamodel.graphviz {
 
                     // Foreign Key Column
                     if (column.IsFk) {
-                        if (tables.Contains(referencedModel))
+                        if (models.Contains(referencedModel))
                             continue;           // Do not include FK column if in this graph... It will be shown via an association line
 
                         columnNameTd.Text = columnName;
@@ -225,7 +225,7 @@ namespace datamodel.graphviz {
                                .SetAttrHtml("href", graphDef.SvgUrl));
 
                             row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
-                               .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked table: '{0}'", referencedModel.HumanName))
+                               .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked model: '{0}'", referencedModel.HumanName))
                                .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
 
                             row.SetAttrAllChildren("bgcolor", referencedModel.ColorString);
@@ -338,8 +338,8 @@ namespace datamodel.graphviz {
         #endregion
 
         #region Misc
-        private static string ModelToNodeId(Model table) {
-            return table.FullyQualifiedName;
+        private static string ModelToNodeId(Model model) {
+            return model.FullyQualifiedName;
         }
         #endregion
     }
