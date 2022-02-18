@@ -46,17 +46,17 @@ namespace datamodel.datadict.html {
         }
 
 
-        public static HtmlRaw MakeImage(string imageName, string url, string imageClass = null, string toolTip = null) {
+        public static HtmlRaw MakeImage(string imageName, string url, string cssClass = null, string toolTip = null) {
             string absSource = UrlUtils.ToImageUrl(imageName);
-            string classAttr = imageClass == null ? null : string.Format("class='{0}'", imageClass);
-            string titleAttr = toolTip == null ? null : string.Format("title='{0}'", toolTip);
+            string classAttr = cssClass == null ? null : string.Format("class='{0}'", cssClass);
+            string titleAttr = toolTip == null ? null : string.Format("title='{0}'", Sanitize(toolTip, true));
             string rawHtml = string.Format("<a href='{0}'><img {1} {2} src='{3}'></a>", url, classAttr, titleAttr, absSource);
             return new HtmlRaw(rawHtml);
         }
 
         public static HtmlRaw MakeLink(string url, string text, string cssClass = null, string toolTip = null) {
             string classAttr = cssClass == null ? null : string.Format("class='{0}'", cssClass);
-            string titleAttr = toolTip == null ? null : string.Format("title='{0}'", toolTip);
+            string titleAttr = toolTip == null ? null : string.Format("title='{0}'", Sanitize(toolTip, true));
             string rawHtml = string.Format("<a href='{0}' {1} {2}>{3}</a>", url, classAttr, titleAttr, text);
             return new HtmlRaw(rawHtml);
         }
@@ -72,11 +72,18 @@ namespace datamodel.datadict.html {
             return html;
         }
 
+        // https://stackoverflow.com/questions/7381974/which-characters-need-to-be-escaped-in-html
         private static Dictionary<char, string> _charToEscape = new Dictionary<char, string>() {
-            { '\n', "<br>" },
+            { '"', "&quot;" },
+            { '&', "&amp;" },
+            { '<', "&lt;" },
+            { '>', "&gt;" },
+
+            { '\'', "&#39;" },
+            { '|', "&#124;" },
         };
 
-        public static string Sanitize(string text) {
+        public static string Sanitize(string text, bool inToolTip) {
             if (text == null)
                 return null;
 
@@ -85,6 +92,9 @@ namespace datamodel.datadict.html {
             foreach (char c in text) {
                 if (_charToEscape.TryGetValue(c, out string replacement))
                     builder.Append(replacement);
+                else if (c == '\n') 
+                    // https://www.askingbox.com/question/html-line-break-in-the-title-attribute-or-tooltip
+                    builder.Append(inToolTip ? "&#10;" : "<br>");
                 else    
                     builder.Append(c);
             }

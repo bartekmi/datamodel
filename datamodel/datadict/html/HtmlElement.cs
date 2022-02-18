@@ -48,7 +48,7 @@ namespace datamodel.datadict.html {
 
             // Text Content
             if (Text != null)
-                writer.Write(HtmlUtils.Sanitize(Text));
+                writer.Write(HtmlUtils.Sanitize(Text, false));
 
             // Children
             foreach (HtmlBase child in _children)

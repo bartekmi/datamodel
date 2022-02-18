@@ -68,7 +68,7 @@ namespace datamodel.datadict {
             string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.CumulativeModelCount);
 
             if (itemHier.HasDiagram)
-                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, itemHier.ToolTip));
+                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, itemHier.ToolTip));
             else
                 itemHtml.Text = text;
 
@@ -100,7 +100,7 @@ namespace datamodel.datadict {
             HtmlElement div = new HtmlElement("div");
             HtmlElement span = div.Add(new HtmlElement("span"));
 
-            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(model), model.HumanName, model.Description));
+            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(model), model.HumanName, null, model.Description));
             span.Add(HtmlUtils.MakeIconForDocs(model));
             span.Add(HtmlUtils.MakeIconsForDiagrams(model, "text-icon"));
 

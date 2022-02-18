@@ -20,13 +20,16 @@ namespace datamodel.graphviz.dot {
                 writer.Write(string.Format("{0}=\"{1}\"", Name, SanitizeValue(Value)));
         }
 
+        // https://mateam.net/html-escape-characters/
         private static Dictionary<char, string> _charToEscape = new Dictionary<char, string>() {
-            { '\n', "&#13;" },
             { '"', "\'" },
             { '&', "&amp;" },
             { '<', "&lt;" },
             { '>', "&gt;" },
+            
+            { '\n', "&#13;" },
             { '{', "&#123;" },
+            { '|', "&#124;" },
             { '}', "&#125;" },
         };
 
