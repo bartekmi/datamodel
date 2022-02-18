@@ -148,6 +148,9 @@ namespace datamodel.schema.source {
         #region Column Creation
         private Column ExtractColumn(Model model, bool isRequired, string name, bool isArray, SwgProperty prop) {
             string dataType = prop.format == null ? prop.type : prop.format;
+            if (prop.Enum != null)
+                dataType = "Enum";
+                
             if (isArray)
                 dataType = "[]" + dataType;
 
@@ -158,9 +161,6 @@ namespace datamodel.schema.source {
                 CanBeEmpty = !isRequired,
                 Enum = ExtractEnum(prop.Enum),
             };
-
-            if (column.DataType == null && column.Enum != null)
-                column.DataType = "Enum";
 
             return column;
         }
