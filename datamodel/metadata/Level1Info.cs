@@ -5,7 +5,14 @@ namespace datamodel.metadata {
     // Here are some appropriate colors you can choose from...
     // skyblue, #c0c0c0, orchid, lightsalmon, #00ff00, lemonchiffon, #b8860b, #98fb98. greenyellow, 
     // #ffa500, deepskyblue, cyan, palevioletred, darkgoldenrod, #8fbc8f, honeydew, #ffff00, 
+
     public static class Level1Info {
+
+        private static string[] COLORS = new string[] {
+            "skyblue", "#c0c0c0", "orchid", "lightsalmon", "#00ff00", "lemonchiffon", "#b8860b", "#98fb98", "greenyellow", 
+            "#ffa500", "deepskyblue", "cyan", "palevioletred", "darkgoldenrod", "#8fbc8f", "honeydew", "#ffff00", 
+        };
+
         private static Dictionary<string, string> _level1_ToColor = new Dictionary<string, string>();
 
         public static void AssignColor(string level1, string color) {
@@ -13,10 +20,15 @@ namespace datamodel.metadata {
         }
 
         public static string GetHtmlColorForLevel1(string level1) {
+            if (string.IsNullOrEmpty(level1))
+                return "lightgrey";     // The default color
+
             if (level1 != null && _level1_ToColor.TryGetValue(level1, out string color))
                 return color;
 
-            return "lightgrey";     // The default color
+            // This is somewhat lame because colors will collide, but also very low hanging fruit
+            // Next step would be to initialize this class with all lavel1 strings and avoid collisions
+            return COLORS[Math.Abs(level1.GetHashCode()) % COLORS.Length];
         }
     }
 }
