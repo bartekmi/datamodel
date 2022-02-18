@@ -37,12 +37,6 @@ namespace datamodel.datadict.html {
             return child;
         }
 
-        // public HtmlRaw Add(string rawHtml) {
-        //     HtmlRaw raw = new HtmlRaw(rawHtml);
-        //     _children.Add(raw);
-        //     return raw;
-        // }
-
         public override void ToHtml(TextWriter writer, int indent) {
             bool multiline = _children.Count > 0;
 
@@ -54,7 +48,7 @@ namespace datamodel.datadict.html {
 
             // Text Content
             if (Text != null)
-                writer.Write(Text);
+                writer.Write(HtmlUtils.Sanitize(Text));
 
             // Children
             foreach (HtmlBase child in _children)

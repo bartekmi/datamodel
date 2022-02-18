@@ -27,26 +27,31 @@ namespace datamodel {
             Env.Configure();
             Error.Clear();
 
+            var options = new SwaggerSourceOptions() {
+                BoringNameComponents = new string[] {
+                    "io", "k8s", "v1", "api"
+                },
+            };
+
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
-            // SwaggerSource source = SwaggerSource.FromUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
-            SwaggerSource source = SwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json",
-                new SwaggerSourceOptions() {
-                    BoringNameComponents = new string[] {
-                        "io", "k8s", "v1", "api"
-                    }
-                });
+            SwaggerSource source = SwaggerSource.FromUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json", options);
+            // SwaggerSource source = SwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
 
             Schema schema = Schema.CreateSchema(source);
-            schema.Level1 = "Component";
-            schema.Level2 = "Sub-component";
-            schema.Level3 = "Folder";
+            schema.Level1 = "Level 1";
+            schema.Level2 = "Level 2";
+            schema.Level3 = "Level 3";
+
+            schema.BoringProperties = new string[] {
+                "apiVersion", "kind"
+            };
 
             Level1Info.AssignColor("files", "skyblue");
             Level1Info.AssignColor("run", "lightsalmon");
 
             GenerateGraphsAndDataDictionary();
         }
-        
+
         private static void GenerateGraphsAndDataDictionary() {
             // Parse "visualizations.yaml" files
             List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();

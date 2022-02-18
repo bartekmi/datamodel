@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Text;
 
 using datamodel.utils;
 using datamodel.schema;
@@ -10,7 +10,7 @@ using datamodel.metadata;
 namespace datamodel.datadict.html {
     public static class HtmlUtils {
 
-        public const string LINE_BREAK = "&#013;";
+        public const string LINE_BREAK = "\n";
 
         public static string MakeBold(string text) {
             return string.Format("<b>{0}</b>", text);
@@ -70,6 +70,26 @@ namespace datamodel.datadict.html {
 
             body = html.Add(new HtmlElement("body"));
             return html;
+        }
+
+        private static Dictionary<char, string> _charToEscape = new Dictionary<char, string>() {
+            { '\n', "<br>" },
+        };
+
+        public static string Sanitize(string text) {
+            if (text == null)
+                return null;
+
+            StringBuilder builder = new StringBuilder();
+
+            foreach (char c in text) {
+                if (_charToEscape.TryGetValue(c, out string replacement))
+                    builder.Append(replacement);
+                else    
+                    builder.Append(c);
+            }
+
+            return builder.ToString();
         }
     }
 }

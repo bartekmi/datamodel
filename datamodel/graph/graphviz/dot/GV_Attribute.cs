@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace datamodel.graphviz.dot {
     public class GV_Attribute {
@@ -19,10 +20,30 @@ namespace datamodel.graphviz.dot {
                 writer.Write(string.Format("{0}=\"{1}\"", Name, SanitizeValue(Value)));
         }
 
+        private static Dictionary<char, string> _charToEscape = new Dictionary<char, string>() {
+            { '\n', "&#13;" },
+            { '"', "\'" },
+            { '&', "&amp;" },
+            { '<', "&lt;" },
+            { '>', "&gt;" },
+            { '{', "&#123;" },
+            { '}', "&#125;" },
+        };
+
         private string SanitizeValue(object value) {
             if (value == null)
                 return null;
-            return value.ToString().Replace('"', '\'');
+
+            StringBuilder builder = new StringBuilder();
+
+            foreach (char c in value.ToString()) {
+                if (_charToEscape.TryGetValue(c, out string replacement))
+                    builder.Append(replacement);
+                else    
+                    builder.Append(c);
+            }
+
+            return builder.ToString();
         }
     }
 }

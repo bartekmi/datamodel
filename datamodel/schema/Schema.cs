@@ -14,7 +14,7 @@ namespace datamodel.schema {
         public string Level1 { get; set; }
         public string Level2 { get; set; }
         public string Level3 { get; set; }
-        public string[] BoringColumns { get; set; }
+        public string[] BoringProperties { get; set; }
 
         public List<Model> Models { get; private set; }
         public List<Association> Associations { get; private set; }
@@ -212,10 +212,10 @@ namespace datamodel.schema {
         #region Utility Methods
 
         public bool IsInteresting(Column column) {
-            if (BoringColumns == null)
+            if (BoringProperties == null)
                 return true;
 
-            return BoringColumns.Contains(column.Name) ? false : true;
+            return BoringProperties.Contains(column.Name) ? false : true;
         }
 
         public Model FindByClassName(string className) {

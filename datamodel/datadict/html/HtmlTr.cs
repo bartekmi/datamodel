@@ -17,8 +17,8 @@ namespace datamodel.datadict.html {
                 Add(td);
         }
 
-        public HtmlTr(params HtmlTh[] tds) : this() {
-            foreach (HtmlTh td in tds)
+        public HtmlTr(params HtmlTh[] ths) : this() {
+            foreach (HtmlTh td in ths)
                 Add(td);
         }
 

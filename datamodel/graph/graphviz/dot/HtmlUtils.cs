@@ -6,7 +6,7 @@ using System.IO;
 namespace datamodel.graphviz.dot {
     public static class HtmlUtils {
 
-        public const string LINE_BREAK = "&#013;";
+        public const string LINE_BREAK = "\n";
         public const string BULLET = "&bull; ";
         public const string ASTERISK = "*";
 
