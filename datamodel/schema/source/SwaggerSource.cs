@@ -94,7 +94,7 @@ namespace datamodel.schema.source {
             foreach (var item in properties) {
                 string name = item.Key;
                 SwgProperty prop = item.Value;
-                bool isRequired = required == null || required.Contains(name);
+                bool isRequired = required != null && required.Contains(name);
 
                 // If type is "array", the actual data type is specified in a nested "items" prop
                 bool isArray = prop.type == "array";
