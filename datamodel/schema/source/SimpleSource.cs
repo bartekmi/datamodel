@@ -16,7 +16,7 @@ namespace datamodel.schema.source {
             return _schema.Title;
         }
 
-        public override IEnumerable<Model> GetModels() {
+        protected override IEnumerable<Model> GetModels() {
             List<Model> models = new List<Model>();
             if (_schema.Models == null)
                 return models;

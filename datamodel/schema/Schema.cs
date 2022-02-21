@@ -46,7 +46,7 @@ namespace datamodel.schema {
         public static Schema CreateSchema(SchemaSource source) {
             _schema = new Schema() {
                 Title = source.GetTitle(),
-                Models = source.GetModels().ToList(),
+                Models = source.GetFilteredModels().ToList(),
                 Associations = source.GetAssociations().ToList(),
 
                 // Some default values, but these can be changed
@@ -75,7 +75,8 @@ namespace datamodel.schema {
                     continue;
 
                 Column fkColumn = new Column(fkModel) {
-                    Name = assoc.OtherRole,
+                    Name = assoc.OtherRole ?? assoc.OtherSide,
+                    Description = assoc.Description,
                     DataType = "ID",
                     CanBeEmpty = assoc.OtherMultiplicity == Multiplicity.ZeroOrOne,
                     FkInfo = new FkInfo() {

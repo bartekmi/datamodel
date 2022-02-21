@@ -7,6 +7,11 @@ using datamodel.utils;
 using datamodel.metadata;
 
 namespace datamodel.schema {
+    public class Label {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
     public class Model : IDbElement {
         // The fully-qualified Ruby Class-Name of the super-class of the Model
         public string SuperClassName { get; set; }
@@ -18,7 +23,11 @@ namespace datamodel.schema {
         public string Name { get; set; }
 
         // This (possibly longer) name must be guaranteed to be globally unique
-        public string FullyQualifiedName {get; set;}
+        public string FullyQualifiedName { get; set; }
+
+        // Some schemas - e.g. Swagger - have a version attached to each Model
+        public string Version { get; set; }
+        public string FullyQualifiedNameLessVersion { get; set; }
 
         // Three level of hierarcy... Eventually, we'd like to make depth arbitrary
         public string Level1 { get; set; }
@@ -30,6 +39,9 @@ namespace datamodel.schema {
 
         // Is this model Deprecated - as per Yaml annotation file
         public bool Deprecated { get; set; }
+
+        // Arbitrary user-defined labels
+        public List<Label> Labels = new List<Label>();
 
         // Associations
         public List<Column> AllColumns { get; internal set; }
@@ -75,6 +87,13 @@ namespace datamodel.schema {
         }
 
         #endregion
+
+        public void AddLabel(string name, string value) {
+            Labels.Add(new Label() {
+                Name = name,
+                Value = value,
+            });
+        }
 
         public Column FindColumn(string dbColumnName) {
             return AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());

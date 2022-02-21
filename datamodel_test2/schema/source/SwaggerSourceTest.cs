@@ -17,10 +17,11 @@ namespace datamodel.schema.source {
 
         [Fact]
         public void Read() {
-            SwaggerSource source = SwaggerSource.FromFile("../../../schema/swagger_schema.json",
+            string swgJson = File.ReadAllText("../../../schema/swagger_schema.json");
+            SwaggerSource source = new SwaggerSource(swgJson,
                 new SwaggerSourceOptions() {
                     BoringNameComponents = new string[] {
-                        "io", "k8s", "v1", "api"
+                        "io", "k8s", "api"
                     }
                 });
 
@@ -28,7 +29,7 @@ namespace datamodel.schema.source {
 
             var output = new ModelsAndReferences() {
                 Title = source.GetTitle(),
-                Models = source.GetModels(),
+                Models = source.GetFilteredModels(),
                 Associations = source.GetAssociations(),
             };
 
@@ -37,7 +38,7 @@ namespace datamodel.schema.source {
             _output.WriteLine(json);
 
             // Uncomment this line to see the results of the output above
-            Assert.False(true, "Fail on purpose");
+            // Assert.False(true, "Fail on purpose");
         }
     }
 

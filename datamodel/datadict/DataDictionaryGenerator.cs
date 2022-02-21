@@ -5,8 +5,6 @@ using System.Linq;
 
 using datamodel.schema;
 using datamodel.datadict.html;
-using datamodel.utils;
-using datamodel.toplevel;
 
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
@@ -52,8 +50,10 @@ namespace datamodel.datadict {
             AddLabelAndData(table, schema.Level3, model.Level3);
 
             AddLabelAndData(table, "Name", model.Name);
-            if (model.Superclass != null)
-                AddLabelAndData(table, "Super-Class", model.SuperClassName);
+            AddLabelAndData(table, "Super-Class", model.SuperClassName);
+
+            foreach (Label label in model.Labels)
+                AddLabelAndData(table, label.Name, label.Value);
 
 
             if (!string.IsNullOrEmpty(model.Description))
@@ -97,7 +97,7 @@ namespace datamodel.datadict {
         private static void GenerateModelOutgoingAssociations(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(new HtmlTh("Outgoing Foreign Key Links / Associations").Class("heading2")));
+            table.AddTr(new HtmlTr(new HtmlTh("Outgoing Associations").Class("heading2")));
 
             foreach (Column column in dbModel.FkColumns)
                 AddFkColumnInfo(table, column, column.FkInfo.ReferencedModel, x => x.HumanName);
@@ -106,7 +106,7 @@ namespace datamodel.datadict {
         private static void GenerateModelIncomingAssociations(HtmlElement body, Model dbModel) {
             HtmlTable table = body.Add(new HtmlTable());
 
-            table.AddTr(new HtmlTr(new HtmlTh("Incoming Foreign Key Links / Associations").Class("heading2")));
+            table.AddTr(new HtmlTr(new HtmlTh("Incoming Associations").Class("heading2")));
 
             foreach (Column column in Schema.Singleton.IncomingFkColumns(dbModel))
                 AddFkColumnInfo(table, column, column.Owner, x => string.Format("{0}.{1}", x.Owner.HumanName, x.HumanName));
@@ -118,7 +118,7 @@ namespace datamodel.datadict {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
                 // Column Header
-                table.AddTr(new HtmlTr(
+                HtmlTr tr = new HtmlTr(
                     new HtmlTd(
                         new HtmlElement("span", nameFunc(column)).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
@@ -127,7 +127,9 @@ namespace datamodel.datadict {
                         docIcon,
                         DeprecatedSpan(column)
                     )
-                ).Attr("id", column.Name));        // Id for anchor
+                ).Attr("id", column.Name);        // Id for anchor
+
+                table.AddTr(tr);
 
                 // Column Description
                 AddDescriptionRow(table, column);
@@ -139,9 +141,10 @@ namespace datamodel.datadict {
                 .Add(new HtmlTr())
                 .Add(new HtmlTd())
                 .Class("text");
-            foreach (string paragraphText in column.DescriptionParagraphs)
+
+             foreach (string paragraphText in column.DescriptionParagraphs)
                 descriptionTd.Add(new HtmlP(paragraphText));
-        }
+         }
 
         private static void AddEnumValuesRow(HtmlTable table, Column column) {
             if (column.Enum != null) {

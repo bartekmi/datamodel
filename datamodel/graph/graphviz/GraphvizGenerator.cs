@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -281,6 +280,12 @@ namespace datamodel.graphviz {
                 builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
 
             builder.AppendLine("Name: " + model.Name + HtmlUtils.LINE_BREAK);
+
+            foreach (Label label in model.Labels) {
+                string line = string.Format("{0}: {1}", label.Name, label.Value);
+                builder.AppendLine(line);
+            }
+
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);

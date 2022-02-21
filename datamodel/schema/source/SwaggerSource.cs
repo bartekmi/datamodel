@@ -22,22 +22,13 @@ namespace datamodel.schema.source {
         private List<Model> _models = new List<Model>();
         private List<Association> _associations = new List<Association>();
 
-        public static SwaggerSource FromUrl(string url, SwaggerSourceOptions options = null) {
-            using (WebClient client = new WebClient()) {
-                string json = client.DownloadString(url);
-                return FromJson(json, options);
-            }
+        // Helper to download json from a URL
+        public static string FromUrl(string url) {
+            using (WebClient client = new WebClient()) 
+                return client.DownloadString(url);
         }
 
-        public static SwaggerSource FromFile(string filename, SwaggerSourceOptions options = null) {
-            return FromJson(File.ReadAllText(filename), options);
-        }
-
-        public static SwaggerSource FromJson(string json, SwaggerSourceOptions options = null) {
-            return new SwaggerSource(json, options);
-        }
-
-        private SwaggerSource(string json, SwaggerSourceOptions options) {
+        public SwaggerSource(string json, SwaggerSourceOptions options) {
             // https://stackoverflow.com/questions/22299390/can-not-deserialize-json-containing-ref-keys
             JsonSerializerSettings settings = new JsonSerializerSettings() {
                 MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
@@ -53,7 +44,7 @@ namespace datamodel.schema.source {
             return _schema.info?.title;
         }
 
-        public override IEnumerable<Model> GetModels() {
+        protected override IEnumerable<Model> GetModels() {
             return _models;
         }
 
@@ -71,29 +62,28 @@ namespace datamodel.schema.source {
         }
 
         private Model ParseDefinition(string qualifiedName, SwgDefinition def) {
-            ExtractLevelsAndName(qualifiedName, out string[] levels, out string name);
+            Model model = new Model();
+            PopulateModel(model, qualifiedName, def);
 
-            Model model = new Model() {
-                Name = name,
-                FullyQualifiedName = qualifiedName,
-                Description = def.description,
-
-                Level1 = levels.Length > 0 ? levels[0] : null,
-                Level2 = levels.Length > 1 ? levels[1] : null,
-                Level3 = levels.Length > 2 ? string.Join(".", levels.Skip(2)) : null,
-            };
             model.AllColumns = ParseProperties(model, def.required, def.properties);
 
             return model;
         }
 
-        private void ExtractLevelsAndName(string qualifiedName, out string[] levels, out string name) {
+        protected virtual void PopulateModel(Model model, string qualifiedName, SwgDefinition def) {
             IEnumerable<string> pieces = qualifiedName.Split(".");
             if (_options?.BoringNameComponents != null)
                 pieces = pieces.Where(x => !_options.BoringNameComponents.Contains(x));
-            
-            levels = pieces.Take(pieces.Count() - 1).ToArray();
-            name = pieces.Last();
+
+            string[] levels = pieces.Take(pieces.Count() - 1).ToArray();
+
+            model.Level1 = levels.Length > 0 ? levels[0] : null;
+            model.Level2 = levels.Length > 1 ? levels[1] : null;
+            model.Level3 = levels.Length > 2 ? string.Join(".", levels.Skip(2)) : null;
+
+            model.Name = pieces.Last();
+            model.FullyQualifiedName = qualifiedName;
+            model.Description = def.description;
         }
 
         private List<Column> ParseProperties(Model model, IEnumerable<string> required, Dictionary<string, SwgProperty> properties) {
@@ -124,7 +114,7 @@ namespace datamodel.schema.source {
                     if (!reference.StartsWith(refPrefix)) {
                         Error.Log("Ref {0}.{1}: {2} does not start with {3}",
                             model.FullyQualifiedName, name, reference, refPrefix);
-                    } else 
+                    } else
                         reference = reference.Substring(refPrefix.Length);
 
                     _associations.Add(new Association() {
@@ -132,8 +122,8 @@ namespace datamodel.schema.source {
                         OwnerMultiplicity = Multiplicity.Aggregation,
 
                         OtherSide = reference,
-                        OtherMultiplicity = isArray ? 
-                            Multiplicity.Many : 
+                        OtherMultiplicity = isArray ?
+                            Multiplicity.Many :
                             (isRequired ? Multiplicity.One : Multiplicity.ZeroOrOne),
                         OtherRole = name,
 
@@ -150,7 +140,7 @@ namespace datamodel.schema.source {
             string dataType = prop.format == null ? prop.type : prop.format;
             if (prop.Enum != null)
                 dataType = "Enum";
-                
+
             if (isArray)
                 dataType = "[]" + dataType;
 
