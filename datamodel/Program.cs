@@ -29,14 +29,14 @@ namespace datamodel {
 
             var options = new SwaggerSourceOptions() {
                 BoringNameComponents = new string[] {
-                    "io", "k8s", "api"
+                    "io", "k8s", "api", "pkg", "v1", "v1beta1", "v1beta2", "v2", "v2beta1", "v2beta2"
                 },
             };
 
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
             //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
 
-            string json = SwaggerSource.FromUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
+            string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
             SwaggerSource source = new K8sSwaggerSource(json, options);
 
             Schema schema = Schema.CreateSchema(source);

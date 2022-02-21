@@ -53,13 +53,13 @@ namespace datamodel.toplevel {
 
                     case 1: return Name == null ? 
                         string.Format("Orphans (No {0})", schema.Level1) : 
-                        string.Format("{0} {1}", Name, schema.Level1);
+                        Name;
 
                     case 2: return Name == null ? 
                         string.Format("{0} (No {1})", Parent.Name, schema.Level2) : 
-                        string.Format("{0} {1}", Name, schema.Level2);
+                        Name;
 
-                    case 3: return string.Format("{0} {1}", Name, schema.Level3);    // If this had no name, it wouldn't exist
+                    case 3: return Name;    // If this had no name, it wouldn't exist
 
                     default:
                         throw new Exception("Unexpected Level: " + Level);

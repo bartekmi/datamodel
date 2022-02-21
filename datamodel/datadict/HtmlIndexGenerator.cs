@@ -49,9 +49,7 @@ namespace datamodel.datadict {
         private static HtmlElement GenerateHierarchy(HierarchyItem hierarchyItem) {
             Schema schema = Schema.Singleton;
             HtmlElement hierarchyHtml = new HtmlElement("div").Class("index-subpanel");
-            string text = string.Format("By {0}, then {1}, then {2}",
-                schema.Level1, schema.Level2, schema.Level3);
-            hierarchyHtml.Add(new HtmlElement("h2", text));
+            hierarchyHtml.Add(new HtmlElement("h2", "Hierarchical Index"));
             AddHierarchyToParentRecursively(hierarchyHtml, hierarchyItem);
             return hierarchyHtml;
         }

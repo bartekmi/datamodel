@@ -20,12 +20,11 @@ namespace datamodel.schema {
         public List<Association> Associations { get; private set; }
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
 
-        private Dictionary<string, Model> _byClassName;
+        private Dictionary<string, Model> _byQualifiedName;
         private Dictionary<Model, List<Column>> _incomingFkColumns;
         private Dictionary<Model, List<Association>> _fkAssociationsForModel;
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
-        private HashSet<string> _unqualifiedClassNames;
 
         private Schema() {
             Interfaces = new Dictionary<string, PolymorphicInterface>();
@@ -55,20 +54,21 @@ namespace datamodel.schema {
                 Level3 = "Level3",
             };
 
-            _schema._byClassName = _schema.Models.ToDictionary(x => x.FullyQualifiedName);
+            _schema._byQualifiedName = _schema.Models.ToDictionary(x => x.QualifiedName);
             _schema.CreateFkColumns();
 
             _schema.Rehydrate();
+            source.PostProcessSchema();
 
             return _schema;
         }
 
         private void CreateFkColumns() {
             foreach (Association assoc in Associations) {
-                if (!_byClassName.TryGetValue(assoc.OwnerSide, out Model fkModel)) 
+                if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model fkModel)) 
                     Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
 
-                if (!_byClassName.TryGetValue(assoc.OtherSide, out Model otherModel)) 
+                if (!_byQualifiedName.TryGetValue(assoc.OtherSide, out Model otherModel)) 
                     Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
 
                 if (fkModel == null || otherModel == null)
@@ -189,7 +189,7 @@ namespace datamodel.schema {
         private void RehydrateSuperClasses() {
             foreach (Model table in Models) {
                 if (table.SuperClassName != null)
-                    if (_byClassName.TryGetValue(table.SuperClassName, out Model parent)) {
+                    if (_byQualifiedName.TryGetValue(table.SuperClassName, out Model parent)) {
                         table.Superclass = parent;
                         foreach (Column column in parent.AllColumns) {
                             Column duplicate = table.FindColumn(column.Name);
@@ -202,9 +202,9 @@ namespace datamodel.schema {
 
         private void RehydrateModelsOnAssociations() {
             foreach (Association association in Associations) {
-                if (_byClassName.TryGetValue(association.OtherSide, out Model otherSideModel))
+                if (_byQualifiedName.TryGetValue(association.OtherSide, out Model otherSideModel))
                     association.OtherSideModel = otherSideModel;
-                if (_byClassName.TryGetValue(association.OwnerSide, out Model fkSideModel))
+                if (_byQualifiedName.TryGetValue(association.OwnerSide, out Model fkSideModel))
                     association.OwnerSideModel = fkSideModel;
             }
         }
@@ -219,8 +219,8 @@ namespace datamodel.schema {
             return BoringProperties.Contains(column.Name) ? false : true;
         }
 
-        public Model FindByClassName(string className) {
-            if (_byClassName.TryGetValue(className, out Model table))
+        public Model FindByQualifiedName(string qualifiedName) {
+            if (_byQualifiedName.TryGetValue(qualifiedName, out Model table))
                 return table;
             return null;
         }

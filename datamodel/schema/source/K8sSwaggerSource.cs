@@ -19,7 +19,7 @@ namespace datamodel.schema.source {
                 if (version.ToLower().StartsWith("v")) {
                     model.Version = version;
                     var piecesLessVersion = pieces.Where(x => x != version);
-                    model.FullyQualifiedNameLessVersion = string.Join(".", piecesLessVersion);
+                    model.QualifiedNameLessVersion = string.Join(".", piecesLessVersion);
                 }
             }
         }
@@ -28,12 +28,16 @@ namespace datamodel.schema.source {
             List<Model> filtered = new List<Model>();
 
             // Only take the latest of multiple versioned models 
-            foreach (var group in models.GroupBy(x => x.FullyQualifiedNameLessVersion)) {
+            foreach (var group in models.GroupBy(x => x.QualifiedNameLessVersion)) {
                 Model latest = group.OrderBy(x => x.Version, new VersionComparer()).Last();
                 filtered.Add(latest);
             }
 
             return filtered;
+        }
+
+        public override void PostProcessSchema() {
+            K8sToc.AssignCoreLevel2Groups();
         }
 
         // Format is expected to be one of:

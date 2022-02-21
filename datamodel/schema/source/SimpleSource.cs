@@ -24,7 +24,7 @@ namespace datamodel.schema.source {
             foreach (SModel sModel in _schema.Models) {
                 Model model = new Model() {
                     Name = sModel.Name,
-                    FullyQualifiedName = sModel.Name,
+                    QualifiedName = sModel.Name,
                     Description = sModel.Description,
                     IsAbstract = sModel.IsAbstract,
                     SuperClassName = sModel.SuperClass,

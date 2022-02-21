@@ -23,11 +23,11 @@ namespace datamodel.schema {
         public string Name { get; set; }
 
         // This (possibly longer) name must be guaranteed to be globally unique
-        public string FullyQualifiedName { get; set; }
+        public string QualifiedName { get; set; }
 
         // Some schemas - e.g. Swagger - have a version attached to each Model
         public string Version { get; set; }
-        public string FullyQualifiedNameLessVersion { get; set; }
+        public string QualifiedNameLessVersion { get; set; }
 
         // Three level of hierarcy... Eventually, we'd like to make depth arbitrary
         public string Level1 { get; set; }
@@ -58,7 +58,7 @@ namespace datamodel.schema {
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         [JsonIgnore]
         public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
-        public string SanitizedClassName { get { return FileUtils.SanitizeFilename(FullyQualifiedName); } }
+        public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
         public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
@@ -80,12 +80,6 @@ namespace datamodel.schema {
             }
         }
 
-
-
-        public static string ExtractUnqualifiedClassName(string qualifiedClassName) {
-            return qualifiedClassName.Split("::").Last();
-        }
-
         #endregion
 
         public void AddLabel(string name, string value) {
@@ -98,6 +92,23 @@ namespace datamodel.schema {
         public Column FindColumn(string dbColumnName) {
             return AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
         }
+
+        public IEnumerable<Model> SelfAndDescendents() {
+            HashSet<Model> models = new HashSet<Model>();
+            SelfAndAllDescendentsRecursive(models, this);
+            return models;
+        }
+
+        private void SelfAndAllDescendentsRecursive(HashSet<Model> models, Model model) {
+            if (models.Contains(model))
+                return;
+
+            models.Add(model);
+
+            foreach (Column column in model.FkColumns)
+                SelfAndAllDescendentsRecursive(models, column.FkInfo.ReferencedModel);
+        }
+
 
         public override string ToString() {
             return Name;

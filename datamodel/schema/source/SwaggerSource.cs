@@ -23,7 +23,7 @@ namespace datamodel.schema.source {
         private List<Association> _associations = new List<Association>();
 
         // Helper to download json from a URL
-        public static string FromUrl(string url) {
+        public static string DownloadUrl(string url) {
             using (WebClient client = new WebClient()) 
                 return client.DownloadString(url);
         }
@@ -82,7 +82,7 @@ namespace datamodel.schema.source {
             model.Level3 = levels.Length > 2 ? string.Join(".", levels.Skip(2)) : null;
 
             model.Name = pieces.Last();
-            model.FullyQualifiedName = qualifiedName;
+            model.QualifiedName = qualifiedName;
             model.Description = def.description;
         }
 
@@ -113,12 +113,12 @@ namespace datamodel.schema.source {
                     string refPrefix = "#/definitions/";
                     if (!reference.StartsWith(refPrefix)) {
                         Error.Log("Ref {0}.{1}: {2} does not start with {3}",
-                            model.FullyQualifiedName, name, reference, refPrefix);
+                            model.QualifiedName, name, reference, refPrefix);
                     } else
                         reference = reference.Substring(refPrefix.Length);
 
                     _associations.Add(new Association() {
-                        OwnerSide = model.FullyQualifiedName,
+                        OwnerSide = model.QualifiedName,
                         OwnerMultiplicity = Multiplicity.Aggregation,
 
                         OtherSide = reference,

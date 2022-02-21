@@ -344,7 +344,7 @@ namespace datamodel.graphviz {
 
         #region Misc
         private static string ModelToNodeId(Model model) {
-            return model.FullyQualifiedName;
+            return model.QualifiedName;
         }
         #endregion
     }

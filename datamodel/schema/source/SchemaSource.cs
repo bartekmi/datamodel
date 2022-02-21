@@ -10,6 +10,10 @@ namespace datamodel.schema.source {
             return models;
         }
 
+        public virtual void PostProcessSchema() {
+            // Do nothing
+        }
+
         internal IEnumerable<Model> GetFilteredModels() {
             var models = GetModels();
             return FilterModels(models);

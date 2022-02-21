@@ -15,7 +15,7 @@ namespace datamodel.datadict {
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
-                string filename = model.SanitizedClassName + ".html";
+                string filename = model.SanitizedQualifiedName + ".html";
                 string path = Path.Combine(dir, filename);
 
                 GenerateForModel(model, path);

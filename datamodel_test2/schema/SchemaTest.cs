@@ -12,8 +12,8 @@ namespace datamodel.schema {
             Schema schema = Schema.Singleton;
 
             // Hydration = Inheritance
-            Model dir = schema.FindByClassName("Directory");
-            Assert.Equal("FileSystemObject", dir.Superclass.FullyQualifiedName);
+            Model dir = schema.FindByQualifiedName("Directory");
+            Assert.Equal("FileSystemObject", dir.Superclass.QualifiedName);
         }
     }
 }

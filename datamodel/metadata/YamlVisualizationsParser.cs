@@ -46,7 +46,7 @@ namespace datamodel.metadata {
         private static Model[] ToModelsWithValidation(string[] modelNames) {
             List<Model> models = new List<Model>();
             foreach (string modelName in modelNames) {
-                Model model = Schema.Singleton.FindByClassName(modelName);
+                Model model = Schema.Singleton.FindByQualifiedName(modelName);
                 if (model == null)
                     Error.Log("Model name does not exist: " + modelName);
                 else
