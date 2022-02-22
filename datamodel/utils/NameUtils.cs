@@ -43,13 +43,16 @@ namespace datamodel.utils {
 
         public static string MixedCaseToHuman(string text) {
             StringBuilder builder = new StringBuilder();
-            char? previous = null;
 
-            foreach (char c in text) {
-                if (previous != null && char.IsLower(previous.Value) && char.IsUpper(c))
-                    builder.Append(" ");
-                builder.Append(c);
-                previous = c;
+            for (int ii = 0; ii < text.Length; ii++) {
+                bool prevLower = ii > 0 && char.IsLower(text[ii - 1]);
+                bool prevUpper = ii > 0 && char.IsUpper(text[ii - 1]);
+                bool nextLower = ii < text.Length - 1 && char.IsLower(text[ii + 1]);
+                bool upper = char.IsUpper(text[ii]);
+
+                if (prevLower && upper || prevUpper && upper && nextLower)
+                    builder.Append(' ');
+                builder.Append(text[ii]);
             }
 
             return builder.ToString();
