@@ -30,17 +30,18 @@ namespace datamodel.datadict.html {
             HtmlElement span = new HtmlElement("span");
 
             foreach (GraphDefinition graph in graphs)
-                span.Add(MakeIconForDiagram(graph, cssClass));
+                span.Add(MakeIconForDiagram(model, graph, cssClass));
 
             return span;
         }
 
-        public static HtmlBase MakeIconForDiagram(GraphDefinition graph, string cssClass) {
+        private static HtmlBase MakeIconForDiagram(Model model, GraphDefinition graph, string cssClass) {
             string text = string.Format("{0} ({1})", graph.HumanName, graph.CoreModels.Length);
             string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
                 LINE_BREAK, graph.HumanName, graph.CoreModels.Length);
+            string color = Level1Info.GetHtmlColorForLevel1(model.Level1);
 
-            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip);
+            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip, color);
 
             return link;
         }
@@ -54,10 +55,11 @@ namespace datamodel.datadict.html {
             return new HtmlRaw(rawHtml);
         }
 
-        public static HtmlRaw MakeLink(string url, string text, string cssClass = null, string toolTip = null) {
+        public static HtmlRaw MakeLink(string url, string text, string cssClass = null, string toolTip = null, string color = null) {
             string classAttr = cssClass == null ? null : string.Format("class='{0}'", cssClass);
-            string titleAttr = toolTip == null ? null : string.Format("title='{0}'", Sanitize(toolTip, true));
-            string rawHtml = string.Format("<a href='{0}' {1} {2}>{3}</a>", url, classAttr, titleAttr, text);
+            string toolTipAttr = toolTip == null ? null : string.Format("title='{0}'", Sanitize(toolTip, true));
+            string backgroundAttr = color == null ? null : string.Format("style='background:{0}'", color);
+            string rawHtml = string.Format("<a href='{0}' {1} {2} {3}>{4}</a>", url, classAttr, toolTipAttr, backgroundAttr, text);
             return new HtmlRaw(rawHtml);
         }
 

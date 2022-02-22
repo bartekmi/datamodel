@@ -65,9 +65,10 @@ namespace datamodel.datadict {
 
             string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.CumulativeModelCount);
 
-            if (itemHier.HasDiagram)
-                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, itemHier.ToolTip));
-            else
+            if (itemHier.HasDiagram) {
+                string color = itemHier.Level == 1 ? itemHier.ColorString : null;
+                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, itemHier.ToolTip, color));
+            } else
                 itemHtml.Text = text;
 
             return itemHtml;
