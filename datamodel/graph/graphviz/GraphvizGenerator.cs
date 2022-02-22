@@ -275,17 +275,12 @@ namespace datamodel.graphviz {
             StringBuilder builder = new StringBuilder();
             Schema schema = Schema.Singleton;
 
-            builder.AppendLine(schema.Level1 + ": " + model.Level1 + HtmlUtils.LINE_BREAK);
-            if (!string.IsNullOrEmpty(model.Level2))
-                builder.AppendLine(schema.Level2 + ": " + model.Level2 + HtmlUtils.LINE_BREAK);
+            AddLabelToToolTip(builder, schema.Level1, model.Level1);
+            AddLabelToToolTip(builder, schema.Level2, model.Level2);
+            AddLabelToToolTip(builder, "Name", model.Name);
 
-            builder.AppendLine("Name: " + model.Name + HtmlUtils.LINE_BREAK);
-
-            foreach (Label label in model.Labels) {
-                string line = string.Format("{0}: {1}", label.Name, label.Value);
-                builder.AppendLine(line);
-            }
-
+            foreach (Label label in model.Labels) 
+                AddLabelToToolTip(builder, label.Name, label.Value);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
@@ -293,6 +288,11 @@ namespace datamodel.graphviz {
             }
 
             return builder.ToString();
+        }
+
+        private void AddLabelToToolTip(StringBuilder builder, string label, string value) {
+            if (!string.IsNullOrEmpty(value))
+                builder.AppendLine(label + ": " + value);
         }
 
         private string ToShortType(Column column) {

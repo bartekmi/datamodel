@@ -20,6 +20,8 @@ namespace datamodel.schema.source {
                     model.Version = version;
                     var piecesLessVersion = pieces.Where(x => x != version);
                     model.QualifiedNameLessVersion = string.Join(".", piecesLessVersion);
+
+                    model.AddLabel("Version", version);
                 }
             }
 
