@@ -9,14 +9,13 @@ namespace datamodel.schema {
 
         #region Properties and Constructor
 
-
         public string Title { get; private set; }
         public string Level1 { get; set; }
         public string Level2 { get; set; }
         public string Level3 { get; set; }
         public string[] BoringProperties { get; set; }
 
-        public List<Model> Models { get; private set; }
+        public HashSet<Model> Models { get; private set; }
         public List<Association> Associations { get; private set; }
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
 
@@ -29,6 +28,7 @@ namespace datamodel.schema {
         private Schema() {
             Interfaces = new Dictionary<string, PolymorphicInterface>();
         }
+
         #endregion
 
         #region Creation
@@ -43,9 +43,29 @@ namespace datamodel.schema {
 
         // Create the Singleton schema. Normally, it is then accessed by 'Schema.Singleton'
         public static Schema CreateSchema(SchemaSource source) {
+            HashSet<Model> models = new HashSet<Model>(source.GetFilteredModels());
+            var assocs = source.GetAssociations()
+                .GroupBy(x => x.OtherSide)
+                .ToDictionary(x => x.Key, x => (IEnumerable<Association>)x);
+
+            foreach (Model model in models.Where(x => x.ListSemanticsForType != null).ToList()) {
+                if (assocs.TryGetValue(model.QualifiedName, out IEnumerable<Association> incoming)) {
+                    foreach (Association association in incoming) {
+                        if (association.OtherMultiplicity == Multiplicity.Many) {
+                            throw new NotImplementedException("Encountered many-association to a List");
+                        }
+                        association.OtherMultiplicity = Multiplicity.Many;
+                        association.OtherSide = model.ListSemanticsForType;
+                        // TODO... to be perfect, we should also discard list to item associtation
+                    }
+                }
+
+                models.Remove(model);
+            }
+
             _schema = new Schema() {
                 Title = source.GetTitle(),
-                Models = source.GetFilteredModels().ToList(),
+                Models = models,
                 Associations = source.GetAssociations().ToList(),
 
                 // Some default values, but these can be changed
@@ -65,16 +85,16 @@ namespace datamodel.schema {
 
         private void CreateFkColumns() {
             foreach (Association assoc in Associations) {
-                if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model fkModel)) 
+                if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model fkModel))
                     Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
 
-                if (!_byQualifiedName.TryGetValue(assoc.OtherSide, out Model otherModel)) 
+                if (!_byQualifiedName.TryGetValue(assoc.OtherSide, out Model otherModel))
                     Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
 
                 if (fkModel == null || otherModel == null)
                     continue;
 
-                Column fkColumn = new Column(fkModel) {
+                Column fkColumn = new Column() {
                     Name = assoc.OtherRole ?? assoc.OtherSide,
                     Description = assoc.Description,
                     DataType = "ID",
@@ -93,6 +113,7 @@ namespace datamodel.schema {
         #region Rehydrate
 
         private void Rehydrate() {
+            RehydrateColumnOwner();
             RehydrateSuperClasses();
             RemoveDuplicatePolymorphicInterfaces();
 
@@ -102,6 +123,13 @@ namespace datamodel.schema {
             RehydratePolymorphicFkColumns();
             RehydratePolymorphicAssociations();
             RehydrateFkAssociationsForModels();
+        }
+
+        private void RehydrateColumnOwner() {
+            foreach (Model model in Models) {
+                foreach (Column column in model.AllColumns)
+                    column.Owner = model;
+            }
         }
 
         // E.g. see OperationalRoute::Graph and OperationalRoute::ConfirmedGraph

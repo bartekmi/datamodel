@@ -33,21 +33,20 @@ namespace datamodel.schema.source {
                     Level2 = sModel.Level2,
                     Level3 = sModel.Level3,
                 };
-                model.AllColumns = GetColumns(model, sModel.Properties);
+                model.AllColumns = GetColumns(sModel.Properties);
                 models.Add(model);
             }
 
             return models;
         }
 
-        private List<Column> GetColumns(Model model, List<SProperty> properties) {
+        private List<Column> GetColumns(List<SProperty> properties) {
             List<Column> columns = new List<Column>();
             if (properties == null)
                 return columns;
 
             foreach (SProperty sProp in properties) {
-                // TODO: Better to set owner in Schema code
-                Column column = new Column(model) {
+                Column column = new Column() {
                     Name = sProp.Name,
                     Description = sProp.Description,
                     DataType = sProp.Type,

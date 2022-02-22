@@ -14,7 +14,7 @@ namespace datamodel.schema {
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }
         [JsonIgnore]    // Owner causes a "Self referencing loop"
-        public Model Owner { get; private set; }
+        public Model Owner { get; internal set; }
 
         // Derived 
         public string HumanName { get { return NameUtils.SnakeCaseToHuman(Name); } }
@@ -34,10 +34,6 @@ namespace datamodel.schema {
 
         // Relationships
         public FkInfo FkInfo { get; set; }
-
-        public Column(Model owner) {
-            Owner = owner;
-        }
 
         public override string ToString() {
             return string.Format("{0}.{1}", Owner.Name, Name);

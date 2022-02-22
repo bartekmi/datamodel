@@ -19,6 +19,11 @@ namespace datamodel.schema {
         // Is this model abstract, as indicated by 'self.abstract_class = true'
         public bool IsAbstract { get; set; }
 
+        // If set, the only purpose of this Model is to serve as a "list" of this type
+        // - if referenced from another model, the association will be converted to a many-association
+        // - The "List" model itself will be dropped
+        public string ListSemanticsForType { get; set; }
+
         // Name of the Model
         public string Name { get; set; }
 

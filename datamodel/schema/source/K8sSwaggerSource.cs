@@ -12,7 +12,7 @@ namespace datamodel.schema.source {
             base.PopulateModel(model, qualifiedName, def);
 
             // In almost all cases, the second-last element of the qualified name is
-            // the API version of the entity
+            // the API version of the entity. Set version info on the models.
             string[] pieces = qualifiedName.Split(".");
             if (pieces.Length >= 2) {
                 string version = pieces.Reverse().Skip(1).First();
@@ -22,6 +22,10 @@ namespace datamodel.schema.source {
                     model.QualifiedNameLessVersion = string.Join(".", piecesLessVersion);
                 }
             }
+
+            Association assoc = _associations.SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherRole == "items");
+            if (model.Name.EndsWith("List") && assoc != null)
+                model.ListSemanticsForType = assoc.OtherSide;
         }
 
         protected override IEnumerable<Model> FilterModels(IEnumerable<Model> models) {

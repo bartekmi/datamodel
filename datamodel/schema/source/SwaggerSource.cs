@@ -20,7 +20,7 @@ namespace datamodel.schema.source {
         private SwaggerSourceOptions _options;
 
         private List<Model> _models = new List<Model>();
-        private List<Association> _associations = new List<Association>();
+        protected List<Association> _associations = new List<Association>();
 
         // Helper to download json from a URL
         public static string DownloadUrl(string url) {
@@ -63,9 +63,9 @@ namespace datamodel.schema.source {
 
         private Model ParseDefinition(string qualifiedName, SwgDefinition def) {
             Model model = new Model();
-            PopulateModel(model, qualifiedName, def);
+            model.AllColumns = ParseProperties(qualifiedName, def.required, def.properties);
 
-            model.AllColumns = ParseProperties(model, def.required, def.properties);
+            PopulateModel(model, qualifiedName, def);
 
             return model;
         }
@@ -86,7 +86,7 @@ namespace datamodel.schema.source {
             model.Description = def.description;
         }
 
-        private List<Column> ParseProperties(Model model, IEnumerable<string> required, Dictionary<string, SwgProperty> properties) {
+        private List<Column> ParseProperties(string modelName, IEnumerable<string> required, Dictionary<string, SwgProperty> properties) {
             List<Column> columns = new List<Column>();
             if (properties == null)
                 return columns;
@@ -106,19 +106,19 @@ namespace datamodel.schema.source {
                 }
 
                 if (prop.Reference == null)
-                    columns.Add(ExtractColumn(model, isRequired, name, isArray, prop));
+                    columns.Add(ExtractColumn(isRequired, name, isArray, prop));
                 else {
                     string reference = prop.Reference;
 
                     string refPrefix = "#/definitions/";
                     if (!reference.StartsWith(refPrefix)) {
                         Error.Log("Ref {0}.{1}: {2} does not start with {3}",
-                            model.QualifiedName, name, reference, refPrefix);
+                            modelName, name, reference, refPrefix);
                     } else
                         reference = reference.Substring(refPrefix.Length);
 
                     _associations.Add(new Association() {
-                        OwnerSide = model.QualifiedName,
+                        OwnerSide = modelName,
                         OwnerMultiplicity = Multiplicity.Aggregation,
 
                         OtherSide = reference,
@@ -136,7 +136,7 @@ namespace datamodel.schema.source {
         }
 
         #region Column Creation
-        private Column ExtractColumn(Model model, bool isRequired, string name, bool isArray, SwgProperty prop) {
+        private Column ExtractColumn(bool isRequired, string name, bool isArray, SwgProperty prop) {
             string dataType = prop.format == null ? prop.type : prop.format;
             if (prop.Enum != null)
                 dataType = "Enum";
@@ -144,7 +144,7 @@ namespace datamodel.schema.source {
             if (isArray)
                 dataType = "[]" + dataType;
 
-            Column column = new Column(model) {
+            Column column = new Column() {
                 Name = name,
                 Description = prop.description,
                 DataType = dataType,
