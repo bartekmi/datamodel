@@ -129,7 +129,7 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("tooltip", CreateEdgeToolTip(aa))
                 .SetAttrGraph("arrowhead", "normal")
-                .SetAttrGraph("penwidth", 2.0)
+                .SetAttrGraph("penwidth", 4.0)
                 .SetAttrGraph("color", GetColorForAssociationCount(aa.Associations.Count))
                 .SetAttrGraph("arrowtail", aa.IncludeReverseArrow ? "normal" : "none");
 
@@ -157,12 +157,17 @@ namespace datamodel.graphviz {
 
         private static string CreateEdgeToolTip(AggregatedAssociation aa) {
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine(string.Format("Arrow(s) show direction of FK's{0}{0}", HtmlUtils.LINE_BREAK));
-            builder.AppendLine(string.Format("{0} Foreign keys: {1}{1}", aa.Associations.Count, HtmlUtils.LINE_BREAK));
+            builder.AppendLine(string.Format("Arrow(s) show direction of References's{0}", HtmlUtils.LINE_BREAK));
+            builder.AppendLine(string.Format("{0} References: {1}", aa.Associations.Count, HtmlUtils.LINE_BREAK));
 
+            var groups = aa.Associations.GroupBy(x => x.ToString()).ToDictionary(x => x.Key);
             IEnumerable<string> associations = aa.Associations
                 .OrderBy(x => x.ToString())
-                .Select(x => string.Format("{0} {1}", HtmlUtils.ASTERISK, x));
+                .Select(x => string.Format("{0} {1}{2} => {3}", 
+                    HtmlUtils.ASTERISK, 
+                    x.OwnerSideModel.HumanName,
+                    groups[x.ToString()].Count() > 1 ? string.Format(" ({0})", x.OtherRole) : "",  // Disambiguate identical model pairs
+                    x.OtherSideModel.HumanName));
 
             builder.AppendLine(string.Join(HtmlUtils.LINE_BREAK, associations));
 
