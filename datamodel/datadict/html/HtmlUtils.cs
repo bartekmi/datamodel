@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using datamodel.utils;
 using datamodel.schema;
@@ -101,7 +102,19 @@ namespace datamodel.datadict.html {
                     builder.Append(c);
             }
 
-            return builder.ToString();
+            string sanitized = builder.ToString();
+            string sanitizedWithLinks = AddHrefLinks(sanitized);
+
+            return sanitizedWithLinks;
+        }
+
+        // Convert text which may have http(s) links by adding <a> tags to make
+        // the links functional
+        // https://stackoverflow.com/questions/32637/easiest-way-to-convert-a-url-to-a-hyperlink-in-a-c-sharp-string/32693
+        private static string AddHrefLinks(string text) {
+            Regex r = new Regex(@"(https?://[^\s]+)");
+            text = r.Replace(text, "<a href=\"$1\">$1</a>");
+            return text;
         }
     }
 }

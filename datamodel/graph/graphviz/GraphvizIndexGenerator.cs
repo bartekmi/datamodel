@@ -34,7 +34,7 @@ namespace datamodel.graphviz {
         #region Top Level
         public static void GenerateIndex(HierarchyItem root) {
 
-            HierarchyItem.DebugPrint(root);
+            // HierarchyItem.DebugPrint(root);
 
             Dictionary<Model, HierarchyItem> modelToHI = new Dictionary<Model, HierarchyItem>();
             HierarchyItem.Recurse(root, (hi) => {
