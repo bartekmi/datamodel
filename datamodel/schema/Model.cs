@@ -58,7 +58,7 @@ namespace datamodel.schema {
 
 
         #region Derived
-        public string HumanName { get { return NameUtils.MixedCaseToHuman(Name); } }
+        public string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
         [JsonIgnore]

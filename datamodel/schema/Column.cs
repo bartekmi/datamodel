@@ -17,7 +17,7 @@ namespace datamodel.schema {
         public Model Owner { get; internal set; }
 
         // Derived 
-        public string HumanName { get { return NameUtils.SnakeCaseToHuman(Name); } }
+        public string HumanName { get { return NameUtils.ToHuman(Name); } }
         public bool IsFk { get { return FkInfo != null; } }
         public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
         public string[] DescriptionParagraphs {

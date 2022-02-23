@@ -18,7 +18,7 @@ namespace datamodel.schema {
             if (string.IsNullOrWhiteSpace(foreignKey))
                 return null;
 
-            return NameUtils.SnakeCaseToHuman(StripId(foreignKey));
+            return NameUtils.ToHuman(StripId(foreignKey));
         }
 
         internal static string StripId(string foreignKey) {

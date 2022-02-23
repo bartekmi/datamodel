@@ -5,6 +5,7 @@ using System.Linq;
 
 using datamodel.schema;
 using datamodel.datadict.html;
+using datamodel.toplevel;
 
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
@@ -99,8 +100,13 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Outgoing Associations").Class("heading2")));
 
-            foreach (Column column in dbModel.FkColumns)
-                AddFkColumnInfo(table, column, column.FkInfo.ReferencedModel, x => x.HumanName);
+            foreach (Column column in dbModel.FkColumns) {
+                Model referenced = column.FkInfo.ReferencedModel;
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                string name = string.Format("{0} ({1})", column.HumanName, link);
+
+                AddFkColumnInfo(table, column, column.FkInfo.ReferencedModel, name);
+            }
         }
 
         private static void GenerateModelIncomingAssociations(HtmlElement body, Model dbModel) {
@@ -108,23 +114,26 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Incoming Associations").Class("heading2")));
 
-            foreach (Column column in Schema.Singleton.IncomingFkColumns(dbModel))
-                AddFkColumnInfo(table, column, column.Owner, x => string.Format("{0}.{1}", x.Owner.HumanName, x.HumanName));
+            foreach (Column column in Schema.Singleton.IncomingFkColumns(dbModel)) {
+                Model referenced = column.Owner;
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                string name = string.Format("{0}.{1}", link, column.HumanName);
+
+                AddFkColumnInfo(table, column, column.Owner, name); 
+            }
         }
 
-        private static void AddFkColumnInfo(HtmlTable table, Column column, Model other, Func<Column, string> nameFunc) {
+        private static void AddFkColumnInfo(HtmlTable table, Column column, Model other, string name) {
             if (Schema.Singleton.IsInteresting(column)) {
-                HtmlBase docIcon = other == null ? null : HtmlUtils.MakeIconForDocs(other);
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
                 // Column Header
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
-                        new HtmlElement("span", nameFunc(column)).Class("heading3"),
+                        new HtmlElement("span", name, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,
                         new HtmlElement("span").Class("gap-left"),
-                        docIcon,
                         DeprecatedSpan(column)
                     )
                 ).Attr("id", column.Name);        // Id for anchor

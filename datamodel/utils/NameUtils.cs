@@ -23,7 +23,7 @@ namespace datamodel.utils {
         public static string ToHuman(string nonHuman) {
             if (nonHuman == null)
                 return null;
-            return nonHuman.Contains(' ') ?
+            return nonHuman.Contains('_') ?
                 SnakeCaseToHuman(nonHuman) :
                 MixedCaseToHuman(nonHuman);
         }
@@ -36,12 +36,12 @@ namespace datamodel.utils {
                 .Select(x => x.ToLower());
         }
 
-        public static string SnakeCaseToHuman(string snake_case) {
+        private static string SnakeCaseToHuman(string snake_case) {
             string[] pieces = snake_case.Split('_');
             return string.Join(" ", pieces.Select(x => Capitalize(x)));
         }
 
-        public static string MixedCaseToHuman(string text) {
+        private static string MixedCaseToHuman(string text) {
             StringBuilder builder = new StringBuilder();
 
             for (int ii = 0; ii < text.Length; ii++) {
@@ -55,7 +55,7 @@ namespace datamodel.utils {
                 builder.Append(text[ii]);
             }
 
-            return builder.ToString();
+            return Capitalize(builder.ToString());
         }
 
         public static string CompoundToSafe(IEnumerable<string> compound) {
