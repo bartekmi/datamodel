@@ -204,7 +204,7 @@ namespace datamodel.graphviz {
             };
 
             subgraph.SetAttrGraph("pencolor", "black")
-                    .SetAttrGraph("label", item.HumanName)
+                    .SetAttrGraph("label", string.Format("{0} ({1} models)", item.HumanName, item.CumulativeModelCount))
                     .SetAttrGraph("href", item.Graph.SvgUrl)
                     .SetAttrGraph("fontname", "Helvetica");
 
