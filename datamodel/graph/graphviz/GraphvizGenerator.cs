@@ -279,7 +279,7 @@ namespace datamodel.graphviz {
             AddLabelToToolTip(builder, schema.Level2, model.Level2);
             AddLabelToToolTip(builder, "Name", model.Name);
 
-            foreach (Label label in model.Labels) 
+            foreach (Label label in model.Labels)
                 AddLabelToToolTip(builder, label.Name, label.Value);
 
             if (!string.IsNullOrWhiteSpace(model.Description)) {
@@ -319,15 +319,16 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("edgetooltip", edge.Association.Description)
                 .SetAttrGraph("edgehref", edge.Association.DocUrl);
 
-            string oppositeFK = association.InterestingOtherRole;
-            if (oppositeFK != null)
-                edge.SetAttrGraph("taillabel", oppositeFK.Replace(" ", "\n"));
-
-            string byFK = association.InterestingOwnerRole;
-            if (byFK != null)
-                edge.SetAttrGraph("headlabel", byFK.Replace(" ", "\n"));
+            SetRole(edge, "taillabel", association.InterestingOtherRole);
+            SetRole(edge, "headlabel", association.InterestingOwnerRole);
 
             return edge;
+        }
+
+        private void SetRole(Edge edge, string property, string role) {
+            if (role == null)
+                return;
+            edge.SetAttrGraph(property, role);
         }
 
         private string MultiplicityToArrowName(Multiplicity multiplicity) {
