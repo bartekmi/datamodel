@@ -199,16 +199,16 @@ namespace datamodel.graphviz {
                     !(column.IsPolymorphicId || column.IsPolymorphicType)) {
 
                     HtmlTr row = new HtmlTr();
-                    Model referencedModel = column.IsFk ? column.FkInfo.ReferencedModel : null;
+                    Model referencedModel = column.IsRef ? column.ReferencedModel : null;
 
                     string columnName = HtmlUtils.BULLET + column.HumanName;
                     HtmlTd columnNameTd = new HtmlTd();
                     row.AddTd(columnNameTd);
 
-                    // Foreign Key Column
-                    if (column.IsFk) {
+                    // Ref Column
+                    if (column.IsRef) {
                         if (models.Contains(referencedModel))
-                            continue;           // Do not include FK column if in this graph... It will be shown via an association line
+                            continue;           // Do not include Ref column if in this graph... It will be shown via an association line
 
                         columnNameTd.Text = columnName;
 

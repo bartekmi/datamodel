@@ -100,12 +100,12 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Outgoing Associations").Class("heading2")));
 
-            foreach (Column column in dbModel.FkColumns) {
-                Model referenced = column.FkInfo.ReferencedModel;
+            foreach (Column column in dbModel.RefColumns) {
+                Model referenced = column.ReferencedModel;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0} ({1})", column.HumanName, link);
 
-                AddFkColumnInfo(table, column, column.FkInfo.ReferencedModel, name);
+                AddRefColumnInfo(table, column, column.ReferencedModel, name);
             }
         }
 
@@ -114,16 +114,16 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Incoming Associations").Class("heading2")));
 
-            foreach (Column column in Schema.Singleton.IncomingFkColumns(dbModel)) {
+            foreach (Column column in Schema.Singleton.IncomingRefColumns(dbModel)) {
                 Model referenced = column.Owner;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0}.{1}", link, column.HumanName);
 
-                AddFkColumnInfo(table, column, column.Owner, name); 
+                AddRefColumnInfo(table, column, column.Owner, name); 
             }
         }
 
-        private static void AddFkColumnInfo(HtmlTable table, Column column, Model other, string name) {
+        private static void AddRefColumnInfo(HtmlTable table, Column column, Model other, string name) {
             if (Schema.Singleton.IsInteresting(column)) {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 

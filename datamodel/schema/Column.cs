@@ -15,10 +15,12 @@ namespace datamodel.schema {
         public Enum Enum { get; set; }
         [JsonIgnore]    // Owner causes a "Self referencing loop"
         public Model Owner { get; internal set; }
+        [JsonIgnore]
+        public Model ReferencedModel { get; set; }
 
         // Derived 
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
-        public bool IsFk { get { return FkInfo != null; } }
+        public bool IsRef { get { return ReferencedModel != null; } }
         public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
         public string[] DescriptionParagraphs {
             get {
@@ -31,9 +33,6 @@ namespace datamodel.schema {
         // Rehydrated
         public bool IsPolymorphicId { get; internal set; }
         public bool IsPolymorphicType { get; internal set; }
-
-        // Relationships
-        public FkInfo FkInfo { get; set; }
 
         public override string ToString() {
             return string.Format("{0}.{1}", Owner.Name, Name);

@@ -20,8 +20,8 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
 
         private Dictionary<string, Model> _byQualifiedName;
-        private Dictionary<Model, List<Column>> _incomingFkColumns;
-        private Dictionary<Model, List<Association>> _fkAssociationsForModel;
+        private Dictionary<Model, List<Column>> _incomingRefColumns;
+        private Dictionary<Model, List<Association>> _refAssociationsForModel;
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
 
@@ -75,7 +75,7 @@ namespace datamodel.schema {
             };
 
             _schema._byQualifiedName = _schema.Models.ToDictionary(x => x.QualifiedName);
-            _schema.CreateFkColumns();
+            _schema.CreateRefColumns();
 
             _schema.Rehydrate();
             source.PostProcessSchema();
@@ -83,29 +83,27 @@ namespace datamodel.schema {
             return _schema;
         }
 
-        private void CreateFkColumns() {
+        private void CreateRefColumns() {
             foreach (Association assoc in Associations) {
-                if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model fkModel))
+                if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model refModel))
                     Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
 
                 if (!_byQualifiedName.TryGetValue(assoc.OtherSide, out Model otherModel))
                     Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
 
-                if (fkModel == null || otherModel == null)
+                if (refModel == null || otherModel == null)
                     continue;
 
-                Column fkColumn = new Column() {
+                Column refColumn = new Column() {
                     Name = assoc.OtherRole ?? assoc.OtherSide,
                     Description = assoc.Description,
                     DataType = "ID",
                     CanBeEmpty = assoc.OtherMultiplicity == Multiplicity.ZeroOrOne,
-                    FkInfo = new FkInfo() {
-                        ReferencedModel = otherModel,
-                    },
+                    ReferencedModel = otherModel,
                 };
 
-                fkModel.AllColumns.Add(fkColumn);
-                assoc.FkColumn = fkColumn;
+                refModel.AllColumns.Add(refColumn);
+                assoc.RefColumn = refColumn;
             }
         }
         #endregion
@@ -120,9 +118,9 @@ namespace datamodel.schema {
             RehydrateModelsOnAssociations();
             RehydrateIncomingAssociations();
             RehydrateInterfacesForModels();
-            RehydratePolymorphicFkColumns();
+            RehydratePolymorphicRefColumns();
             RehydratePolymorphicAssociations();
-            RehydrateFkAssociationsForModels();
+            RehydrateRefAssociationsForModels();
         }
 
         private void RehydrateColumnOwner() {
@@ -151,7 +149,7 @@ namespace datamodel.schema {
             }
         }
 
-        private void RehydratePolymorphicFkColumns() {
+        private void RehydratePolymorphicRefColumns() {
             foreach (PolymorphicInterface _interface in Interfaces.Values) {
                 _interface.Column.IsPolymorphicId = true;
                 Model model = _interface.Column.Owner;
@@ -171,14 +169,14 @@ namespace datamodel.schema {
               .Where(x => Interfaces.ContainsKey(x.Key))
               .ToDictionary(x => Interfaces[x.Key], x => x.ToList());
 
-            // Set the FkSideModel for the polymorphic associations +++
+            // Set the OwnerSideModel for the polymorphic associations 
             foreach (Association association in Associations.Where(x => x.IsPolymorphic)) {
                 if (Interfaces.TryGetValue(association.PolymorphicName, out PolymorphicInterface _interface)) {
-                    Column fkColumn = _interface.Column;
-                    if (fkColumn != null)
-                        association.OwnerSideModel = fkColumn.Owner;
+                    Column refColumn = _interface.Column;
+                    if (refColumn != null)
+                        association.OwnerSideModel = refColumn.Owner;
                     else
-                        Error.Log("WARNING: FK Column null for " + association);
+                        Error.Log("WARNING: Ref Column null for " + association);
                 }
             }
 
@@ -199,17 +197,17 @@ namespace datamodel.schema {
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
-        private void RehydrateFkAssociationsForModels() {
-            _fkAssociationsForModel = Associations
+        private void RehydrateRefAssociationsForModels() {
+            _refAssociationsForModel = Associations
                 .Where(x => x.OwnerSideModel != null)
                 .GroupBy(x => x.OwnerSideModel)
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
         private void RehydrateIncomingAssociations() {
-            _incomingFkColumns = Models
-                .SelectMany(x => x.FkColumns)
-                .GroupBy(x => x.FkInfo.ReferencedModel)
+            _incomingRefColumns = Models
+                .SelectMany(x => x.RefColumns)
+                .GroupBy(x => x.ReferencedModel)
                 .Where(x => x.Key != null)
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
@@ -232,8 +230,8 @@ namespace datamodel.schema {
             foreach (Association association in Associations) {
                 if (_byQualifiedName.TryGetValue(association.OtherSide, out Model otherSideModel))
                     association.OtherSideModel = otherSideModel;
-                if (_byQualifiedName.TryGetValue(association.OwnerSide, out Model fkSideModel))
-                    association.OwnerSideModel = fkSideModel;
+                if (_byQualifiedName.TryGetValue(association.OwnerSide, out Model ownerSideModel))
+                    association.OwnerSideModel = ownerSideModel;
             }
         }
         #endregion
@@ -253,8 +251,8 @@ namespace datamodel.schema {
             return null;
         }
 
-        public IEnumerable<Column> IncomingFkColumns(Model model) {
-            if (_incomingFkColumns.TryGetValue(model, out List<Column> columns))
+        public IEnumerable<Column> IncomingRefColumns(Model model) {
+            if (_incomingRefColumns.TryGetValue(model, out List<Column> columns))
                 return columns;
             return new Column[0];
         }
@@ -265,9 +263,9 @@ namespace datamodel.schema {
             return new PolymorphicInterface[0];
         }
 
-        public List<Association> FkAssociationsForModel(Model model) {
-            if (_fkAssociationsForModel.TryGetValue(model, out List<Association> fkAssociations))
-                return fkAssociations;
+        public List<Association> RefAssociationsForModel(Model model) {
+            if (_refAssociationsForModel.TryGetValue(model, out List<Association> refAssociations))
+                return refAssociations;
             return new List<Association>();
         }
 

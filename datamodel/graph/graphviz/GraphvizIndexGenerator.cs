@@ -26,7 +26,7 @@ namespace datamodel.graphviz {
     //      - Link all entities that have associations of any kind
     //      - Links are at the highest level possible (a link would never go through a bounding-box of its sub-graph) 
     //      - (NTH) Line thickness corresponds to association count
-    //      - (NTH) Direction corresponds to FK direction. Can have arrow on both ends.
+    //      - (NTH) Direction corresponds to Ref direction. Can have arrow on both ends.
     //      - (NTH) Link tool-tip lists associations
     public static class GraphvizIndexGenerator {
 
@@ -94,7 +94,7 @@ namespace datamodel.graphviz {
             // since we don't want to draw multiple lines between same subgraphs
             foreach (HierarchyItem childItem in item.Children.Where(x => x.ShouldShowOnIndex)) {
                 foreach (Model model in childItem.CumulativeModels) {
-                    foreach (Association association in model.FkAssociations.Where(x => x.OtherSideModel != null)) {
+                    foreach (Association association in model.RefAssociations.Where(x => x.OtherSideModel != null)) {
                         HierarchyItem otherSide = modelToHI[association.OtherSideModel];
                         HierarchyItem otherSideSibling = otherSide.FindAncestorAtLevel(childItem.Level);
                         if (otherSideSibling == null ||                      // No sibling

@@ -60,16 +60,16 @@ namespace datamodel.schema {
         #region Derived
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]
-        public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsFk); } }
+        public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsRef); } }
         [JsonIgnore]
-        public IEnumerable<Column> FkColumns { get { return AllColumns.Where(x => x.IsFk); } }
+        public IEnumerable<Column> RefColumns { get { return AllColumns.Where(x => x.IsRef); } }
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
         public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
         [JsonIgnore]
-        public List<Association> FkAssociations {
-            get { return Schema.Singleton.FkAssociationsForModel(this); }
+        public List<Association> RefAssociations {
+            get { return Schema.Singleton.RefAssociationsForModel(this); }
         }
 
         [JsonIgnore]
@@ -110,8 +110,8 @@ namespace datamodel.schema {
 
             models.Add(model);
 
-            foreach (Column column in model.FkColumns)
-                SelfAndAllDescendentsRecursive(models, column.FkInfo.ReferencedModel);
+            foreach (Column column in model.RefColumns)
+                SelfAndAllDescendentsRecursive(models, column.ReferencedModel);
         }
 
 

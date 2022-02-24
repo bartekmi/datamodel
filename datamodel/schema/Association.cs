@@ -31,7 +31,7 @@ namespace datamodel.schema {
         [JsonIgnore]
         public Model OwnerSideModel { get; set; }
         [JsonIgnore]
-        public Column FkColumn { get; set; } 
+        public Column RefColumn { get; set; } 
 
         // Derived
         public string InterestingOwnerRole {
@@ -48,7 +48,7 @@ namespace datamodel.schema {
                 return OtherRole;
             }
         }
-        public string DocUrl { get { return FkColumn == null ? null : FkColumn.DocUrl; } }
+        public string DocUrl { get { return RefColumn == null ? null : RefColumn.DocUrl; } }
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         public string PolymorphicName {
             get {
