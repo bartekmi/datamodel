@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using datamodel.schema.tweaks;
+
 namespace datamodel.schema.source {
     public class K8sSwaggerSource : SwaggerSource {
         public K8sSwaggerSource(string json, SwaggerSourceOptions options) : base(json, options) {
@@ -29,21 +31,19 @@ namespace datamodel.schema.source {
             if (model.Name.EndsWith("List") && assoc != null)
                 model.ListSemanticsForType = assoc.OtherSide;
         }
+    }
 
-        protected override IEnumerable<Model> FilterModels(IEnumerable<Model> models) {
-            List<Model> filtered = new List<Model>();
+    public class FilterOldApiVersionsTweak : FilterModelsTweak {
+        public override IEnumerable<Model> ModelsToFilterOut(TempSource source) {
+            List<Model> toRemove = new List<Model>();
 
             // Only take the latest of multiple versioned models 
-            foreach (var group in models.GroupBy(x => x.QualifiedNameLessVersion)) {
-                Model latest = group.OrderBy(x => x.Version, new VersionComparer()).Last();
-                filtered.Add(latest);
+            foreach (var group in source.GetModels().GroupBy(x => x.QualifiedNameLessVersion)) {
+                var byVersion = group.OrderBy(x => x.Version, new VersionComparer());
+                toRemove.AddRange(byVersion.Take(byVersion.Count() - 1));
             }
 
-            return filtered;
-        }
-
-        public override void PostProcessSchema() {
-            K8sToc.AssignCoreLevel2Groups();
+            return toRemove;
         }
 
         // Format is expected to be one of:

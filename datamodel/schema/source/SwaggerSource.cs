@@ -44,7 +44,7 @@ namespace datamodel.schema.source {
             return _schema.info?.title;
         }
 
-        protected override IEnumerable<Model> GetModels() {
+        public override IEnumerable<Model> GetModels() {
             return _models;
         }
 

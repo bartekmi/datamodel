@@ -16,7 +16,7 @@ namespace datamodel.schema.source {
 
         [Fact]
         public void VersionComparer() {
-            var c = new K8sSwaggerSource.VersionComparer();
+            var c = new FilterOldApiVersionsTweak.VersionComparer();
 
             Assert.True(c.Compare("v1", "v1") == 0);
             Assert.True(c.Compare("v1beta1", "v1beta1") == 0);

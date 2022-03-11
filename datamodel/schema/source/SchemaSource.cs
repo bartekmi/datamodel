@@ -1,22 +1,24 @@
+using System.Linq;
 using System.Collections.Generic;
+
+using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source {
     public abstract class SchemaSource {
         public abstract string GetTitle();
-        protected abstract IEnumerable<Model> GetModels();
+        public abstract IEnumerable<Model> GetModels();
         public abstract IEnumerable<Association> GetAssociations();
 
-        protected virtual IEnumerable<Model> FilterModels(IEnumerable<Model> models) {
-            return models;
-        }
+        // Tweaks to apply to the schema just after receiving the data from SchemaSource
+        public IEnumerable<Tweak> Tweaks { get; set; }
 
-        public virtual void PostProcessSchema() {
-            // Do nothing
-        }
+        internal SchemaSource ApplyTweaks(bool postHydration) {
+            TempSource source = TempSource.CloneFromSource(this);
+            if (Tweaks != null)
+                foreach (Tweak tweak in Tweaks.Where(x => x.PostHydration == postHydration))
+                    tweak.Apply(source);
 
-        internal IEnumerable<Model> GetFilteredModels() {
-            var models = GetModels();
-            return FilterModels(models);
+            return source;
         }
     }
 }

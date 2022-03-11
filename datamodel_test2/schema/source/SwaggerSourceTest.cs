@@ -29,7 +29,7 @@ namespace datamodel.schema.source {
 
             var output = new ModelsAndReferences() {
                 Title = source.GetTitle(),
-                Models = source.GetFilteredModels(),
+                Models = source.GetModels(),
                 Associations = source.GetAssociations(),
             };
 

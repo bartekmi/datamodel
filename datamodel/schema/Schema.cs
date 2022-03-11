@@ -42,8 +42,12 @@ namespace datamodel.schema {
         }
 
         // Create the Singleton schema. Normally, it is then accessed by 'Schema.Singleton'
-        public static Schema CreateSchema(SchemaSource source) {
-            HashSet<Model> models = new HashSet<Model>(source.GetFilteredModels());
+        public static Schema CreateSchema(SchemaSource rawSource) {
+            SchemaSource source = rawSource.ApplyTweaks(false);
+
+            // TODO: As best as I can tell, this code converts: object<>----List----<Item into object<>--->Items
+            // if used at all, it belongs in Tweaks
+            HashSet<Model> models = new HashSet<Model>(source.GetModels());
             var assocs = source.GetAssociations()
                 .GroupBy(x => x.OtherSide)
                 .ToDictionary(x => x.Key, x => (IEnumerable<Association>)x);
@@ -78,7 +82,7 @@ namespace datamodel.schema {
             _schema.CreateRefColumns();
 
             _schema.Rehydrate();
-            source.PostProcessSchema();
+            rawSource.ApplyTweaks(true);
 
             return _schema;
         }

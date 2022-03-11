@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using datamodel.metadata;
 using datamodel.schema;
 using datamodel.schema.source;
+using datamodel.schema.tweaks;
 using datamodel.datadict;
 using datamodel.toplevel;
 using datamodel.utils;
@@ -38,6 +39,15 @@ namespace datamodel {
 
             string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
             SwaggerSource source = new K8sSwaggerSource(json, options);
+
+            source.Tweaks = new List<Tweak>() {
+                new FilterOldApiVersionsTweak(),
+                new InheritanceTweak() {
+                    ParentQualifiedName = "io.k8s.api.core.v1.Container",
+                    DerviedQualifiedName = "io.k8s.api.core.v1.EphemeralContainer",
+                },
+                new K8sTocTweak(),
+            };
 
             Schema schema = Schema.CreateSchema(source);
             schema.Level1 = "Level 1";

@@ -14,7 +14,8 @@ namespace datamodel {
         }
 
         public static void Clear() {
-            File.Delete(ErrorLog());
+            if (File.Exists(ErrorLog()))
+                File.Delete(ErrorLog());
         }
 
         public static void Log(string message, params object[] args) {
@@ -23,6 +24,9 @@ namespace datamodel {
         }
 
         public static void Log(Error error) {
+            if (!Directory.Exists(Env.OUTPUT_ROOT_DIR))
+                Directory.CreateDirectory(Env.OUTPUT_ROOT_DIR);
+                
             using (TextWriter writer = new StreamWriter(ErrorLog(), true))
                 writer.WriteLine(error.ToString());
             Console.WriteLine(error);

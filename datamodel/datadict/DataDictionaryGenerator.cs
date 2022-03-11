@@ -51,6 +51,7 @@ namespace datamodel.datadict {
             AddLabelAndData(table, schema.Level3, model.Level3);
 
             AddLabelAndData(table, "Name", model.Name);
+            AddLabelAndData(table, "Qualified Name", model.QualifiedName);
             AddLabelAndData(table, "Super-Class", model.SuperClassName);
 
             foreach (Label label in model.Labels)
