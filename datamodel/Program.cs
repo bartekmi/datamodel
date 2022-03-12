@@ -30,7 +30,7 @@ namespace datamodel {
 
             var options = new SwaggerSourceOptions() {
                 BoringNameComponents = new string[] {
-                    "io", "k8s", "api", "pkg", "v1", "v1beta1", "v1beta2", "v2", "v2beta1", "v2beta2"
+                    "io", "k8s", "api", "pkg", "v1", "v1alpha1", "v1beta1", "v1beta2", "v2", "v2beta1", "v2beta2"
                 },
             };
 

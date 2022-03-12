@@ -39,38 +39,37 @@ namespace datamodel.schema.source {
 
             // Only take the latest of multiple versioned models 
             foreach (var group in source.GetModels().GroupBy(x => x.QualifiedNameLessVersion)) {
-                var byVersion = group.OrderBy(x => x.Version, new VersionComparer());
-                toRemove.AddRange(byVersion.Take(byVersion.Count() - 1));
+                if (group.Key != null && group.Count() > 1) {
+                    var byVersion = group.OrderBy(x => x.Version, new VersionComparer());
+                    toRemove.AddRange(byVersion.Take(byVersion.Count() - 1));
+                }
             }
 
             return toRemove;
         }
 
-        // Format is expected to be one of:
-        // vX
-        // vXbetaY
         internal class VersionComparer : IComparer<string> {
             public int Compare(string a, string b) {
-                if (a == b)
-                    return 0;
+                int aInt = VersionToInt(a);
+                int bInt = VersionToInt(b);
 
-                char va = a[1];
-                char vb = b[1];
+                return aInt.CompareTo(bInt);
+            }
 
-                if (va == vb) {
-                    bool isBetaA = a.Contains("beta");
-                    bool isBetaB = b.Contains("beta");
+            // Format is expected to be one of:
+            // vX
+            // vXbetaY
+            // vXalphaY
+            private int VersionToInt(string version) {
+                int versionContribution = (version[1] - '0') * 1000;
+                int alphaBetaContribution = version.Length == 2 ?
+                    999 : (version[2] - 'a') * 100;
+                int minorVersionContribution = version.Last() - '0';
 
-                    if (isBetaA && !isBetaB)
-                        return -1;
-                    if (!isBetaA && isBetaB)
-                        return +1;
-
-                    char betaA = a.Last();
-                    char betaB = b.Last();
-                    return betaA.CompareTo(betaB);
-                } else
-                    return va.CompareTo(vb);
+                return
+                    versionContribution +
+                    alphaBetaContribution +
+                    minorVersionContribution;
             }
         }
     }
