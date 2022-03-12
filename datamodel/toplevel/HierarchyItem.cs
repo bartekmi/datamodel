@@ -15,7 +15,6 @@ namespace datamodel.toplevel {
         // The name of the Hierarchy Item - i.e. Level1, Level2, Level3
         public string Name { get; private set; }
         public bool IsUncategorizedCatchall { get; set; }  // E.g. items with no Level1 label
-        public string ToolTip { get; set; }
         public GraphDefinition Graph { get; set; }
 
         // List of Models - for Leaf Items only
@@ -50,17 +49,15 @@ namespace datamodel.toplevel {
 
                 switch (Level) {
                     case 0: return "All Models";
-
-                    case 1: return Name == null ? 
-                        string.Format("Orphans (No {0})", schema.Level1) : 
-                        Name;
-
-                    case 2: return Name == null ? 
-                        string.Format("{0} (No {1})", Parent.Name, schema.Level2) : 
-                        Name;
-
+                    case 1:
+                        return Name == null ?
+                            string.Format("Orphans (No {0})", schema.Level1) :
+                            Name;
+                    case 2:
+                        return Name == null ?
+                            string.Format("{0} (No {1})", Parent.Name, schema.Level2) :
+                            Name;
                     case 3: return Name;    // If this had no name, it wouldn't exist
-
                     default:
                         throw new Exception("Unexpected Level: " + Level);
                 }
@@ -135,29 +132,23 @@ namespace datamodel.toplevel {
                 }
             }
 
-            topLevel.CollapseRedundantChildren();
+            topLevel.AbsorbRedundantChildren();
             return topLevel;
         }
 
-        // A child is "redundant" if...
-        // 1) It is an un-categorized placeholder (e.g. no-Level2), and
-        // 2) It has no other siblings
-        private void CollapseRedundantChildren() {
-
-            foreach (HierarchyItem child in Children)
-                child.CollapseRedundantChildren();
-
-
-            if (Children.Count == 1) {                          // See 2) above
+        // We should never have a situation where parent has only one child... The
+        // diagrams will be identical and thus redundant.
+        private void AbsorbRedundantChildren() {
+            while (Children.Count == 1) {
                 HierarchyItem onlyChild = Children.Single();
 
-                if (onlyChild.IsUncategorizedCatchall)          // See 1) above
-                    if (onlyChild.IsLeaf) {
-                        Models = onlyChild.Models;
-                        Children.Clear();
-                    } else
-                        Children = onlyChild.Children;
+                // "Eat" or "absorb" the child, but keep my name
+                Models = onlyChild.Models;
+                Children = onlyChild.Children;
             }
+
+            foreach (HierarchyItem child in Children)
+                child.AbsorbRedundantChildren();
         }
 
         public HierarchyItem ParentAtLevel(int level) {

@@ -67,7 +67,7 @@ namespace datamodel.datadict {
 
             if (itemHier.HasDiagram) {
                 string color = itemHier.Level == 1 ? itemHier.ColorString : null;
-                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, itemHier.ToolTip, color));
+                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, null, color));
             } else
                 itemHtml.Text = text;
 
