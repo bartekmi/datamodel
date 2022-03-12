@@ -7,11 +7,6 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source {
     public class K8sTocTweak : Tweak {
-        public K8sTocTweak() {
-            // Must apply this tweak post-hydration, as it relies on model.SelfAndDescendents()
-            PostHydration = true;
-        }
-
         public override void Apply(TempSource source) {
             K8sToc.AssignCoreLevel2Groups(source);
         }

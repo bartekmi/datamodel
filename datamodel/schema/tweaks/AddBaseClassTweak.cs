@@ -5,13 +5,25 @@ using System.Text;
 
 namespace datamodel.schema.tweaks {
     public class AddBaseClassTweak : Tweak {
+        // UN-qualified name of the newly created Base Class
         public string BaseClassName;
+
+        // Optional description of the base class
         public string BaseClassDescription;
+
+        // List of fully-qualified names of the models which should be "derived" from the 
+        // newly created base model
         public string[] DerviedQualifiedNames;
+
+        // If true, in addition to promoting properties and owned/outgoing associations,
+        // incoming associations will also be promoted.
+        // the reason this is optional is because of the possible resulting information loss
+        // (See comments below)
+        public bool PromoteIncomingAssociations;
 
         public override void Apply(TempSource source) {
             string baseClassQN = ComputeBaseClassName();
-            
+
             List<Model> models = DerviedQualifiedNames
                 .Select(x => source.GetModel(x))
                 .ToList();
@@ -29,12 +41,15 @@ namespace datamodel.schema.tweaks {
             };
             source.AddModel(baseClass);
 
-            
+
             foreach (Model model in models)
                 model.SuperClassName = baseClassQN;
 
             PromoteProperties(baseClass, models);
             PromoteOwnedAssociations(source, baseClass, models);
+
+            if (PromoteIncomingAssociations)
+                DoPromoteIncomingAssociations(source, baseClass, models);
         }
 
         private void PromoteProperties(Model baseClass, IEnumerable<Model> models) {
@@ -65,7 +80,7 @@ namespace datamodel.schema.tweaks {
 
         private void PromoteOwnedAssociations(TempSource source, Model baseClass, IEnumerable<Model> models) {
             Model first = models.First();
-            
+
             IEnumerable<Association> assocsInFirst = source.Associations
                 .Where(x => x.OwnerSide == first.QualifiedName)
                 .ToList();
@@ -90,6 +105,39 @@ namespace datamodel.schema.tweaks {
                     // of the association from the first instance of the derived class 
                     assocInFirst.OwnerSide = baseClass.QualifiedName;   // "Donate" assoc of first model to the base class
                     foreach (Association assoc in peerAssociations)     // Remove eeryone else's
+                        source.RemoveAssociation(assoc);
+                }
+            }
+        }
+
+        private void DoPromoteIncomingAssociations(TempSource source, Model baseClass, IEnumerable<Model> models) {
+            Model first = models.First();
+
+            IEnumerable<Association> assocsToFirst = source.Associations
+                .Where(x => x.OtherSide == first.QualifiedName)
+                .ToList();
+
+            // Iterate associations coming into first... See if they are present in all others
+            // If yes, add to base class and remove from all derived
+            foreach (Association assocToFirst in assocsToFirst) {
+                List<Association> peerAssociations = new List<Association>();
+                bool foundInAllPeers = true;
+                foreach (Model peer in models.Skip(1)) {
+                    Association assoc = source.FindIncomingAssociation(peer.QualifiedName, assocToFirst);
+                    if (assoc == null) {
+                        foundInAllPeers = false;
+                        break;
+                    }
+                    peerAssociations.Add(assoc);
+                }
+
+                if (foundInAllPeers) {
+                    // All peer models have this association... Promote to base class
+                    // Note that it is possible that we lose information, since we arbitrarily use the description
+                    // of the association from the first instance of the derived class 
+                    assocToFirst.OtherSide = baseClass.QualifiedName;   // "Donate" assoc to first to the base class
+                    assocToFirst.OtherRole = null;                      // Role no longer specific to first, so blank it out
+                    foreach (Association assoc in peerAssociations)     // Remove everyone else's
                         source.RemoveAssociation(assoc);
                 }
             }

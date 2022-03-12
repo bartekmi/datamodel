@@ -54,6 +54,7 @@ namespace datamodel.schema {
 
         #region Re-Hydrated
         public Model Superclass { get; set; }
+        public List<Model> DerivedClasses { get; set; }
         #endregion
 
 
@@ -108,6 +109,9 @@ namespace datamodel.schema {
 
         public Column FindColumn(string dbColumnName, string dataType = null) {
             Column column = AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
+            if (column == null)
+                return null;
+                
             if (dataType != null)
                 return column.DataType == dataType ? column : null;
 
@@ -137,6 +141,10 @@ namespace datamodel.schema {
 
             if (model.Superclass != null)
                 SelfAndAllConnectedRecursive(models, model.Superclass);
+
+            foreach (Model derived in model.DerivedClasses) {
+                SelfAndAllConnectedRecursive(models, derived);
+            }
         }
 
 

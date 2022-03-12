@@ -11,7 +11,6 @@ namespace datamodel.schema.tweaks {
     // files do not have the concept of inheritance, even though the data structure obviously
     // implies it.
     public abstract class Tweak {
-        public bool PostHydration { get; protected set; } 
         public abstract void Apply(TempSource source);
     }
 }

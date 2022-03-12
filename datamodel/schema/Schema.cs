@@ -43,7 +43,7 @@ namespace datamodel.schema {
 
         // Create the Singleton schema. Normally, it is then accessed by 'Schema.Singleton'
         public static Schema CreateSchema(SchemaSource rawSource) {
-            SchemaSource source = rawSource.ApplyTweaks(false);
+            SchemaSource source = rawSource.ApplyPreHydrationTweaks();
 
             // TODO: As best as I can tell, this code converts: object<>----List----<Item into object<>--->Items
             // if used at all, it belongs in Tweaks
@@ -82,7 +82,7 @@ namespace datamodel.schema {
             _schema.CreateRefColumns();
 
             _schema.Rehydrate();
-            rawSource.ApplyTweaks(true);
+            rawSource.ApplyPostHydrationTweaks();
 
             return _schema;
         }
@@ -116,7 +116,7 @@ namespace datamodel.schema {
 
         private void Rehydrate() {
             RehydrateColumnOwner();
-            RehydrateSuperClasses();
+            RehydrateSuperAndDerivedClasses();
             RemoveDuplicatePolymorphicInterfaces();
 
             RehydrateModelsOnAssociations();
@@ -216,15 +216,22 @@ namespace datamodel.schema {
                 .ToDictionary(x => x.Key, x => x.ToList());
         }
 
-        private void RehydrateSuperClasses() {
-            foreach (Model table in Models) {
-                if (table.SuperClassName != null)
-                    if (_byQualifiedName.TryGetValue(table.SuperClassName, out Model parent)) {
-                        table.Superclass = parent;
+        private void RehydrateSuperAndDerivedClasses() {
+            foreach (Model model in Models) 
+                model.DerivedClasses = new List<Model>();
+
+            foreach (Model model in Models) {
+                if (model.SuperClassName != null)
+                    if (_byQualifiedName.TryGetValue(model.SuperClassName, out Model parent)) {
+                        // Hydrate super/derived in both directions
+                        model.Superclass = parent;
+                        parent.DerivedClasses.Add(model);
+
+                        // Remove duplicate column definitions
                         foreach (Column column in parent.AllColumns) {
-                            Column duplicate = table.FindColumn(column.Name);
+                            Column duplicate = model.FindColumn(column.Name);
                             if (duplicate != null)
-                                table.AllColumns.Remove(duplicate);
+                                model.AllColumns.Remove(duplicate);
                         }
                     }
             }

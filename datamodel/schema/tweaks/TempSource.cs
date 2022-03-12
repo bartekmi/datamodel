@@ -34,6 +34,18 @@ namespace datamodel.schema.tweaks {
             return null;
         }
 
+        // Return an association which is exactly like 'likeThis', but for the specified owner
+        internal Association FindIncomingAssociation(string incoming, Association likeThis) {
+            foreach (Association association in Associations) {
+                if (association.OtherSide == incoming &&
+                    association.OtherMultiplicity == likeThis.OtherMultiplicity &&
+                    association.OwnerMultiplicity == likeThis.OwnerMultiplicity &&
+                    association.OwnerSide == likeThis.OwnerSide) 
+                    return association;
+            }
+            return null;
+        }
+
         internal Model GetModel(string qualifiedName) {
             Model model = FindModel(qualifiedName);
             if (model == null)
