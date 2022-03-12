@@ -50,6 +50,13 @@ namespace datamodel {
                     }
                 },
                 new AddBaseClassTweak() {
+                    BaseClassName = "Webhook",
+                    DerviedQualifiedNames = new string[] {
+                        "io.k8s.api.admissionregistration.v1.MutatingWebhook",
+                        "io.k8s.api.admissionregistration.v1.ValidatingWebhook",
+                    }
+                },
+                new AddBaseClassTweak() {
                     BaseClassName = "PersistentVolumeSource",
                     BaseClassDescription = "Base for (only) Persistent Volume Sources",
                     PromoteIncomingAssociations = true,
