@@ -316,13 +316,22 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
                 .SetAttrGraph("arrowtail", MultiplicityToArrowName(association.OtherMultiplicity))
                 .SetAttrGraph("arrowhead", MultiplicityToArrowName(association.OwnerMultiplicity))
-                .SetAttrGraph("edgetooltip", edge.Association.Description)
-                .SetAttrGraph("edgehref", edge.Association.DocUrl);
+                .SetAttrGraph("edgetooltip", ToEdgeToolTip(association))
+                .SetAttrGraph("edgehref", association.DocUrl);
 
             SetRole(edge, "taillabel", association.InterestingOtherRole);
             SetRole(edge, "headlabel", association.InterestingOwnerRole);
 
             return edge;
+        }
+
+        private string ToEdgeToolTip(Association association) {
+            StringBuilder builder = new StringBuilder();
+
+            builder.AppendLine(string.Format("{0}.{1}", association.OwnerSideModel.HumanName, association.RefColumn.HumanName));
+            builder.Append(association.Description);
+
+            return builder.ToString();
         }
 
         private void SetRole(Edge edge, string property, string role) {
