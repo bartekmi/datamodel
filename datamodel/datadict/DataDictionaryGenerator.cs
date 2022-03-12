@@ -42,6 +42,10 @@ namespace datamodel.datadict {
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
+                    new HtmlElement("span", HtmlUtils.MakeLink("/", "Index").Text, true).Class("heading1"),
+                    new HtmlElement("span").Class("gap-left-large"),
+                    new HtmlElement("span", "|").Class("heading1"),
+                    new HtmlElement("span").Class("gap-left-large"),
                     new HtmlElement("span", model.HumanName).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
                     HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
