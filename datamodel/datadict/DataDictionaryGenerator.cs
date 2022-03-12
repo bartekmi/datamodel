@@ -80,7 +80,7 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Derived Classes").Class("heading2")));
 
-            foreach (Model derived in dbModel.DerivedClasses) {
+            foreach (Model derived in dbModel.DerivedClasses.OrderBy(x => x.HumanName)) {
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(derived), derived.HumanName).Text;
 
                 HtmlBase diagramIcon = HtmlUtils.MakeIconsForDiagrams(derived, "text-icon");
@@ -146,8 +146,11 @@ namespace datamodel.datadict {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.AddTr(new HtmlTr(new HtmlTh("Incoming Associations").Class("heading2")));
+            var orderedIncoming = Schema.Singleton.IncomingRefColumns(dbModel)
+                .OrderBy(x => x.Owner.HumanName)
+                .ThenBy(x => x.HumanName);
 
-            foreach (Column column in Schema.Singleton.IncomingRefColumns(dbModel)) {
+            foreach (Column column in orderedIncoming) {
                 Model referenced = column.Owner;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0}.{1}", link, column.HumanName);
