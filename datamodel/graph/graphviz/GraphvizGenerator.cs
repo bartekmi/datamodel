@@ -256,7 +256,7 @@ namespace datamodel.graphviz {
 
             if (!string.IsNullOrEmpty(column.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                builder.AppendLine(column.DescriptionParagraphs.First());
+                builder.AppendLine(column.DescriptionParagraphs().First());
             }
 
             if (column.Enum != null) {

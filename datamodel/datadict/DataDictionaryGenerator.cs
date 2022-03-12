@@ -27,6 +27,7 @@ namespace datamodel.datadict {
             HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
 
             GenerateModelHeader(body, model);
+            GenerateModelDerivedClasses(body, model);
             GenerateModelAttributes(body, model);
             GenerateModelOutgoingAssociations(body, model);
             GenerateModelIncomingAssociations(body, model);
@@ -69,6 +70,37 @@ namespace datamodel.datadict {
             string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label),
                 isLink ? HtmlUtils.MakeLink(value, value).ToString() : value);
             table.Add(new HtmlTr(text, true));
+        }
+
+        private static void GenerateModelDerivedClasses(HtmlElement body, Model dbModel) {
+            if (dbModel.DerivedClasses.Count == 0)
+                return;
+
+            HtmlTable table = body.Add(new HtmlTable());
+
+            table.AddTr(new HtmlTr(new HtmlTh("Derived Classes").Class("heading2")));
+
+            foreach (Model derived in dbModel.DerivedClasses) {
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(derived), derived.HumanName).Text;
+
+                HtmlBase diagramIcon = HtmlUtils.MakeIconsForDiagrams(derived, "text-icon");
+
+                // Header
+                HtmlTr tr = new HtmlTr(
+                    new HtmlTd(
+                        new HtmlElement("span", link, true).Class("heading3"),
+                        new HtmlElement("span").Class("gap-left"),
+                        diagramIcon,
+                        new HtmlElement("span").Class("gap-left"),
+                        DeprecatedSpan(derived)
+                    )
+                );
+
+                table.AddTr(tr);
+
+                // Description
+                AddDescriptionRow(table, derived);
+            }
         }
 
         private static void GenerateModelAttributes(HtmlElement body, Model dbModel) {
@@ -146,13 +178,13 @@ namespace datamodel.datadict {
             }
         }
 
-        private static void AddDescriptionRow(HtmlTable table, Column column) {
+        private static void AddDescriptionRow(HtmlTable table, IDbElement element) {
             HtmlTd descriptionTd = table
                 .Add(new HtmlTr())
                 .Add(new HtmlTd())
                 .Class("text");
 
-             foreach (string paragraphText in column.DescriptionParagraphs)
+             foreach (string paragraphText in element.DescriptionParagraphs())
                 descriptionTd.Add(new HtmlP(paragraphText));
          }
 

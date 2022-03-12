@@ -17,7 +17,7 @@ namespace datamodel.schema.tweaks {
             foreach (Model derived in superclass.DerivedClasses) {
                 string[] levels = derived.Levels;
                 int last = levels.Length - 1;
-                levels[last] = levels[last] + "_" + superclass.Name;
+                levels[last] = superclass.Name;
                 derived.Levels = levels;
             }
         }

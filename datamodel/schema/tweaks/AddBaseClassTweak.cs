@@ -137,6 +137,7 @@ namespace datamodel.schema.tweaks {
                     // of the association from the first instance of the derived class 
                     assocToFirst.OtherSide = baseClass.QualifiedName;   // "Donate" assoc to first to the base class
                     assocToFirst.OtherRole = null;                      // Role no longer specific to first, so blank it out
+                    assocToFirst.Description = "This association was added artificially - all derived classes had a similar one.";
                     foreach (Association assoc in peerAssociations)     // Remove everyone else's
                         source.RemoveAssociation(assoc);
                 }

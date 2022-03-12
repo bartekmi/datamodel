@@ -22,13 +22,6 @@ namespace datamodel.schema {
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
         public bool IsRef { get { return ReferencedModel != null; } }
         public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
-        public string[] DescriptionParagraphs {
-            get {
-                if (string.IsNullOrWhiteSpace(Description))
-                    return new string[0];
-                return Description.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-            }
-        }
 
         // Rehydrated
         public bool IsPolymorphicId { get; internal set; }
