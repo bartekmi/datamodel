@@ -58,5 +58,15 @@ namespace datamodel.schema.tweaks {
         public void SetModels(IEnumerable<Model> models) {
             Models = models.ToDictionary(x => x.QualifiedName);
         }
+
+        public void AddModel(Model model) {
+            if (Models.ContainsKey(model.QualifiedName))
+                throw new Exception("Model already exists: " + model.QualifiedName);
+            Models[model.QualifiedName] = model;
+        }
+
+        public void RemoveAssociation(Association assoc) {
+            Associations.Remove(assoc);
+        }
     }
 }

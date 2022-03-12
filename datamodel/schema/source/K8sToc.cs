@@ -49,7 +49,7 @@ namespace datamodel.schema.source {
                     Model model = source.FindModel(qualifiedName);
 
                     if (model != null)
-                        foreach (Model toAdd in model.SelfAndDescendents())
+                        foreach (Model toAdd in model.SelfAndConnected())
                             models.Add(toAdd);
                 }
 

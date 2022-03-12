@@ -42,10 +42,15 @@ namespace datamodel {
 
             source.Tweaks = new List<Tweak>() {
                 new FilterOldApiVersionsTweak(),
-                new InheritanceTweak() {
-                    ParentQualifiedName = "io.k8s.api.core.v1.Container",
-                    DerviedQualifiedName = "io.k8s.api.core.v1.EphemeralContainer",
+                new AddBaseClassTweak() {
+                    BaseClassName = "AbstractContainer",
+                    DerviedQualifiedNames = new string[] {
+                        "io.k8s.api.core.v1.Container",
+                        "io.k8s.api.core.v1.EphemeralContainer",
+                    }
                 },
+
+                // Post-hydration
                 new K8sTocTweak(),
             };
 
@@ -57,9 +62,6 @@ namespace datamodel {
             schema.BoringProperties = new string[] {
                 "apiVersion", "kind"
             };
-
-            Level1Info.AssignColor("files", "skyblue");
-            Level1Info.AssignColor("run", "lightsalmon");
 
             GenerateGraphsAndDataDictionary();
         }

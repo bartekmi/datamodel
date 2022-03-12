@@ -5,7 +5,7 @@ using System.Linq;
 using datamodel.schema.source;
 
 namespace datamodel.schema.tweaks {
-    public class InheritanceTweak : Tweak {
+    public class AddInheritanceTweak : Tweak {
         public string ParentQualifiedName;
         public string DerviedQualifiedName;
 
@@ -17,12 +17,12 @@ namespace datamodel.schema.tweaks {
 
             // Remove every Prop/Column from derived that exists in parent
             foreach (Column propInDerived in derived.AllColumns.ToList()) {
-                Column propInParent = parent.FindColumn(propInDerived.Name);
-                if (propInParent != null && propInDerived.DataType == propInParent.DataType)
+                Column propInParent = parent.FindColumn(propInDerived.Name, propInDerived.DataType);
+                if (propInParent != null)
                     derived.AllColumns.Remove(propInDerived);
             }
 
-            // Remove every duplicate outgoing association from Derived
+            // Remove every duplicate owned association from Derived
             foreach (Association derivedAssoc in source.Associations.ToList()) {
                 if (derivedAssoc.OwnerSide == derived.QualifiedName) {
                     Association parentAssoc = source.FindOwnedAssociation(parent.QualifiedName, derivedAssoc);

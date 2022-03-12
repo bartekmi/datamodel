@@ -67,6 +67,18 @@ namespace datamodel.schema {
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
         public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
+        // TODO: Refactor code-base so this is the source of truth - no more assumption of max 3 levels
+        public string[] Levels { 
+            get {
+                return new string[] {Level1, Level2, Level3}.Where(x => x != null).ToArray();
+            }
+            set {
+                Level1 = value.Length > 0 ? value[0] : null;
+                Level2 = value.Length > 1 ? value[1] : null;
+                Level3 = value.Length > 2 ? value[2] : null;
+            }
+        }
+
         [JsonIgnore]
         public List<Association> RefAssociations {
             get { return Schema.Singleton.RefAssociationsForModel(this); }
@@ -94,24 +106,37 @@ namespace datamodel.schema {
             });
         }
 
-        public Column FindColumn(string dbColumnName) {
-            return AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
+        public Column FindColumn(string dbColumnName, string dataType = null) {
+            Column column = AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
+            if (dataType != null)
+                return column.DataType == dataType ? column : null;
+
+            return column;
         }
 
-        public IEnumerable<Model> SelfAndDescendents() {
+        public void RemoveColumn(string dbColumnName) {
+            Column column = FindColumn(dbColumnName);
+            if (column != null)
+                AllColumns.Remove(column);
+        }
+
+        public IEnumerable<Model> SelfAndConnected() {
             HashSet<Model> models = new HashSet<Model>();
-            SelfAndAllDescendentsRecursive(models, this);
+            SelfAndAllConnectedRecursive(models, this);
             return models;
         }
 
-        private void SelfAndAllDescendentsRecursive(HashSet<Model> models, Model model) {
+        private void SelfAndAllConnectedRecursive(HashSet<Model> models, Model model) {
             if (models.Contains(model))
                 return;
 
             models.Add(model);
 
             foreach (Column column in model.RefColumns)
-                SelfAndAllDescendentsRecursive(models, column.ReferencedModel);
+                SelfAndAllConnectedRecursive(models, column.ReferencedModel);
+
+            if (model.Superclass != null)
+                SelfAndAllConnectedRecursive(models, model.Superclass);
         }
 
 
