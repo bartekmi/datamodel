@@ -10,6 +10,7 @@ namespace datamodel.schema {
     public class Label {
         public string Name { get; set; }
         public string Value { get; set; }
+        public bool IsUrl { get; set; }
     }
 
     public class Model : IDbElement {
@@ -69,9 +70,9 @@ namespace datamodel.schema {
         public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
 
         // TODO: Refactor code-base so this is the source of truth - no more assumption of max 3 levels
-        public string[] Levels { 
+        public string[] Levels {
             get {
-                return new string[] {Level1, Level2, Level3}.Where(x => x != null).ToArray();
+                return new string[] { Level1, Level2, Level3 }.Where(x => x != null).ToArray();
             }
             set {
                 Level1 = value.Length > 0 ? value[0] : null;
@@ -107,11 +108,19 @@ namespace datamodel.schema {
             });
         }
 
+        public void AddUrl(string name, string url) {
+            Labels.Add(new Label() {
+                Name = name,
+                Value = url,
+                IsUrl = true,
+            });
+        }
+
         public Column FindColumn(string dbColumnName, string dataType = null) {
             Column column = AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
             if (column == null)
                 return null;
-                
+
             if (dataType != null)
                 return column.DataType == dataType ? column : null;
 

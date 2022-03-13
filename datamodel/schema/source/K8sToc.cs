@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using YamlDotNet.Serialization;
 
 using datamodel.schema.tweaks;
+using datamodel.utils;
 
 namespace datamodel.schema.source {
     public class K8sTocTweak : Tweak {
@@ -21,7 +22,7 @@ namespace datamodel.schema.source {
 
         public static void AssignCoreLevel2Groups(TempSource source) {
             Toc toc = ParseYaml(TOC_URL);
-            AssignLevel2Groups(toc, source);
+            AssignLevel2_AndOfficialDocs(toc, source);
         }
 
         private static Toc ParseYaml(string url) {
@@ -33,28 +34,97 @@ namespace datamodel.schema.source {
             return toc;
         }
 
-        private static void AssignLevel2Groups(Toc toc, TempSource source) {
+        private static void AssignLevel2_AndOfficialDocs(Toc toc, TempSource source) {
             const string prefix = "io.k8s.api.core.v1.";
 
             foreach (TocPart part in toc.parts) {
-                HashSet<Model> models = new HashSet<Model>();
-
                 foreach (TocChapter chapter in part.chapters) {
+                    AddLinksToOfficialDocs(source, part, chapter);
                     string qualifiedName = prefix + chapter.name;
                     Model model = source.FindModel(qualifiedName);
 
-                    if (model != null)
-                        foreach (Model toAdd in model.SelfAndConnected())
-                            models.Add(toAdd);
-                }
-
-                // Now that we've visited all the chapters, anything in the HashSet belongs
-                // to this "part". But filter out things that are not in core.
-                foreach (Model model in models) {
-                    if (model.QualifiedName.StartsWith(prefix))
-                        model.Level2 = part.name;
+                    if (model != null) {
+                        foreach (Model include in model.SelfAndConnected())
+                            // There is some opposing forces here. We've taken the position that primary grouping is as per the
+                            // Fully Qualified Name hierarchy. However, the K8s Swagger TOC clearly violates this and puts entities
+                            // into groups from different levels in this hierarchy.
+                            if (include.QualifiedName.StartsWith(prefix))
+                                include.Level2 = part.name;
+                    }
                 }
             }
+        }
+
+        private static void AddLinksToOfficialDocs(TempSource source, TocPart part, TocChapter chapter) {
+            string url = ToChapterUrl(part, chapter);
+
+            // Main entity
+            Model mainModel = FindModel(source, chapter, chapter.name);
+            if (mainModel != null) {
+                mainModel.AddUrl("Official Kubernetes Docs", url);
+                // Console.WriteLine(url);      // Random sampled to confirm good links
+            }
+
+            // Other Definitions
+            if (chapter.otherDefinitions != null)
+                foreach (string otherDef in chapter.otherDefinitions) {
+                    Model otherModel = FindModel(source, chapter, otherDef);
+                    if (otherModel != null) {
+                        string anchoredUrl = string.Format("{0}#{1}", url, otherDef);
+                        otherModel.AddUrl("Official Kubernetes Docs", anchoredUrl);
+                        // Console.WriteLine(anchoredUrl);      // Random sampled to confirm good links
+                    }
+                }
+        }
+
+        // Example qualified names:
+        // 
+        // io.k8s.api.core.v1.Pod
+        // io.k8s.api.discovery.v1.EndpointSlice
+        // io.k8s.api.autoscaling.v2.HorizontalPodAutoscaler
+        //
+        // Examples of chapter.group field:
+        //
+        // <blank>                          => io.k8s.api.core.v1.Pod
+        // discovery.k8s.io                 => io.k8s.api.discovery.v1.EndpointSlice
+        // autoscaling                      => io.k8s.api.autoscaling.v2.HorizontalPodAutoscaler
+        // rbac.authorization.k8s.io        => io.k8s.api.rbac.v1.ClusterRole
+        // flowcontrol.apiserver.k8s.io     => io.k8s.api.flowcontrol.v1beta2.FlowSchema
+        // apiextensions.k8s.io             => io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.CustomResourceDefinition
+        private static Model FindModel(TempSource source, TocChapter chapter, string name) {
+            string group = chapter.group;
+            string version = chapter.version;
+
+            string fourthPart;
+
+            if (group == null || group == "")
+                fourthPart = "core";        // The default
+            else
+                fourthPart = group.Split('.').First();
+
+            string qualifiedName;
+            if (fourthPart == "apiextensions")
+                qualifiedName = string.Format("io.k8s.apiextensions-apiserver.pkg.apis.{0}.{1}.{2}", fourthPart, version, name);
+            else
+                qualifiedName = string.Format("io.k8s.api.{0}.{1}.{2}", fourthPart, version, name);
+
+            return source.FindModel(qualifiedName);
+        }
+
+        // The following snippet of YAML from the "Part" level...
+        // - name: Authorization Resources
+        //   chapters:
+        //   - name: LocalSubjectAccessReview
+        //     group: authorization.k8s.io
+        //     version: v1
+        //
+        // Maps to the following URL...
+        // https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/local-subject-access-review-v1/
+        private static string ToChapterUrl(TocPart part, TocChapter chapter) {
+            return string.Format("https://kubernetes.io/docs/reference/kubernetes-api/{0}/{1}-{2}/",
+                part.name.ToLower().Replace(" ", "-"),
+                NameUtils.ToHuman(chapter.name).ToLower().Replace(" ", "-"),
+                chapter.version);
         }
     }
 

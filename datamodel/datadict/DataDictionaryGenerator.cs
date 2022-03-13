@@ -60,7 +60,7 @@ namespace datamodel.datadict {
             AddLabelAndData(table, "Super-Class", model.SuperClassName);
 
             foreach (Label label in model.Labels)
-                AddLabelAndData(table, label.Name, label.Value);
+                AddLabelAndData(table, label.Name, label.Value, label.IsUrl);
 
 
             if (!string.IsNullOrEmpty(model.Description))
