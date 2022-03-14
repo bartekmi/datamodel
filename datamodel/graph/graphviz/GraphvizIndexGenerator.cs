@@ -245,16 +245,7 @@ namespace datamodel.graphviz {
             Schema schema = Schema.Singleton;
 
             foreach (HierarchyItem level in parentage) {
-                string label = null;
-                switch (level.Level) {
-                    case 1: label = schema.Level1; break;
-                    case 2: label = schema.Level2; break;
-                    case 3: label = schema.Level3; break;
-                    default:
-                        throw new Exception("Unexpected level");
-                }
-
-                label += ": ";
+                string label = schema.GetLevelName(level.Level - 1) + ": ";
 
                 table.AddTr(new HtmlTr(
                     new HtmlTd(label),

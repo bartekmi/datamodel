@@ -132,9 +132,6 @@ namespace datamodel {
             };
 
             Schema schema = Schema.CreateSchema(source);
-            schema.Level1 = "Level 1";
-            schema.Level2 = "Level 2";
-            schema.Level3 = "Level 3";
 
             schema.BoringProperties = new string[] {
                 "apiVersion", "kind"

@@ -51,11 +51,11 @@ namespace datamodel.toplevel {
                     case 0: return "All Models";
                     case 1:
                         return Name == null ?
-                            string.Format("Orphans (No {0})", schema.Level1) :
+                            string.Format("Orphans (No {0})", schema.GetLevelName(Level - 1)) :
                             Name;
                     case 2:
                         return Name == null ?
-                            string.Format("{0} (No {1})", Parent.Name, schema.Level2) :
+                            string.Format("{0} (No {1})", Parent.Name, schema.GetLevelName(Level - 1)) :
                             Name;
                     case 3: return Name;    // If this had no name, it wouldn't exist
                     default:
@@ -103,7 +103,7 @@ namespace datamodel.toplevel {
 
         public static HierarchyItem CreateHierarchyTree() {
             HierarchyItem topLevel = new HierarchyItem(null) {
-                Name = string.Format("All {0}s", Schema.Singleton.Level1),      // Note: need a proper pluralizer
+                Name = "All Models",
             };
 
             foreach (var l1_Group in Schema.Singleton.Models.GroupBy(x => x.Level1).OrderBy(x => x.Key)) {

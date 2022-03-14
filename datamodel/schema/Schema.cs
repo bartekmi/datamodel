@@ -10,10 +10,10 @@ namespace datamodel.schema {
         #region Properties and Constructor
 
         public string Title { get; private set; }
-        public string Level1 { get; set; }
-        public string Level2 { get; set; }
-        public string Level3 { get; set; }
         public string[] BoringProperties { get; set; }
+        // If set, this gives name to the different hierarchy levels.
+        // For example, in the Ruby on Rails world, this might be Team, Engine, Folder
+        public string[] LevelNames { get; set; }
 
         public HashSet<Model> Models { get; private set; }
         public List<Association> Associations { get; private set; }
@@ -71,11 +71,6 @@ namespace datamodel.schema {
                 Title = source.GetTitle(),
                 Models = models,
                 Associations = source.GetAssociations().ToList(),
-
-                // Some default values, but these can be changed
-                Level1 = "Level1",
-                Level2 = "Level2",
-                Level3 = "Level3",
             };
 
             _schema._byQualifiedName = _schema.Models.ToDictionary(x => x.QualifiedName);
@@ -217,7 +212,7 @@ namespace datamodel.schema {
         }
 
         private void RehydrateSuperAndDerivedClasses() {
-            foreach (Model model in Models) 
+            foreach (Model model in Models)
                 model.DerivedClasses = new List<Model>();
 
             foreach (Model model in Models) {
@@ -248,6 +243,20 @@ namespace datamodel.schema {
         #endregion
 
         #region Utility Methods
+
+        // -1 is root level
+        // 0 is Level 1
+        // 1 is Level 2
+        // etc...
+        public string GetLevelName(int level) {
+            if (level == -1)
+                return "All Models";
+
+            if (LevelNames != null && level < LevelNames.Length)
+                return LevelNames[level];
+
+            return "Level " + (level + 1);
+        }
 
         public bool IsInteresting(Column column) {
             if (BoringProperties == null)

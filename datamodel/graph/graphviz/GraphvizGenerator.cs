@@ -275,8 +275,8 @@ namespace datamodel.graphviz {
             StringBuilder builder = new StringBuilder();
             Schema schema = Schema.Singleton;
 
-            AddLabelToToolTip(builder, schema.Level1, model.Level1);
-            AddLabelToToolTip(builder, schema.Level2, model.Level2);
+            AddLabelToToolTip(builder, schema.GetLevelName(0), model.Level1);
+            AddLabelToToolTip(builder, schema.GetLevelName(1), model.Level2);
             AddLabelToToolTip(builder, "Name", model.Name);
 
             foreach (Label label in model.Labels)

@@ -51,9 +51,9 @@ namespace datamodel.datadict {
                     HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
                 )));
 
-            AddLabelAndData(table, schema.Level1, model.Level1);
-            AddLabelAndData(table, schema.Level2, model.Level2);
-            AddLabelAndData(table, schema.Level3, model.Level3);
+            AddLabelAndData(table, schema.GetLevelName(0), model.Level1);
+            AddLabelAndData(table, schema.GetLevelName(1), model.Level2);
+            AddLabelAndData(table, schema.GetLevelName(2), model.Level3);
 
             AddLabelAndData(table, "Name", model.Name);
             AddLabelAndData(table, "Qualified Name", model.QualifiedName);
