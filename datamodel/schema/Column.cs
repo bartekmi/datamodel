@@ -9,7 +9,6 @@ namespace datamodel.schema {
         public string Name { get; set; }
         public string DataType { get; set; }
         public bool CanBeEmpty { get; set; }
-        public string Level1 { get; set; }
         public string Description { get; set; }
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }

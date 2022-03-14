@@ -15,7 +15,7 @@ namespace datamodel.toplevel {
         private UrlService() { }     // Hide constructor
 
         public string DocUrl(Model model) {
-            return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", model.Level1, model.SanitizedQualifiedName));
+            return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", model.GetLevel(0), model.SanitizedQualifiedName));
         }
 
         // Return a list of generated graphs which contain the given model as a Core Model

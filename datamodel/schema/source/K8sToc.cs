@@ -49,7 +49,7 @@ namespace datamodel.schema.source {
                             // Fully Qualified Name hierarchy. However, the K8s Swagger TOC clearly violates this and puts entities
                             // into groups from different levels in this hierarchy.
                             if (include.QualifiedName.StartsWith(prefix))
-                                include.Level2 = part.name;
+                                include.SetLevel(1, part.name);
                     }
                 }
             }

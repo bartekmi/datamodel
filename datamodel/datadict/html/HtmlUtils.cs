@@ -40,9 +40,8 @@ namespace datamodel.datadict.html {
             string text = string.Format("{0} ({1})", graph.HumanName, graph.CoreModels.Length);
             string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
                 LINE_BREAK, graph.HumanName, graph.CoreModels.Length);
-            string color = Level1Info.GetHtmlColorForLevel1(model.Level1);
 
-            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip, color);
+            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip, model.ColorString);
 
             return link;
         }

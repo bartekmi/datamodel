@@ -35,10 +35,8 @@ namespace datamodel.schema {
         public string Version { get; set; }
         public string QualifiedNameLessVersion { get; set; }
 
-        // Three level of hierarcy... Eventually, we'd like to make depth arbitrary
-        public string Level1 { get; set; }
-        public string Level2 { get; set; }
-        public string Level3 { get; set; }
+        // These are used to group the models into a hierarchy
+        public string[] Levels { get; set; }
 
         // Description of the Model as extracted from Yaml annotation files
         public string Description { get; set; }
@@ -67,19 +65,7 @@ namespace datamodel.schema {
         public IEnumerable<Column> RefColumns { get { return AllColumns.Where(x => x.IsRef); } }
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
-        public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(Level1); } }
-
-        // TODO: Refactor code-base so this is the source of truth - no more assumption of max 3 levels
-        public string[] Levels {
-            get {
-                return new string[] { Level1, Level2, Level3 }.Where(x => x != null).ToArray();
-            }
-            set {
-                Level1 = value.Length > 0 ? value[0] : null;
-                Level2 = value.Length > 1 ? value[1] : null;
-                Level3 = value.Length > 2 ? value[2] : null;
-            }
-        }
+        public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(GetLevel(0)); } }
 
         [JsonIgnore]
         public List<Association> RefAssociations {
@@ -100,6 +86,26 @@ namespace datamodel.schema {
         }
 
         #endregion
+
+        #region Utilities
+
+        // levelIndex is zero-based
+        public string GetLevel(int levelIndex) {
+            if (Levels == null || Levels.Length <= levelIndex)
+                return null;
+            return Levels[levelIndex];
+        }
+
+        // levelIndex is zero-based
+        public void SetLevel(int levelIndex, string name) {
+            if (Levels == null || Levels.Length < levelIndex)
+                throw new Exception("Levels missing or too short");
+
+            if (Levels.Length == levelIndex)
+                Levels = Levels.Concat(new string[] { name }).ToArray();
+            else
+                Levels[levelIndex] = name;
+        }
 
         public void AddLabel(string name, string value) {
             Labels.Add(new Label() {
@@ -160,5 +166,6 @@ namespace datamodel.schema {
         public override string ToString() {
             return Name;
         }
+        #endregion
     }
 }

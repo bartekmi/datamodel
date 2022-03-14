@@ -17,7 +17,7 @@ namespace datamodel.toplevel {
         private static void CreateGraphDefinition(HierarchyItem item) {
             if (!item.IsTop || Env.GENERATE_TOP_LEVEL_GRAPH) {
                 item.Graph = new GraphDefinition() {
-                    CoreModels = item.CumulativeModels.ToArray(),
+                    CoreModels = item.Models.ToArray(),
                     NameComponents = item.CumulativeName.Skip(1).ToArray(),
                     HumanName = item.HumanName,
                 };

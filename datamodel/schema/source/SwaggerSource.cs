@@ -75,12 +75,7 @@ namespace datamodel.schema.source {
             if (_options?.BoringNameComponents != null)
                 pieces = pieces.Where(x => !_options.BoringNameComponents.Contains(x));
 
-            string[] levels = pieces.Take(pieces.Count() - 1).ToArray();
-
-            model.Level1 = levels.Length > 0 ? levels[0] : null;
-            model.Level2 = levels.Length > 1 ? levels[1] : null;
-            model.Level3 = levels.Length > 2 ? string.Join(".", levels.Skip(2)) : null;
-
+            model.Levels = pieces.Take(pieces.Count() - 1).ToArray();
             model.Name = pieces.Last();
             model.QualifiedName = qualifiedName;
             model.Description = def.description;

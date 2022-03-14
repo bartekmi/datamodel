@@ -28,10 +28,7 @@ namespace datamodel.schema.source {
                     Description = sModel.Description,
                     IsAbstract = sModel.IsAbstract,
                     SuperClassName = sModel.SuperClass,
-
-                    Level1 = sModel.Level1,
-                    Level2 = sModel.Level2,
-                    Level3 = sModel.Level3,
+                    Levels = sModel.Levels,
                 };
                 model.AllColumns = GetColumns(sModel.Properties);
                 models.Add(model);
@@ -117,9 +114,7 @@ namespace datamodel.schema.source {
         public string SuperClass;
         public bool IsAbstract;
 
-        public string Level1;
-        public string Level2;
-        public string Level3;
+        public string[] Levels;
     }
 
     public class SProperty {

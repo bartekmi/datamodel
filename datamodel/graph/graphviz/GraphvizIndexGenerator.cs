@@ -93,7 +93,7 @@ namespace datamodel.graphviz {
             // First iteration is to collect associations that should be drawn for this level and aggregate them,
             // since we don't want to draw multiple lines between same subgraphs
             foreach (HierarchyItem childItem in item.Children.Where(x => x.ShouldShowOnIndex)) {
-                foreach (Model model in childItem.CumulativeModels) {
+                foreach (Model model in childItem.Models) {
                     foreach (Association association in model.RefAssociations.Where(x => x.OtherSideModel != null)) {
                         HierarchyItem otherSide = modelToHI[association.OtherSideModel];
                         HierarchyItem otherSideSibling = otherSide.FindAncestorAtLevel(childItem.Level);
@@ -204,7 +204,7 @@ namespace datamodel.graphviz {
             };
 
             subgraph.SetAttrGraph("pencolor", "black")
-                    .SetAttrGraph("label", string.Format("{0} ({1} models)", item.HumanName, item.CumulativeModelCount))
+                    .SetAttrGraph("label", string.Format("{0} ({1} models)", item.HumanName, item.ModelCount))
                     .SetAttrGraph("href", item.Graph.SvgUrl)
                     .SetAttrGraph("fontname", "Helvetica");
 
@@ -255,14 +255,14 @@ namespace datamodel.graphviz {
 
             table.AddTr(new HtmlTr(
                 new HtmlTd(""),
-                new HtmlTd(string.Format("{0} Models", item.CumulativeModelCount))
+                new HtmlTd(string.Format("{0} Models", item.ModelCount))
             ));
 
             return table;
         }
 
         private static string CreateNodeToolTip(HierarchyItem item) {
-            IEnumerable<string> models = item.CumulativeModels
+            IEnumerable<string> models = item.Models
                 .OrderBy(x => x.HumanName)
                 .Select(x => string.Format("{0} {1}", HtmlUtils.ASTERISK, x.HumanName));
 
@@ -275,7 +275,7 @@ namespace datamodel.graphviz {
         #region Utils
 
         private static bool ShowAsSubgraph(HierarchyItem item) {
-            return item.Children.Any(x => x.CumulativeModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE);
+            return item.Children.Any(x => x.ModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE);
         }
 
         private static string HI_ToNodeId(HierarchyItem item) {

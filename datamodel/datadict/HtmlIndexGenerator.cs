@@ -63,7 +63,7 @@ namespace datamodel.datadict {
             HtmlElement itemHtml = new HtmlElement("li");
             parent.Add(itemHtml);
 
-            string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.CumulativeModelCount);
+            string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.ModelCount);
 
             if (itemHier.HasDiagram) {
                 string color = itemHier.Level == 1 ? itemHier.ColorString : null;

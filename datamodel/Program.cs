@@ -170,19 +170,8 @@ namespace datamodel {
         private static void ApplyGraphDefsToSchema(List<GraphDefinition> graphDefs) {
             foreach (GraphDefinition graphDef in graphDefs) {
                 string[] nameComponents = graphDef.NameComponents;
-                if (nameComponents.Length > 1) {
-                    // It is expected that if overriding name components are provided at all, they would be:
-                    // Level1, Level2, [Level3]
-                    string level1 = nameComponents[0];
-                    string level2 = nameComponents[1];
-                    string level3 = nameComponents.Length >= 3 ? nameComponents[2] : null;
-
-                    foreach (Model model in graphDef.CoreModels) {
-                        model.Level1 = level1;
-                        model.Level2 = level2;
-                        model.Level3 = level3;
-                    }
-                }
+                    foreach (Model model in graphDef.CoreModels) 
+                        model.Levels = graphDef.NameComponents;
             }
         }
     }

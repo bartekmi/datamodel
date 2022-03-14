@@ -14,11 +14,10 @@ namespace datamodel.toplevel {
 
         // The name of the Hierarchy Item - i.e. Level1, Level2, Level3
         public string Name { get; private set; }
-        public bool IsUncategorizedCatchall { get; set; }  // E.g. items with no Level1 label
         public GraphDefinition Graph { get; set; }
 
-        // List of Models - for Leaf Items only
-        public Model[] Models { get; set; }
+        // List of Models for this node
+        public IEnumerable<Model> Models { get; set; }
 
         // Derived
         public bool IsLeaf { get { return Children.Count == 0; } }
@@ -27,9 +26,6 @@ namespace datamodel.toplevel {
         public string SvgUrl { get { return Graph == null ? null : Graph.SvgUrl; } }
         public bool HasDiagram { get { return SvgUrl != null; } }
         public int Level { get { return IsTop ? 0 : Parent.Level + 1; } }
-        public IEnumerable<Model> CumulativeModels {
-            get { return IsLeaf ? Models : Children.SelectMany(x => x.CumulativeModels); }
-        }
         public IEnumerable<string> CumulativeName {
             get {
                 IEnumerable<string> asEnumerable = new string[] { Name };
@@ -39,8 +35,8 @@ namespace datamodel.toplevel {
             }
         }
         public string UniqueName { get { return string.Join("_", CumulativeName); } }
-        public int CumulativeModelCount { get { return CumulativeModels.Count(); } }
-        public bool ShouldShowOnIndex { get { return CumulativeModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE || Level == 1; } }
+        public int ModelCount { get { return Models.Count(); } }
+        public bool ShouldShowOnIndex { get { return ModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE || Level == 1; } }
         public bool ShouldShowOnIndexAsNode { get { return ShouldShowOnIndex && !Children.Any(x => x.ShouldShowOnIndex); } }
 
         public string HumanName {
@@ -104,36 +100,31 @@ namespace datamodel.toplevel {
         public static HierarchyItem CreateHierarchyTree() {
             HierarchyItem topLevel = new HierarchyItem(null) {
                 Name = "All Models",
+                Models = Schema.Singleton.Models,
             };
 
-            foreach (var l1_Group in Schema.Singleton.Models.GroupBy(x => x.Level1).OrderBy(x => x.Key)) {
-                HierarchyItem l1_Item = new HierarchyItem(topLevel) {
-                    Name = l1_Group.Key,
-                    IsUncategorizedCatchall = l1_Group.Key == null,
-                };
-                topLevel.Children.Add(l1_Item);
-
-                foreach (var l2_Group in l1_Group.GroupBy(x => x.Level2).OrderBy(x => x.Key)) {
-
-                    HierarchyItem l2_Item = new HierarchyItem(l1_Item) {
-                        Name = l2_Group.Key,
-                        IsUncategorizedCatchall = l2_Group.Key == null,
-                    };
-                    l1_Item.Children.Add(l2_Item);
-
-                    foreach (var l3_Group in l2_Group.GroupBy(x => x.Level3).OrderBy(x => x.Key)) {
-                        HierarchyItem l3_Item = new HierarchyItem(l2_Item) {
-                            Name = l3_Group.Key,
-                            IsUncategorizedCatchall = l3_Group.Key == null,
-                            Models = l3_Group.ToArray(),
-                        };
-                        l2_Item.Children.Add(l3_Item);
-                    }
-                }
-            }
+            CreateHierarchyTreeRecursive(topLevel, Schema.Singleton.Models, 0);
 
             topLevel.AbsorbRedundantChildren();
             return topLevel;
+        }
+
+        private static void CreateHierarchyTreeRecursive(HierarchyItem item, IEnumerable<Model> models, int level) {
+            var groups = models.GroupBy(x => x.GetLevel(level)).OrderBy(x => x.Key);
+            
+            // There is only a single group and there is no label levels at this level... No point going further.
+            if (groups.Count() == 1 && groups.Single().Key == null)
+                return;
+
+            foreach (var group in groups) {
+                HierarchyItem childItem = new HierarchyItem(item) {
+                    Name = group.Key,
+                    Models = group,
+                };
+                item.Children.Add(childItem);
+
+                CreateHierarchyTreeRecursive(childItem, group, level + 1);
+            }
         }
 
         // We should never have a situation where parent has only one child... The

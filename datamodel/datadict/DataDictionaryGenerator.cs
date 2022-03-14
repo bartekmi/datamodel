@@ -12,7 +12,7 @@ namespace datamodel.datadict {
 
         public static void Generate(string rootDir, IEnumerable<Model> models) {
             foreach (Model model in models) {
-                string dir = model.Level1 == null ? rootDir : Path.Combine(rootDir, model.Level1);
+                string dir = model.GetLevel(0) == null ? rootDir : Path.Combine(rootDir, model.GetLevel(0));
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 
@@ -51,9 +51,8 @@ namespace datamodel.datadict {
                     HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
                 )));
 
-            AddLabelAndData(table, schema.GetLevelName(0), model.Level1);
-            AddLabelAndData(table, schema.GetLevelName(1), model.Level2);
-            AddLabelAndData(table, schema.GetLevelName(2), model.Level3);
+            for (int ii = 0; ii < model.Levels.Length; ii++)
+                AddLabelAndData(table, schema.GetLevelName(ii), model.GetLevel(ii));
 
             AddLabelAndData(table, "Name", model.Name);
             AddLabelAndData(table, "Qualified Name", model.QualifiedName);
