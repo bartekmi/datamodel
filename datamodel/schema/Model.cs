@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 using datamodel.utils;
 using datamodel.metadata;
+using datamodel.toplevel;
 
 namespace datamodel.schema {
     public class Label {
@@ -44,12 +45,10 @@ namespace datamodel.schema {
         // Is this model Deprecated - as per Yaml annotation file
         public bool Deprecated { get; set; }
 
-        // Arbitrary user-defined labels
-        public List<Label> Labels = new List<Label>();
-
         // Associations
         public List<Column> AllColumns { get; internal set; }
-
+        public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
+        public HierarchyItem LeafHierachyItem {get;set;}
 
         #region Re-Hydrated
         public Model Superclass { get; set; }
@@ -65,7 +64,7 @@ namespace datamodel.schema {
         public IEnumerable<Column> RefColumns { get { return AllColumns.Where(x => x.IsRef); } }
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
-        public string ColorString { get { return Level1Info.GetHtmlColorForLevel1(GetLevel(0)); } }
+        public string ColorString { get; internal set; }
 
         [JsonIgnore]
         public List<Association> RefAssociations {

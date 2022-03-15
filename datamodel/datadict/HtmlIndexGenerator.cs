@@ -59,19 +59,18 @@ namespace datamodel.datadict {
                 AddChildrenToList(item, itemHier);
         }
 
-        private static HtmlElement AddHierarchyToParent(HtmlElement parent, HierarchyItem itemHier) {
-            HtmlElement itemHtml = new HtmlElement("li");
-            parent.Add(itemHtml);
+        private static HtmlElement AddHierarchyToParent(HtmlElement parent, HierarchyItem hierItem) {
+            HtmlElement htmlItem = new HtmlElement("li");
+            parent.Add(htmlItem);
 
-            string text = string.Format("{0} ({1} Models)", itemHier.HumanName, itemHier.ModelCount);
+            string text = string.Format("{0} ({1} Models)", hierItem.HumanName, hierItem.ModelCount);
 
-            if (itemHier.HasDiagram) {
-                string color = itemHier.Level == 1 ? itemHier.ColorString : null;
-                itemHtml.Add(HtmlUtils.MakeLink(itemHier.SvgUrl, text, null, null, color));
-            } else
-                itemHtml.Text = text;
+            if (hierItem.HasDiagram) 
+                htmlItem.Add(HtmlUtils.MakeLink(hierItem.SvgUrl, text, null, null, hierItem.ColorString));
+            else
+                htmlItem.Text = text;
 
-            return itemHtml;
+            return htmlItem;
         }
 
         private static void AddChildrenToList(HtmlElement list, HierarchyItem itemHier) {

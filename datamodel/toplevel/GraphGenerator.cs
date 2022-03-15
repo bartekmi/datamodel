@@ -20,6 +20,7 @@ namespace datamodel.toplevel {
                     CoreModels = item.Models.ToArray(),
                     NameComponents = item.CumulativeName.Skip(1).ToArray(),
                     HumanName = item.HumanName,
+                    ColorString = item.ColorString,
                 };
                 UrlService.Singleton.AddGraph(item.Graph);
             }

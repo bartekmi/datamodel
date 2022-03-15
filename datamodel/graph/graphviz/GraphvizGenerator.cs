@@ -276,7 +276,8 @@ namespace datamodel.graphviz {
             Schema schema = Schema.Singleton;
 
             for (int ii = 0; ii < model.Levels.Length; ii++)
-                AddLabelToToolTip(builder, schema.GetLevelName(0), model.GetLevel(ii));
+                AddLabelToToolTip(builder, schema.GetLevelName(ii), model.GetLevel(ii));
+            builder.AppendLine(HtmlUtils.LINE_BREAK);
 
             AddLabelToToolTip(builder, "Name", model.Name);
 

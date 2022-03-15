@@ -41,7 +41,7 @@ namespace datamodel.datadict.html {
             string toolTip = string.Format("Go to diagram which contains this Model...{0}Title: {1}{0}Number of Models: {2}",
                 LINE_BREAK, graph.HumanName, graph.CoreModels.Length);
 
-            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip, model.ColorString);
+            HtmlBase link = MakeLink(graph.SvgUrl, text, cssClass, toolTip, graph.ColorString);
 
             return link;
         }

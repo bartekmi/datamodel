@@ -19,7 +19,6 @@ namespace datamodel.metadata {
 
     // This class encapsulates specifis about a particular diagram/graph. It contains things that do not 
     // belong in the schema itself. Examples:
-    // * Color assignments
     // * Extra tables to bring in from outside
     // * Rules for which tables or columns to include or omit
     // The intention is that these definitions will eventually be read from a yaml config file.
@@ -51,12 +50,15 @@ namespace datamodel.metadata {
         // Human-friendly name of the Graph
         public string HumanName { get; set; }
 
+        // Color assigned to this graph (e.g. when showing on "goto" buttons)
+        public string ColorString { get; set; }
+
         // Derived
         public string FullyQualifiedName {      // Used for both filenames and URL's
-            get { 
+            get {
                 if (NameComponents.Length == 0)
                     return "all-models";
-                return NameUtils.CompoundToSafe(NameComponents); 
+                return NameUtils.CompoundToSafe(NameComponents);
             }
         }
         public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", FullyQualifiedName)); } }

@@ -155,6 +155,7 @@ namespace datamodel {
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"), "/assets");
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
+            HierarchyItemInfo.AssignColors(topLevel);
             GraphGenerator.CreateGraphDefinitions(topLevel);
             GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
 

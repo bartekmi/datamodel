@@ -15,6 +15,7 @@ namespace datamodel.toplevel {
         // The name of the Hierarchy Item - i.e. Level1, Level2, Level3
         public string Name { get; private set; }
         public GraphDefinition Graph { get; set; }
+        public string ColorString { get; set; }       // Color associated with this hierarchy item
 
         // List of Models for this node
         public IEnumerable<Model> Models { get; set; }
@@ -34,10 +35,10 @@ namespace datamodel.toplevel {
                     Parent.CumulativeName.Concat(asEnumerable);
             }
         }
+        public bool HasColor { get { return ColorString != null; } }
         public string UniqueName { get { return string.Join("_", CumulativeName); } }
         public int ModelCount { get { return Models.Count(); } }
         public bool ShouldShowOnIndex { get { return ModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE || Level == 1; } }
-        public bool ShouldShowOnIndexAsNode { get { return ShouldShowOnIndex && !Children.Any(x => x.ShouldShowOnIndex); } }
 
         public string HumanName {
             get {
@@ -57,12 +58,6 @@ namespace datamodel.toplevel {
                     default:
                         throw new Exception("Unexpected Level: " + Level);
                 }
-            }
-        }
-        public string ColorString {
-            get {
-                HierarchyItem level1_Item = ParentAtLevel(1);
-                return Level1Info.GetHtmlColorForLevel1(level1_Item.Name);
             }
         }
 
@@ -86,10 +81,6 @@ namespace datamodel.toplevel {
             return Parent.FindAncestorAtLevel(level);
         }
 
-        public override string ToString() {
-            return HumanName;
-        }
-
         // Utility method to apply <action> recursively to all items
         public static void Recurse(HierarchyItem item, Action<HierarchyItem> action) {
             action(item);
@@ -97,6 +88,15 @@ namespace datamodel.toplevel {
                 Recurse(child, action);
         }
 
+        // Recursively, find all descendents, not including "this"
+        public HashSet<HierarchyItem> AllDescendents() {
+            HashSet<HierarchyItem> all = new HashSet<HierarchyItem>();
+            HierarchyItem.Recurse(this, x => all.Add(x));
+            all.Remove(this);
+            return all;
+        }
+
+        #region Create the Hierarchy
         public static HierarchyItem CreateHierarchyTree() {
             HierarchyItem topLevel = new HierarchyItem(null) {
                 Name = "All Models",
@@ -111,10 +111,13 @@ namespace datamodel.toplevel {
 
         private static void CreateHierarchyTreeRecursive(HierarchyItem item, IEnumerable<Model> models, int level) {
             var groups = models.GroupBy(x => x.GetLevel(level)).OrderBy(x => x.Key);
-            
+
             // There is only a single group and there is no label levels at this level... No point going further.
-            if (groups.Count() == 1 && groups.Single().Key == null)
+            if (groups.Count() == 1 && groups.Single().Key == null) {
+                foreach (Model model in models)
+                    model.LeafHierachyItem = item;
                 return;
+            }
 
             foreach (var group in groups) {
                 HierarchyItem childItem = new HierarchyItem(item) {
@@ -141,13 +144,10 @@ namespace datamodel.toplevel {
             foreach (HierarchyItem child in Children)
                 child.AbsorbRedundantChildren();
         }
+        #endregion
 
-        public HierarchyItem ParentAtLevel(int level) {
-            if (level > Level)
-                return null;
-            if (Level == level)
-                return this;
-            return Parent.ParentAtLevel(level);
+        public override string ToString() {
+            return HumanName;
         }
 
         public static void DebugPrint(HierarchyItem item, int indent = 0) {
