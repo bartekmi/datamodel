@@ -117,6 +117,39 @@ namespace datamodel {
                         "io.k8s.api.core.v1.VsphereVirtualDiskVolumeSource",
                     }
                 },
+                new AddBaseClassTweak() {
+                    BaseClassName = "AbstractMetricSource",
+                    BaseClassDescription = "Base for Metric Sources",
+                    PromoteIncomingAssociations = true,
+                    DerviedQualifiedNames = new string[] {
+                        "io.k8s.api.autoscaling.v2.ContainerResourceMetricSource",
+                        "io.k8s.api.autoscaling.v2.ResourceMetricSource",
+                        "io.k8s.api.autoscaling.v2.ExternalMetricSource",
+                        "io.k8s.api.autoscaling.v2.PodsMetricSource",
+                        "io.k8s.api.autoscaling.v2.ObjectMetricSource",
+                    }
+                },
+                new AddBaseClassTweak() {
+                    BaseClassName = "AbstractMetricStatus",
+                    BaseClassDescription = "Base for Metric Statuses",
+                    PromoteIncomingAssociations = true,
+                    DerviedQualifiedNames = new string[] {
+                        "io.k8s.api.autoscaling.v2.ContainerResourceMetricStatus",
+                        "io.k8s.api.autoscaling.v2.ResourceMetricStatus",
+                        "io.k8s.api.autoscaling.v2.ExternalMetricStatus",
+                        "io.k8s.api.autoscaling.v2.PodsMetricStatus",
+                        "io.k8s.api.autoscaling.v2.ObjectMetricStatus",
+                    }
+                },
+                new AddBaseClassTweak() {
+                    BaseClassName = "AbstractSecurityContext",
+                    BaseClassDescription = "Base for Security Context and Pod Security Context",
+                    PromoteIncomingAssociations = true,
+                    DerviedQualifiedNames = new string[] {
+                        "io.k8s.api.core.v1.SecurityContext",
+                        "io.k8s.api.core.v1.PodSecurityContext",
+                    }
+                },
             };
             source.PostHydrationTweaks = new List<Tweak>() {
                 new K8sTocTweak(),

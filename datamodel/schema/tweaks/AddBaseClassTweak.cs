@@ -182,7 +182,8 @@ namespace datamodel.schema.tweaks {
                 builder.AppendLine();
             }
 
-            builder.Append("This class was added artificially to simplify the diagram");
+            builder.AppendLine("This class was added artificially to simplify the diagram");
+            builder.AppendLine(string.Format("{0} derived classes exist", DerviedQualifiedNames.Length));
 
             return builder.ToString();
         }
