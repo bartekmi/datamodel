@@ -26,8 +26,6 @@ namespace datamodel {
         // Generate a graph for the top level of the hierarchy?
         public static bool GENERATE_TOP_LEVEL_GRAPH;
 
-        // Minimum number of models in the graph index before creating a sub-graph
-        public static int MIN_MODELS_TO_SHOW_AS_NODE;
 
         #region Windows
         private static void ConfigureWindows() {
@@ -37,7 +35,6 @@ namespace datamodel {
             GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";
             HTTP_ROOT = "";
             GENERATE_TOP_LEVEL_GRAPH = false;
-            MIN_MODELS_TO_SHOW_AS_NODE = 1;
         }
         #endregion
 

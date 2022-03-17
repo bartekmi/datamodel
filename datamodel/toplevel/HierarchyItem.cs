@@ -17,7 +17,7 @@ namespace datamodel.toplevel {
         public GraphDefinition Graph { get; set; }
         public string ColorString { get; set; }       // Color associated with this hierarchy item
 
-        // List of Models for this node
+        // Complete (cumulative) list of Models for this node, including models of potential children
         public IEnumerable<Model> Models { get; set; }
 
         // Derived
@@ -38,7 +38,6 @@ namespace datamodel.toplevel {
         public bool HasColor { get { return ColorString != null; } }
         public string UniqueName { get { return string.Join("_", CumulativeName); } }
         public int ModelCount { get { return Models.Count(); } }
-        public bool ShouldShowOnIndex { get { return ModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE || Level == 1; } }
 
         public string HumanName {
             get {

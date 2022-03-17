@@ -13,109 +13,92 @@ namespace datamodel.graphviz {
     // This class generates the index in the form of a Graphviz graph
     // The particulars:
     // - Use the same hierarchy tree as for generating the HTML index.
-    // - Put a lower limit on nodes that have too few leaf children to avoid cluttering the graph
-    // - Use a subgraph for each nested level
+    // - To limit clutter, only show nodes of color
     // - Nodes:
-    //      - Name of the node: Level1, Leve2, Level3
-    //          - Links to diagram
-    //          - Tooltip contains list of leaf nodes (by human name, alphabetical)
-    //      - Type of node (Level1, Leve2, Level3)
-    //      - Leaf count
-    //      - (NTH) Background color according to Level1
+    //      - Name of the node at each level
+    //      - Link to associate diagram
+    //      - Node count
+    //      - Set color as per HierarchyItem
+    //      - Tooltip contains list of Models
     // - Edges:
-    //      - Link all entities that have associations of any kind
-    //      - Links are at the highest level possible (a link would never go through a bounding-box of its sub-graph) 
-    //      - (NTH) Line thickness corresponds to association count
-    //      - (NTH) Direction corresponds to Ref direction. Can have arrow on both ends.
-    //      - (NTH) Link tool-tip lists associations
+    //      - Link nodes that have associations
+    //      - Line thickness corresponds to association count
+    //      - Direction corresponds to Owner direction. Can have arrow on both ends.
+    //      - Link tool-tip lists associations
     public static class GraphvizIndexGenerator {
-
 
         #region Top Level
         public static void GenerateIndex(HierarchyItem root) {
 
             // HierarchyItem.DebugPrint(root);
 
-            Dictionary<Model, HierarchyItem> modelToHI = new Dictionary<Model, HierarchyItem>();
-            HierarchyItem.Recurse(root, (hi) => {
-                if (hi.IsLeaf)
-                    foreach (Model model in hi.Models)
-                        modelToHI[model] = hi;
-            });
-
             Graph graph = new Graph()
-                .SetAttrGraph("compound", true)
                 .SetAttrGraph("pad", "0.5")
-                .SetAttrGraph("K", "0.02")          // Reduce from default 0.3 to try to make graph tighter
-                .SetAttrGraph("nodesep", "1")
-                .SetAttrGraph("ranksep", "1")
                 .SetAttrGraph("overlap", "false")
                 .SetAttrGraph("notranslate", true);
 
 
-            // Note that top-level children are treated differently, in that a subgraph
-            // is always created, regadless of number of child models
-            foreach (HierarchyItem child in root.Children)
-                GenerateIndexRecursive(modelToHI, graph, child);
-            AddAssociations(modelToHI, graph, root);    // Edges for top-level graph
+            AddNodesRecursive(graph, root);
+            AddAssociations(graph);    // Edges for top-level graph
 
 
             string baseName = "index";
             GraphvizRunner.CreateDotAndRun(graph, baseName, RenderingStyle.Fdp);
         }
 
-        private static void GenerateIndexRecursive(
-            Dictionary<Model, HierarchyItem> modelToHI,
-            GraphBase parent,
-            HierarchyItem childItem) {
+        private static void AddNodesRecursive(
+            Graph graph,
+            HierarchyItem hItem) {
 
-            if (ShowAsSubgraph(childItem)) {
-                Subgraph subgraph = ToSubgraph(childItem);
-                parent.AddSubgraph(subgraph);
-                foreach (HierarchyItem grandchild in childItem.Children)
-                    if (grandchild.ShouldShowOnIndex)
-                        GenerateIndexRecursive(modelToHI, subgraph, grandchild);
-                AddAssociations(modelToHI, subgraph, childItem);    // Edges for subgraph
-            } else {
-                parent.AddNode(ToNode(childItem));
-            }
+            if (hItem.ColorString != null)
+                graph.AddNode(ToNode(hItem));
+
+            foreach (HierarchyItem grandchild in hItem.Children)
+                AddNodesRecursive(graph, grandchild);
         }
         #endregion
 
         #region Associations
-        private static void AddAssociations(
-            Dictionary<Model, HierarchyItem> modelToHI,
-            GraphBase graph,
-            HierarchyItem item) {
 
+        private static void AddAssociations(Graph graph) {
             Dictionary<string, AggregatedAssociation> aggregatedAssociations = new Dictionary<string, AggregatedAssociation>();
 
-            // First iteration is to collect associations that should be drawn for this level and aggregate them,
-            // since we don't want to draw multiple lines between same subgraphs
-            foreach (HierarchyItem childItem in item.Children.Where(x => x.ShouldShowOnIndex)) {
-                foreach (Model model in childItem.Models) {
-                    foreach (Association association in model.RefAssociations.Where(x => x.OtherSideModel != null)) {
-                        HierarchyItem otherSide = modelToHI[association.OtherSideModel];
-                        HierarchyItem otherSideSibling = otherSide.FindAncestorAtLevel(childItem.Level);
-                        if (otherSideSibling == null ||                      // No sibling
-                            otherSideSibling.Parent != childItem.Parent ||   // Other side not in direct parent
-                            otherSideSibling == childItem ||                 // Other side in same subgraph
-                            !otherSideSibling.ShouldShowOnIndex)             // Too few models to bother showing
-                            continue;
+            // First, iterate all associations and aggregate associations between colored HierarchyItems
+            foreach (Association association in Schema.Singleton.Associations) {
+                HierarchyItem from = FindColoredAncestor(association.OwnerSideModel);
+                HierarchyItem to = FindColoredAncestor(association.OtherSideModel);
 
-                        string key = AggregatedAssociation.CreateKey(childItem, otherSideSibling);
-                        if (!aggregatedAssociations.TryGetValue(key, out AggregatedAssociation aa)) {
-                            aa = new AggregatedAssociation();
-                            aggregatedAssociations[key] = aa;
-                        }
-                        aa.AddAssociation(association, childItem, otherSideSibling);
-                    }
+                if (from == null || to == null || from == to)
+                    continue;
+
+                string key = AggregatedAssociation.CreateKey(from, to);
+                if (!aggregatedAssociations.TryGetValue(key, out AggregatedAssociation aa)) {
+                    aa = new AggregatedAssociation() {
+                        From = from,
+                        To = to,
+                    };
+                    aggregatedAssociations[key] = aa;
                 }
+                aa.AddAssociation(association, from, to);
             }
 
-            // Second iteration is to actually add the Edges
+            // Second, actually add the Edges
             foreach (AggregatedAssociation aa in aggregatedAssociations.Values)
                 graph.AddEdge(ToEdge(aa));
+        }
+
+        private static HierarchyItem FindColoredAncestor(Model model) {
+            if (model == null)
+                return null;
+
+            HierarchyItem item = model.LeafHierachyItem;
+            while (item != null) {
+                if (item.ColorString != null)
+                    return item;
+                item = item.Parent;
+            }
+
+            return null;
         }
 
         private static Edge ToEdge(AggregatedAssociation aa) {
@@ -133,9 +116,8 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("color", GetColorForAssociationCount(aa.Associations.Count))
                 .SetAttrGraph("arrowtail", aa.IncludeReverseArrow ? "normal" : "none");
 
-            if (ShowAsSubgraph(aa.From))
-                edge.SetAttrGraph("ltail", HI_ToNodeId(aa.From));
-            if (ShowAsSubgraph(aa.To))
+            edge.SetAttrGraph("ltail", HI_ToNodeId(aa.From));
+            if (aa.IncludeReverseArrow)
                 edge.SetAttrGraph("lhead", HI_ToNodeId(aa.To));
 
             return edge;
@@ -163,8 +145,8 @@ namespace datamodel.graphviz {
             var groups = aa.Associations.GroupBy(x => x.ToString()).ToDictionary(x => x.Key);
             IEnumerable<string> associations = aa.Associations
                 .OrderBy(x => x.ToString())
-                .Select(x => string.Format("{0} {1}{2} => {3}", 
-                    HtmlUtils.ASTERISK, 
+                .Select(x => string.Format("{0} {1}{2} => {3}",
+                    HtmlUtils.ASTERISK,
                     x.OwnerSideModel.HumanName,
                     groups[x.ToString()].Count() > 1 ? string.Format(" ({0})", x.OtherRole) : "",  // Disambiguate identical model pairs
                     x.OtherSideModel.HumanName));
@@ -182,10 +164,7 @@ namespace datamodel.graphviz {
 
             internal void AddAssociation(Association association, HierarchyItem from, HierarchyItem to) {
                 Associations.Add(association);
-                if (From == null) {
-                    From = from;
-                    To = to;
-                } else if (From == to)
+                if (From == to)
                     IncludeReverseArrow = true;
             }
 
@@ -197,20 +176,7 @@ namespace datamodel.graphviz {
 
         #endregion
 
-        #region Subgraphs and Nodes
-        private static Subgraph ToSubgraph(HierarchyItem item) {
-            Subgraph subgraph = new Subgraph() {
-                Name = HI_ToNodeId(item),
-            };
-
-            subgraph.SetAttrGraph("pencolor", "black")
-                    .SetAttrGraph("label", string.Format("{0} ({1} models)", item.HumanName, item.ModelCount))
-                    .SetAttrGraph("href", item.Graph.SvgUrl)
-                    .SetAttrGraph("fontname", "Helvetica");
-
-            return subgraph;
-        }
-
+        #region Node Creation
         private static Node ToNode(HierarchyItem item) {
             Node node = new Node() {
                 Name = HI_ToNodeId(item),
@@ -274,27 +240,8 @@ namespace datamodel.graphviz {
 
         #region Utils
 
-        private static bool ShowAsSubgraph(HierarchyItem item) {
-            return item.Children.Any(x => x.ModelCount >= Env.MIN_MODELS_TO_SHOW_AS_NODE);
-        }
-
         private static string HI_ToNodeId(HierarchyItem item) {
-            string uniqueName = NameUtils.CompoundToSafe(item.CumulativeName);
-            if (ShowAsSubgraph(item))
-                uniqueName = "cluster_" + uniqueName;
-            return uniqueName;
-        }
-
-        // NOTE: This code only applies to 'dot' rendering style, but that style
-        // produces undreadable output, so we don't use it.
-        // When specifying node names in an edge, Graphviz does NOT allow specifying
-        // the cluster name. Instead, you must link to a node within the cluster
-        // and set the lhead/ltail attributes.
-        // https://github.com/glejeune/Ruby-Graphviz/issues/35
-        private static string HI_ToNodeIdInEdgeForDot(HierarchyItem item) {
-            if (ShowAsSubgraph(item))
-                return HI_ToNodeIdInEdgeForDot(item.Children.First(x => x.ShouldShowOnIndex));
-            return HI_ToNodeId(item);
+            return NameUtils.CompoundToSafe(item.CumulativeName);
         }
 
         #endregion
