@@ -24,7 +24,7 @@ namespace datamodel.schema.source {
 
         // Helper to download json from a URL
         public static string DownloadUrl(string url) {
-            using (WebClient client = new WebClient()) 
+            using (WebClient client = new WebClient())
                 return client.DownloadString(url);
         }
 
@@ -132,6 +132,40 @@ namespace datamodel.schema.source {
 
         #region Column Creation
         private Column ExtractColumn(bool isRequired, string name, bool isArray, SwgProperty prop) {
+            Column column = new Column() {
+                Name = name,
+                Description = prop.description,
+                DataType = ComputeType(isArray, prop),
+                CanBeEmpty = !isRequired,
+                Enum = ExtractEnum(prop.Enum),
+            };
+
+            return column;
+        }
+
+        // This was arrived largely by reverse-engineering the Kubernetes Swagger file
+        // and comparing it with documentation and go source code
+        private string ComputeType(bool isArray, SwgProperty prop) {
+            SwgAdditionalProperties additionalProp = prop.additionalProperties;
+            if (additionalProp != null) {
+                bool isApArray = additionalProp.type == "array";
+                if (additionalProp.items != null) {
+                    additionalProp.type = additionalProp.items.type;
+                    additionalProp.Reference = additionalProp.items.Reference;
+                }
+
+                string mapType = null;
+                if (additionalProp.Reference != null)
+                    mapType = additionalProp.Reference.Split('.').Last();
+                else
+                    mapType = additionalProp.type;
+
+                if (isApArray)
+                    mapType = "[]" + mapType;
+
+                return string.Format("map[string] to {0}", mapType);
+            }
+
             string dataType = prop.format == null ? prop.type : prop.format;
             if (prop.Enum != null)
                 dataType = "Enum";
@@ -139,15 +173,7 @@ namespace datamodel.schema.source {
             if (isArray)
                 dataType = "[]" + dataType;
 
-            Column column = new Column() {
-                Name = name,
-                Description = prop.description,
-                DataType = dataType,
-                CanBeEmpty = !isRequired,
-                Enum = ExtractEnum(prop.Enum),
-            };
-
-            return column;
+            return dataType;
         }
 
         private Enum ExtractEnum(IEnumerable<string> values) {
@@ -199,6 +225,7 @@ namespace datamodel.schema.source {
         public SwgItems items;
         [JsonProperty("enum")]
         public string[] Enum;
+        public SwgAdditionalProperties additionalProperties;
 
         // Note... This is not general, but specific to Kubernetes
         // Proper solution might be to use some Newtonsoft.JSON functionality
@@ -207,6 +234,13 @@ namespace datamodel.schema.source {
         public string PatchMergeKey;
         [JsonProperty("x-kubernetes-patch-strategy")]
         public string PatchMergeStrategy;
+    }
+
+    public class SwgAdditionalProperties {
+        [JsonProperty("$ref")]
+        public string Reference;
+        public string type;
+        public SwgItems items;
     }
 
     public class SwgItems {
