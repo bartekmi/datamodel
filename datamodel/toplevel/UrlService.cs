@@ -15,6 +15,8 @@ namespace datamodel.toplevel {
         private UrlService() { }     // Hide constructor
 
         public string DocUrl(Model model) {
+            if (model == null)
+                return null;
             return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", model.GetLevel(0), model.SanitizedQualifiedName));
         }
 

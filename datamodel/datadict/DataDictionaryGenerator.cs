@@ -57,22 +57,22 @@ namespace datamodel.datadict {
 
             AddLabelAndData(table, "Name", model.Name);
             AddLabelAndData(table, "Qualified Name", model.QualifiedName);
-            AddLabelAndData(table, "Super-Class", model.SuperClassName);
+            AddLabelAndData(table, "Super-Class", model.SuperClassName, UrlService.Singleton.DocUrl(model.Superclass));
 
             foreach (Label label in model.Labels)
-                AddLabelAndData(table, label.Name, label.Value, label.IsUrl);
+                AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
 
 
             if (!string.IsNullOrEmpty(model.Description))
                 table.Add(new HtmlTr(model.Description));
         }
 
-        private static void AddLabelAndData(HtmlTable table, string label, string value, bool isLink = false) {
+        private static void AddLabelAndData(HtmlTable table, string label, string value, string url = null) {
             if (string.IsNullOrWhiteSpace(value))
                 return;
 
             string text = string.Format("{0}: {1}", HtmlUtils.MakeBold(label),
-                isLink ? HtmlUtils.MakeLink(value, value).ToString() : value);
+                url == null ? value : HtmlUtils.MakeLink(url, value).ToString());
             table.Add(new HtmlTr(text, true));
         }
 
