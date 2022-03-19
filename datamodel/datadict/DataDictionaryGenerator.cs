@@ -6,6 +6,7 @@ using System.Linq;
 using datamodel.schema;
 using datamodel.datadict.html;
 using datamodel.toplevel;
+using datamodel.utils;
 
 namespace datamodel.datadict {
     public static class DataDictionaryGenerator {
@@ -116,6 +117,7 @@ namespace datamodel.datadict {
                     // Column Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
+                            column.CanBeEmpty ? null : HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute must be specified"),
                             new HtmlElement("span", column.HumanName).Class("heading3"),
                             new HtmlElement("span", "(" + column.DataType + ")").Class("faded gap-left"),
                             DeprecatedSpan(column)
@@ -140,8 +142,9 @@ namespace datamodel.datadict {
                 Model referenced = column.ReferencedModel;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0} ({1})", column.HumanName, link);
+                bool isRequired = !column.CanBeEmpty;
 
-                AddRefColumnInfo(table, column, column.ReferencedModel, name);
+                AddRefColumnInfo(table, column, column.ReferencedModel, name, isRequired);
             }
         }
 
@@ -158,17 +161,18 @@ namespace datamodel.datadict {
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0}.{1}", link, column.HumanName);
 
-                AddRefColumnInfo(table, column, column.Owner, name); 
+                AddRefColumnInfo(table, column, column.Owner, name, false);
             }
         }
 
-        private static void AddRefColumnInfo(HtmlTable table, Column column, Model other, string name) {
+        private static void AddRefColumnInfo(HtmlTable table, Column column, Model other, string name, bool isRequired) {
             if (Schema.Singleton.IsInteresting(column)) {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
                 // Column Header
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
+                        isRequired ? HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This associated object must be specified") : null,
                         new HtmlElement("span", name, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,
@@ -190,9 +194,9 @@ namespace datamodel.datadict {
                 .Add(new HtmlTd())
                 .Class("text");
 
-             foreach (string paragraphText in element.DescriptionParagraphs())
+            foreach (string paragraphText in element.DescriptionParagraphs())
                 descriptionTd.Add(new HtmlP(paragraphText));
-         }
+        }
 
         private static void AddEnumValuesRow(HtmlTable table, Column column) {
             if (column.Enum != null) {

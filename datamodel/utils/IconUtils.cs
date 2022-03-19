@@ -4,6 +4,7 @@ using System.Text;
 
 namespace datamodel.utils {
     public static class IconUtils {
+        public const string CHECKMARK = "checkmark.png";
         public const string DOCS = "doc.png";
         public const string DOCS_SMALL = "doc-small.png";
         public const string DIAGRAM = "diagram.png";
