@@ -27,9 +27,31 @@ namespace datamodel.schema.source {
                 }
             }
 
+            // Mark models which only serve as lists of other models
             Association assoc = _associations.SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherRole == "items");
             if (model.Name.EndsWith("List") && assoc != null)
                 model.ListSemanticsForType = assoc.OtherSide;
+        }
+    }
+
+    public class MarkDeprecationsTweak : Tweak {
+        public override void Apply(TempSource source) {
+            foreach (Model model in source.Models.Values) {
+                SetDeprecatedIfNeeded(model);
+                model.AllColumns.ForEach(x => SetDeprecatedIfNeeded(x));
+            }
+        }
+
+        private static void SetDeprecatedIfNeeded(IDbElement element) {
+            if (element.Name.ToLower().StartsWith("deprecated")) {
+                element.Deprecated = true;
+                return;
+            }
+
+            if (element.Description != null) {
+                string lower = element.Description.ToLower();
+                element.Deprecated = lower.Contains("deprecated.") || lower.Contains("deprecated:");
+            }
         }
     }
 

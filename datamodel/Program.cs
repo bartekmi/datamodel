@@ -153,6 +153,7 @@ namespace datamodel {
             };
             source.PostHydrationTweaks = new List<Tweak>() {
                 new K8sTocTweak(),
+                new MarkDeprecationsTweak(),
                 new MoveDerivedToPeerLevel() {
                     BaseClassName = "io.k8s.api.core.v1.PersistentVolumeSource",
                 },

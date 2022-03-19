@@ -49,7 +49,8 @@ namespace datamodel.datadict {
                     new HtmlElement("span").Class("gap-left-large"),
                     new HtmlElement("span", model.HumanName).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
-                    HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon")
+                    HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon"),
+                    DeprecatedSpan(model)
                 )));
 
             for (int ii = 0; ii < model.Levels.Length; ii++)
