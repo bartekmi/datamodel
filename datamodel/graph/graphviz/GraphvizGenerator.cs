@@ -205,6 +205,15 @@ namespace datamodel.graphviz {
                     HtmlTd columnNameTd = new HtmlTd();
                     row.AddTd(columnNameTd);
 
+                    // Mandatory?
+                    if (!column.CanBeEmpty) {
+                        row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.CHECKMARK_SMALL))
+                            .SetAttrHtml("tooltip", column.IsRef ?
+                                "This associated object must be specified" :
+                                "This attribute must be specified")
+                            .SetAttrHtml("href", column.DocUrl));
+                    }
+
                     // Ref Column
                     if (column.IsRef) {
                         if (models.Contains(referencedModel))
