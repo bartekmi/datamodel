@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using datamodel.utils;
 using datamodel.schema;
@@ -24,6 +25,15 @@ namespace datamodel.toplevel {
         // from largets to smallest
         public List<GraphDefinition> GetGraphs(Model model) {
             return _modelToGraphs[model];
+        }
+
+        private const int MAX_REASONABLE_GRAPH_SIZE = 35;   // Move to ENV?
+        public GraphDefinition GetReasonableGraph(Model model) {
+            GraphDefinition reasonable = GetGraphs(model).FirstOrDefault(x => x.CoreModels.Length <= MAX_REASONABLE_GRAPH_SIZE);
+            if (reasonable != null)
+                return reasonable;
+
+            return GetGraphs(model).LastOrDefault();    // Didn't find a "reasonable" one... return smallest available
         }
 
         internal void AddGraph(GraphDefinition graph) {
