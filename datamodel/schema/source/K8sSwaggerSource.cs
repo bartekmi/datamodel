@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using datamodel.schema.tweaks;
+using datamodel.utils;
 
 namespace datamodel.schema.source {
     public class K8sSwaggerSource : SwaggerSource {
@@ -31,6 +32,52 @@ namespace datamodel.schema.source {
             Association assoc = _associations.SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherRole == "items");
             if (model.Name.EndsWith("List") && assoc != null)
                 model.ListSemanticsForType = assoc.OtherSide;
+
+            // Populate enum definitions
+            foreach (Column column in model.RegularColumns)
+                if (column.Enum != null)
+                    PopulateEnumDefinitions(model.HumanName, column);
+        }
+
+        private const string ENUMS_PATTERN = "\n\nPossible enum values:(\n - `.+`.*)+";
+        private const string SINGLE_ENUM_PATTERN = "\n - `\"(.+)\"`(.*)$";
+
+        internal static void PopulateEnumDefinitions(string modelName, Column column) {
+            string name = string.Format("'{0}.{1}'", modelName, column.HumanName);
+            string[] enums = RegExUtils.GetMultipleCaptures(column.Description, ENUMS_PATTERN);
+            if (enums == null) {
+                Error.Log("Could not extract enum values for field {0}", name);
+                return;
+            }
+
+            bool hasError = false;
+            Dictionary<string, string> descriptions = new Dictionary<string, string>();
+            foreach (string pair in enums) {
+                string[] enumAndDesc = RegExUtils.GetCaptureGroups(pair, SINGLE_ENUM_PATTERN);
+                if (enumAndDesc == null || enumAndDesc.Length != 2) {
+                    Error.Log("Could not extract enum description for field {0} from {1}", name, pair);
+                    hasError = true;
+                    continue;
+                }
+
+                descriptions[enumAndDesc[0]] = enumAndDesc[1].Trim();
+            }
+
+            foreach (var anEnum in column.Enum.Values) {
+                if (!descriptions.TryGetValue(anEnum.Key, out string description)) {
+                    Error.Log("Could not find enum description for field {0}, enum value {1}", name, anEnum.Key);
+                    hasError = true;
+                    continue;
+                }
+
+                column.Enum.SetDescription(anEnum.Key, description);
+            }
+
+            if (!hasError) {
+                // Since we've successuflly extracted all enum descriptions, remove them from 
+                // the Column description
+                column.Description = RegExUtils.Replace(column.Description, ENUMS_PATTERN, "");
+            }
         }
     }
 

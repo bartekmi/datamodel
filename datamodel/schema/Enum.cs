@@ -5,7 +5,8 @@ using System.Linq;
 namespace datamodel.schema {
     public class Enum {
 
-        private List<KeyValuePair<string, string>> _values = new List<KeyValuePair<string, string>>();
+        // Key is the enum value; value is the description
+        private Dictionary<string, string> _values = new Dictionary<string, string>();
 
         public IEnumerable<KeyValuePair<string, string>> Values {
             get {
@@ -13,8 +14,16 @@ namespace datamodel.schema {
             }
         }
 
-        internal void Add(string value, string description) {
-            _values.Add(new KeyValuePair<string, string>(value, description));
+        public void SetDescription(string value, string description) {
+            _values[value] = description;
+        }
+
+        public string GetDescription(string value) {
+            return _values[value];
+        }
+
+        public void Add(string value, string description) {
+            _values[value] = description;
         }
     }
 }
