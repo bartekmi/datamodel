@@ -35,6 +35,8 @@ namespace datamodel.schema.source {
         private Dictionary<Model, int> _models = new Dictionary<Model, int>();
         private Dictionary<Column, int> _columns = new Dictionary<Column, int>();
 
+        private const string KEY_COLUMN = "__key__";
+
         public class Options {
             public string RootObjectName { get; set; }
             public string[] PathsWhereKeyIsData { get; set; }
@@ -48,9 +50,8 @@ namespace datamodel.schema.source {
 
             foreach (string path in options.PathsWhereKeyIsData) {
                 _pathsWhereKeyIsData.Add(path);
-                MaybeCreateModel(path, true);
+                Model model = MaybeCreateModel(path);
             }
-
 
             string json = File.ReadAllText(filename);
             object root = JsonConvert.DeserializeObject(json);
@@ -60,41 +61,43 @@ namespace datamodel.schema.source {
             SetModelInstanceCounts();
         }
 
-        private void SetCanBeEmpty() {
-            foreach (var item in _columns) {
-                Column column = item.Key;
-                int modelCount = _models[column.Owner];
-                column.CanBeEmpty = item.Value < modelCount;
-            }
-        }
-
-        private void SetModelInstanceCounts() {
-            foreach (var item in _models) 
-                item.Key.AddLabel("Instance Count", item.Value.ToString());
-        }
-
         public void ParseObjectOrArray(JToken token, string path) {
             if (token is JArray array) {
                 foreach (JToken item in array) {
                     ParseObjectOrArray(item, path);
                 }
             } else if (token is JObject obj) {
+                // If this objects fields appear to be data, take special action
                 if (IsKeyData(obj, path)) {
                     foreach (KeyValuePair<string, JToken> item in obj) {
-                        if (item.Value is JObject childObj)
-                            ParseObject(childObj, path, true);
-                        else {
+                        if (item.Value is JObject childObj) {
+                            Model model = ParseObject(childObj, path);
+                            if (model.FindColumn(KEY_COLUMN) == null)
+                                AddKeyColumn(model, item.Key);
+                        } else {
                             // TODO: Warn
                         }
                     }
                 } else
-                    ParseObject(obj, path, false);
+                    ParseObject(obj, path);
             } else
                 throw new Exception("Expected Array or Object, but got: " + token.Type);
-
         }
 
-        private Model MaybeCreateModel(string path, bool keyIsData) {
+        private void AddKeyColumn(Model model, string example) {
+            Column column = new Column() {
+                Name = KEY_COLUMN,
+                DataType = "String",
+                CanBeEmpty = false,
+                Owner = model,
+            };
+            model.AllColumns.Insert(0, column);
+
+            if (example != null)
+                column.AddLabel("Example", example);
+        }
+
+        private Model MaybeCreateModel(string path) {
             Model model = _source.FindModel(path);
             if (model == null) {
                 model = new Model() {
@@ -103,16 +106,6 @@ namespace datamodel.schema.source {
                 };
                 _models[model] = 0;
                 _source.AddModel(model);
-
-                // If this objects fields appear to be data, take special action
-                if (keyIsData) {
-                    model.AllColumns.Add(new Column() {
-                        Name = "__key__",
-                        DataType = "String",
-                        CanBeEmpty = false,
-                        Owner = model,
-                    });
-                }
             }
 
             _models[model]++;
@@ -120,8 +113,8 @@ namespace datamodel.schema.source {
             return model;
         }
 
-        private void ParseObject(JObject obj, string path, bool keyIsData) {
-            Model model = MaybeCreateModel(path, keyIsData);
+        private Model ParseObject(JObject obj, string path) {
+            Model model = MaybeCreateModel(path);
 
             foreach (KeyValuePair<string, JToken> item in obj) {
                 string newPath = _sameNameIsSameModel ?
@@ -145,6 +138,8 @@ namespace datamodel.schema.source {
                     MaybeAddAttribute(model, item.Key, item.Value, false);
                 }
             }
+
+            return model;
         }
 
         internal static Regex PROP_NAME_REGEX = new Regex("^[_$a-zA-Z][-_$a-zA-Z0-9]*$");
@@ -196,6 +191,10 @@ namespace datamodel.schema.source {
                     DataType = GetDataType(token, isMany),
                     Owner = model,
                 };
+
+                if (token != null)
+                    column.AddLabel("Example", token.ToString());
+
                 model.AllColumns.Add(column);
                 _columns[column] = 0;
             } else {
@@ -212,6 +211,20 @@ namespace datamodel.schema.source {
             return type;
         }
 
+        private void SetCanBeEmpty() {
+            foreach (var item in _columns) {
+                Column column = item.Key;
+                int modelCount = _models[column.Owner];
+                column.CanBeEmpty = item.Value < modelCount;
+            }
+        }
+
+        private void SetModelInstanceCounts() {
+            foreach (var item in _models)
+                item.Key.AddLabel("Instance Count", item.Value.ToString());
+        }
+
+        #region Abstract Class Implementation
         public override string GetTitle() {
             return _rootObjectName;
         }
@@ -224,5 +237,6 @@ namespace datamodel.schema.source {
         public override IEnumerable<Association> GetAssociations() {
             return _source.Associations;
         }
+        #endregion
     }
 }

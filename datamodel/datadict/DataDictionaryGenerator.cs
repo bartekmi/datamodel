@@ -129,6 +129,10 @@ namespace datamodel.datadict {
                     // Column Description
                     AddDescriptionRow(table, column);
 
+                    // Optional labels
+                    foreach (Label label in column.Labels)
+                        AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
+
                     // Column Enum Values
                     AddEnumValuesRow(table, column);
                 }
