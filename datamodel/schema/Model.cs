@@ -14,6 +14,7 @@ namespace datamodel.schema {
         public bool IsUrl { get; set; }
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Model : IDbElement {
         // The fully-qualified Ruby Class-Name of the super-class of the Model
         public string SuperClassName { get; set; }
@@ -24,6 +25,7 @@ namespace datamodel.schema {
         // If set, the only purpose of this Model is to serve as a "list" of this type
         // - if referenced from another model, the association will be converted to a many-association
         // - The "List" model itself will be dropped
+        [JsonIgnore]
         public string ListSemanticsForType { get; set; }
 
         // Name of the Model
@@ -34,6 +36,7 @@ namespace datamodel.schema {
 
         // Some schemas - e.g. Swagger - have a version attached to each Model
         public string Version { get; set; }
+        [JsonIgnore]
         public string QualifiedNameLessVersion { get; set; }
 
         // These are used to group the models into a hierarchy
@@ -48,23 +51,35 @@ namespace datamodel.schema {
         // Associations
         public List<Column> AllColumns { get; internal set; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
+        [JsonIgnore]
         public HierarchyItem LeafHierachyItem {get;set;}
 
         #region Re-Hydrated
+        [JsonIgnore]
         public Model Superclass { get; set; }
+        [JsonIgnore]
         public List<Model> DerivedClasses { get; set; }
         #endregion
 
 
         #region Derived
+        [JsonIgnore]
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]
         public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsRef); } }
         [JsonIgnore]
         public IEnumerable<Column> RefColumns { get { return AllColumns.Where(x => x.IsRef); } }
+        [JsonIgnore]
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
+        [JsonIgnore]
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
+        [JsonIgnore]
         public string ColorString { get; internal set; }
+
+        public Model() {
+            AllColumns = new List<Column>();
+            Levels = new string[0];
+        }
 
         [JsonIgnore]
         public List<Association> RefAssociations {

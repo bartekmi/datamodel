@@ -205,15 +205,8 @@ namespace datamodel.schema.source {
     public class SwgDefinition {
         public string description;
         public Dictionary<string, SwgProperty> properties;
-        public SwgVersionKind versionKind;
         public string[] required;
         public string type;
-    }
-
-    public class SwgVersionKind {
-        public string group;
-        public string kind;
-        public string version;
     }
 
     public class SwgProperty {

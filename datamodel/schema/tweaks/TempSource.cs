@@ -7,12 +7,12 @@ using datamodel.schema.source;
 namespace datamodel.schema.tweaks {
 
     public class TempSource : SchemaSource {
-        internal string _title;
-        internal Dictionary<string, Model> Models;
-        internal List<Association> Associations;
+        public string Title;
+        public Dictionary<string, Model> Models = new Dictionary<string, Model>();
+        public List<Association> Associations = new List<Association>();
 
         public override string GetTitle() {
-            return _title;
+            return Title;
         }
         public override IEnumerable<Model> GetModels() {
             return Models.Values;
@@ -40,7 +40,7 @@ namespace datamodel.schema.tweaks {
                 if (association.OtherSide == incoming &&
                     association.OtherMultiplicity == likeThis.OtherMultiplicity &&
                     association.OwnerMultiplicity == likeThis.OwnerMultiplicity &&
-                    association.OwnerSide == likeThis.OwnerSide) 
+                    association.OwnerSide == likeThis.OwnerSide)
                     return association;
             }
             return null;
@@ -60,7 +60,7 @@ namespace datamodel.schema.tweaks {
 
         internal static TempSource CloneFromSource(SchemaSource source) {
             TempSource clone = new TempSource();
-            clone._title = source.GetTitle();
+            clone.Title = source.GetTitle();
             clone.SetModels(source.GetModels());
             clone.Models = source.GetModels().ToDictionary(x => x.QualifiedName);
             clone.Associations = new List<Association>(source.GetAssociations());

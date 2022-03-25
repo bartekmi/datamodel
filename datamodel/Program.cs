@@ -36,10 +36,48 @@ namespace datamodel {
 
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
             //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
+            JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
+                new JsonSource.Options() {
+                    RootObjectName = "kubernetes",
+                    PathsWhereKeyIsData = new string[] {
+                        "properties",
+                    },
+                    SameNameIsSameModel = true,
+                }
+            );
+            AddKubernetesJsonTweaks(source);
 
-            string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
-            SwaggerSource source = new K8sSwaggerSource(json, options);
+            // string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
+            // SwaggerSource source = new K8sSwaggerSource(json, options);
+            // AddKubernetesTweaks(source);
 
+            Schema schema = Schema.CreateSchema(source);
+
+            // schema.BoringProperties = new string[] {
+            //     "apiVersion", "kind"
+            // };
+
+            GenerateGraphsAndDataDictionary();
+        }
+
+        private static void AddKubernetesJsonTweaks(SchemaSource source) {
+            source.PreHydrationTweaks = new List<Tweak>() {
+                new AddBaseClassTweak() {
+                    BaseClassName = "Operation",
+                    DerviedQualifiedNames = new string[] {
+                        "head",
+                        "options",
+                        "post",
+                        "delete",
+                        "patch",
+                        "put",
+                        "get",
+                    }
+                }
+            };
+        }
+
+        private static void AddKubernetesTweaks(SchemaSource source) {
             source.PreHydrationTweaks = new List<Tweak>() {
                 new FilterOldApiVersionsTweak(),
                 new AddBaseClassTweak() {
@@ -164,21 +202,11 @@ namespace datamodel {
                     BaseClassName = "io.k8s.api.core.v1.EitherVolumeSource",
                 },
             };
-
-            Schema schema = Schema.CreateSchema(source);
-
-            schema.BoringProperties = new string[] {
-                "apiVersion", "kind"
-            };
-
-            GenerateGraphsAndDataDictionary();
         }
 
         private static void GenerateGraphsAndDataDictionary() {
             // Parse "visualizations.yaml" files
             List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
-            // TODO: Note that we've temporarily lost this feature - must decide where to keep this.
-            ApplyGraphDefsToSchema(graphDefsFromMetadata);
 
             // Copy static assets to output directory
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
@@ -199,15 +227,6 @@ namespace datamodel {
             HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
 
             DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
-        }
-
-        // TODO: This is currently dead code
-        private static void ApplyGraphDefsToSchema(List<GraphDefinition> graphDefs) {
-            foreach (GraphDefinition graphDef in graphDefs) {
-                string[] nameComponents = graphDef.NameComponents;
-                    foreach (Model model in graphDef.CoreModels) 
-                        model.Levels = graphDef.NameComponents;
-            }
         }
     }
 }

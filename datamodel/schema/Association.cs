@@ -14,13 +14,14 @@ namespace datamodel.schema {
         Aggregation,    // Expresses parent of an "ownership" relationship like 1 car has 4 wheels.
     }
 
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Association {
         public string OwnerSide { get; set; }
-        public string OwnerRole {get; set; }
+        public string OwnerRole { get; set; }
         public Multiplicity OwnerMultiplicity { get; set; }
 
         public string OtherSide { get; set; }
-        public string OtherRole {get; set; }
+        public string OtherRole { get; set; }
         public Multiplicity OtherMultiplicity { get; set; }
 
         public string Description { get; set; }
@@ -31,9 +32,10 @@ namespace datamodel.schema {
         [JsonIgnore]
         public Model OwnerSideModel { get; set; }
         [JsonIgnore]
-        public Column RefColumn { get; set; } 
+        public Column RefColumn { get; set; }
 
         // Derived
+        [JsonIgnore]
         public string InterestingOwnerRole {
             get {
                 if (IsBoringRoleName(OwnerRole, OwnerSideModel))
@@ -41,6 +43,7 @@ namespace datamodel.schema {
                 return OwnerRole;
             }
         }
+        [JsonIgnore]
         public string InterestingOtherRole {
             get {
                 if (IsBoringRoleName(OtherRole, OtherSideModel))
@@ -48,14 +51,18 @@ namespace datamodel.schema {
                 return OtherRole;
             }
         }
+        [JsonIgnore]
         public string DocUrl { get { return RefColumn == null ? null : RefColumn.DocUrl; } }
+        [JsonIgnore]
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
+        [JsonIgnore]
         public string PolymorphicName {
             get {
                 // At this time, there is no use-case for Polymorphic Associations
                 return null;
             }
         }
+        [JsonIgnore]
         public string PolymorphicReverseName {
             get {
                 // At this time, there is no use-case for Polymorphic Associations
@@ -76,9 +83,9 @@ namespace datamodel.schema {
             foreach (string roleWord in NameUtils.ToWords(role)) {
                 if (modelWords.Contains(roleWord) ||
                     modelWords.Contains(Depluralize(roleWord))) {
-                        // Keep going... boring so far
-                    } else
-                        return false;   // We found a new role word - not boring! 
+                    // Keep going... boring so far
+                } else
+                    return false;   // We found a new role word - not boring! 
             }
 
             return true;    // All role words found in model words - boring.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 using datamodel.schema.tweaks;
 
@@ -12,7 +13,9 @@ namespace datamodel.schema.source {
         private TempSource _tempSource;
 
         // Tweaks to apply to the schema just after receiving the data from SchemaSource
+        [JsonIgnore]
         public IEnumerable<Tweak> PreHydrationTweaks { get; set; }
+        [JsonIgnore]
         public IEnumerable<Tweak> PostHydrationTweaks { get; set; }
 
         internal SchemaSource ApplyPreHydrationTweaks() {

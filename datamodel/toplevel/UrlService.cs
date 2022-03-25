@@ -24,7 +24,9 @@ namespace datamodel.toplevel {
         // Return a list of generated graphs which contain the given model as a Core Model
         // from largets to smallest
         public List<GraphDefinition> GetGraphs(Model model) {
-            return _modelToGraphs[model];
+            if (_modelToGraphs.TryGetValue(model, out List<GraphDefinition> graphs))
+                return graphs;
+            return new List<GraphDefinition>();
         }
 
         private const int MAX_REASONABLE_GRAPH_SIZE = 35;   // Move to ENV?
