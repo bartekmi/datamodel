@@ -32,6 +32,8 @@ namespace datamodel.schema.source {
         private string _rootObjectName;
         private HashSet<string> _pathsWhereKeyIsData = new HashSet<string>();
         private bool _sameNameIsSameModel;
+        private Dictionary<Model, int> _models = new Dictionary<Model, int>();
+        private Dictionary<Column, int> _columns = new Dictionary<Column, int>();
 
         public class Options {
             public string RootObjectName { get; set; }
@@ -54,6 +56,15 @@ namespace datamodel.schema.source {
             object root = JsonConvert.DeserializeObject(json);
 
             ParseObjectOrArray(root as JToken, "root");
+            SetCanBeEmpty();
+        }
+
+        private void SetCanBeEmpty() {
+            foreach (var item in _columns) {
+                Column column = item.Key;
+                int modelCount = _models[column.Owner];
+                column.CanBeEmpty = item.Value < modelCount;
+            }
         }
 
         public void ParseObjectOrArray(JToken token, string path) {
@@ -84,6 +95,7 @@ namespace datamodel.schema.source {
                     QualifiedName = path,
                     Name = path.Split('.').Last(),
                 };
+                _models[model] = 0;
                 _source.AddModel(model);
 
                 // If this objects fields appear to be data, take special action
@@ -91,9 +103,13 @@ namespace datamodel.schema.source {
                     model.AllColumns.Add(new Column() {
                         Name = "__key__",
                         DataType = "String",
+                        CanBeEmpty = false,
+                        Owner = model,
                     });
                 }
             }
+
+            _models[model]++;
 
             return model;
         }
@@ -169,13 +185,18 @@ namespace datamodel.schema.source {
         private void MaybeAddAttribute(Model model, string name, JToken token, bool isMany) {
             Column column = model.FindColumn(name);
             if (column == null) {
-                model.AllColumns.Add(new Column() {
+                column = new Column() {
                     Name = name,
                     DataType = GetDataType(token, isMany),
-                });
+                    Owner = model,
+                };
+                model.AllColumns.Add(column);
+                _columns[column] = 0;
             } else {
                 // TODO... At least warn if type mismatch
             }
+
+            _columns[column]++;
         }
 
         private string GetDataType(JToken token, bool isMany) {
