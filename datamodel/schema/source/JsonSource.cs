@@ -57,6 +57,7 @@ namespace datamodel.schema.source {
 
             ParseObjectOrArray(root as JToken, "root");
             SetCanBeEmpty();
+            SetModelInstanceCounts();
         }
 
         private void SetCanBeEmpty() {
@@ -65,6 +66,11 @@ namespace datamodel.schema.source {
                 int modelCount = _models[column.Owner];
                 column.CanBeEmpty = item.Value < modelCount;
             }
+        }
+
+        private void SetModelInstanceCounts() {
+            foreach (var item in _models) 
+                item.Key.AddLabel("Instance Count", item.Value.ToString());
         }
 
         public void ParseObjectOrArray(JToken token, string path) {
