@@ -227,7 +227,7 @@ namespace datamodel.graphviz {
                             if (graphDef != null) {
                                 string graphToolTip = string.Format("Go to diagram which contains the Model '{0}'\n\nTitle: {1}\n\nNumber of Models: {2}",
                                     referencedModel.HumanName,
-                                    graphDef.HumanName, 
+                                    graphDef.HumanName,
                                     graphDef.CoreModels.Length);
 
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
@@ -278,6 +278,16 @@ namespace datamodel.graphviz {
                         HtmlUtils.LINE_BREAK,
                         value.Key,
                         value.Value));
+            }
+
+            if (column.Labels.Count() > 0) {
+                builder.AppendLine(HtmlUtils.LINE_BREAK);
+                foreach (Label label in column.Labels)
+                    builder.AppendLine(string.Format("{0}{1}: {2}",
+                        HtmlUtils.LINE_BREAK,
+                        label.Name,
+                        label.Value));
+
             }
 
             return builder.ToString();
