@@ -287,7 +287,6 @@ namespace datamodel.graphviz {
                         HtmlUtils.LINE_BREAK,
                         label.Name,
                         label.Value));
-
             }
 
             return builder.ToString();

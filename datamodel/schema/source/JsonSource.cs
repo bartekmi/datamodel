@@ -18,12 +18,13 @@ namespace datamodel.schema.source {
     // - nested objects become mandatory owned associations
     // - nested lists become "many" associations
     // - qualified object name is based on JSON path to reach the object (except for root, which is given explicitly)
+    // - mark an object nullable vs. nullable if it is always present
     //
     // Potential for improvement
     // - find instances which are identical or similar and merge them
     // - recognize and extract enums (no spaces, a large-enough proportion of non-unique values)
-    // - mark an object nullable vs. nullable if it is always present
     // - same paths that lead to atomic props with different primitive types => string | integer | boolean
+    // - mark associations as ZeroOrOne vs One depending if they are always present
     //
     // Open questions
     // - How to treat same paths with (very) different properties
@@ -198,7 +199,13 @@ namespace datamodel.schema.source {
                 model.AllColumns.Add(column);
                 _columns[column] = 0;
             } else {
-                // TODO... At least warn if type mismatch
+                string dataType = GetDataType(token, isMany);
+                if (dataType != column.DataType)
+                    Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
+                        model.Name,
+                        name,
+                        dataType,
+                        column.DataType);
             }
 
             _columns[column]++;
