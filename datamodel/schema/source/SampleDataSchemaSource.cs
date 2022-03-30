@@ -53,10 +53,11 @@ namespace datamodel.schema.source {
             _rootObjectName = options.RootObjectName;
             _sameNameIsSameModel = options.SameNameIsSameModel;
 
-            foreach (string path in options.PathsWhereKeyIsData) {
-                _pathsWhereKeyIsData.Add(path);
-                Model model = MaybeCreateModel(path);
-            }
+            if (options.PathsWhereKeyIsData != null)
+                foreach (string path in options.PathsWhereKeyIsData) {
+                    _pathsWhereKeyIsData.Add(path);
+                    Model model = MaybeCreateModel(path);
+                }
 
             foreach (string filename in filenames) {
                 string text = File.ReadAllText(filename);
@@ -258,7 +259,7 @@ namespace datamodel.schema.source {
     }
 
     public class SDSS_Primitive : SDSS_Element {
-        public string Value {get;set;}
+        public string Value { get; set; }
         public override string ToString() {
             return Value;
         }

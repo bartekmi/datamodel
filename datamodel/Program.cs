@@ -36,16 +36,28 @@ namespace datamodel {
 
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
             //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
-            JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
+            // JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
+            //     new JsonSource.Options() {
+            //         RootObjectName = "kubernetes",
+            //         PathsWhereKeyIsData = new string[] {
+            //             "properties",
+            //         },
+            //         SameNameIsSameModel = true,
+            //     }
+            // );
+            // AddKubernetesJsonTweaks(source);
+
+            YamlSource source = new YamlSource(new string[] {
+                    "../../tmp/f2.yaml",
+                    "../../tmp/f3.yaml",
+                }, 
                 new JsonSource.Options() {
-                    RootObjectName = "kubernetes",
+                    RootObjectName = "yaml",
                     PathsWhereKeyIsData = new string[] {
-                        "properties",
                     },
-                    SameNameIsSameModel = true,
+                    SameNameIsSameModel = false,
                 }
             );
-            AddKubernetesJsonTweaks(source);
 
             // string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
             // SwaggerSource source = new K8sSwaggerSource(json, options);

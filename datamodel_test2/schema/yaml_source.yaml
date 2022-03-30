@@ -1,0 +1,13 @@
+a:
+  sub:
+  - name: 12
+    clust: false
+    labels:
+      some/label: my_label
+    decorate: true
+    spec:
+      containers:
+      - image: 12.5
+        command:
+        - c1
+        - c2
