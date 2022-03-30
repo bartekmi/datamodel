@@ -38,7 +38,7 @@ namespace datamodel.schema.source {
 
         [Fact]
         public void RegexMatch() {
-            bool isMatch = JsonSource.PROP_NAME_REGEX.IsMatch("definitions");
+            bool isMatch = SampleDataSchemaSource.PROP_NAME_REGEX.IsMatch("definitions");
             Assert.True(isMatch);
         }
     }
