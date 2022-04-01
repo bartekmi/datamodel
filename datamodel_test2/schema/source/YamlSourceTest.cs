@@ -21,7 +21,7 @@ namespace datamodel.schema.source {
             
             YamlSource source = new YamlSource("../../../schema/yaml_source.Yaml", 
                 new YamlSource.Options() {
-                    RootObjectName = "root",
+                    Title = "root",
                 }
             );
 
@@ -30,7 +30,7 @@ namespace datamodel.schema.source {
             _output.WriteLine(json);
 
             // Uncomment this line to see the results of the output above
-            Assert.False(true, "Fail on purpose");
+            // Assert.False(true, "Fail on purpose");
         }
     }
 }

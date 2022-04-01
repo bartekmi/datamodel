@@ -22,13 +22,4 @@
     },
 
     "array_of_primitive": ["one", "two", "three" ],
-
-    "key_is_value": {
-        "one": {
-            "z": 7
-        },
-        "two": {
-            "z": 8
-        }
-    }
 }

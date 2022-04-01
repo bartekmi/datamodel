@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using datamodel.utils;
 
@@ -18,10 +20,14 @@ namespace datamodel.schema {
     public class Association {
         public string OwnerSide { get; set; }
         public string OwnerRole { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]        
+        [JsonConverter(typeof(StringEnumConverter))]        
         public Multiplicity OwnerMultiplicity { get; set; }
 
         public string OtherSide { get; set; }
         public string OtherRole { get; set; }
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]        
+        [JsonConverter(typeof(StringEnumConverter))]        
         public Multiplicity OtherMultiplicity { get; set; }
 
         public string Description { get; set; }

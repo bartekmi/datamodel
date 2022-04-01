@@ -52,7 +52,7 @@ namespace datamodel {
                     "../../tmp/f3.yaml",
                 }, 
                 new JsonSource.Options() {
-                    RootObjectName = "yaml",
+                    Title = "yaml",
                     PathsWhereKeyIsData = new string[] {
                     },
                     SameNameIsSameModel = false,

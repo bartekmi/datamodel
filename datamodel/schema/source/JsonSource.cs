@@ -11,11 +11,11 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source {
     public class JsonSource : SampleDataSchemaSource {
-        public JsonSource(string filename, Options options) : this(new string[] { filename }, options) {
+        public JsonSource(string filename, Options options = null) : this(new string[] { filename }, options) {
             // Do nothing
         }
 
-        public JsonSource(string[] filenames, Options options) : base(filenames, options) {
+        public JsonSource(string[] filenames, Options options = null) : base(filenames, options) {
             // Do nothing
         }
 
@@ -37,6 +37,7 @@ namespace datamodel.schema.source {
             } else {
                 return new SDSS_Primitive() {
                     Value = token.ToString(),
+                    Type = token.Type == JTokenType.Null ? null : token.Type.ToString()
                 };
             }
         }
