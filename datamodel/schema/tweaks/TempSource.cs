@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Newtonsoft.Json;
+
 using datamodel.schema.source;
 
 namespace datamodel.schema.tweaks {
@@ -10,6 +12,14 @@ namespace datamodel.schema.tweaks {
         public string Title;
         public Dictionary<string, Model> Models = new Dictionary<string, Model>();
         public List<Association> Associations = new List<Association>();
+
+        // Derived
+        [JsonIgnore]
+        public IEnumerable<Column> AllColumns {
+            get {
+                return Models.Values.SelectMany(x => x.AllColumns);
+            }
+        }
 
         public override string GetTitle() {
             return Title;

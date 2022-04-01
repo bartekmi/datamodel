@@ -32,11 +32,10 @@ namespace datamodel.schema.source {
         private const string KEY_COLUMN = "__key__";
 
         protected abstract SDSS_Element GetRaw(string text);
+        protected Options TheOptions;
 
         internal TempSource _source = new TempSource();     // Internal for testing
-        private string _title;
         private HashSet<string> _pathsWhereKeyIsData = new HashSet<string>();
-        private bool _sameNameIsSameModel;
         private Dictionary<Model, int> _models = new Dictionary<Model, int>();
         private Dictionary<Column, int> _columns = new Dictionary<Column, int>();
 
@@ -45,11 +44,18 @@ namespace datamodel.schema.source {
             public string[] PathsWhereKeyIsData { get; set; }
             // If true, any Model located at the same attribute name is considered to be identical
             public bool SameNameIsSameModel { get; set; }
+
+            // The minimum number of common properties in order for two sample files
+            // to be considered part of the same "cluster".
+            // By increasing this number, you can force files which accidentally have a few common
+            // properties to still be considered separate clusters.
+            // If you set this to zero, even files with no shared properties will be considered to
+            // belong to the same cluster - so all files will be considered the same.
+            public int MinimumClusterOverlap = 1;
         }
 
         public SampleDataSchemaSource(string[] filenames, Options options) {
-            _title = options?.Title;
-            _sameNameIsSameModel = options?.SameNameIsSameModel ?? false;
+            TheOptions = options ?? new Options();
 
             List<TempSource> clusters = ProcessFilesWithClustering(filenames, options);
             _source = CreateSeededSource(options);
@@ -98,11 +104,10 @@ namespace datamodel.schema.source {
                 ParseObjectOrArray(candidate, root, ROOT_PATH);
 
                 // 2b as above 
-                const int MIN_OVERLAP = 2;      // TODO: Parametrize via options
                 List<TempSource> overlaps = new List<TempSource>();
                 foreach (TempSource cluster in clusters) {
                     int overlap = CalculateOverlap(cluster, candidate);
-                    if (overlap > MIN_OVERLAP)
+                    if (overlap >= TheOptions.MinimumClusterOverlap)
                         overlaps.Add(cluster);
                 }
 
@@ -121,7 +126,31 @@ namespace datamodel.schema.source {
                 }
             }
 
+            PostProcessClusters(clusters);
+
             return clusters;
+        }
+
+        // Now that we have the final list of clusters, distinguish them by giving
+        // all models and associations unique names within the cluster
+        // Also, assign the first level
+        private void PostProcessClusters(List<TempSource> clusters) {
+            for (int ii = 0; ii < clusters.Count; ii++) {
+                string clusterName = string.Format("cluster{0}", ii + 1);
+                TempSource cluster = clusters[ii];
+
+                foreach (Model model in cluster.GetModels()) {
+                    model.QualifiedName = clusterName + model.QualifiedName;
+                    model.SetLevel(0, clusterName);
+                    if (model.Name == ROOT_PATH)
+                        model.Name = clusterName;
+                }
+
+                foreach (Association assoc in cluster.GetAssociations()) {
+                    assoc.OwnerSide = clusterName + assoc.OwnerSide;
+                    assoc.OtherSide = clusterName + assoc.OtherSide;
+                }
+            }
         }
 
         private void MergeSources(TempSource main, TempSource additional) {
@@ -163,9 +192,19 @@ namespace datamodel.schema.source {
         }
 
         private int CalculateOverlap(TempSource cluster, TempSource candidate) {
-            HashSet<string> set = new HashSet<string>(cluster.Models.Keys);
-            set.IntersectWith(candidate.Models.Keys);
-            return set.Count;
+            int overlap = 0;
+            foreach (Model clustModel in cluster.GetModels()) {
+                Model candidateModel = candidate.FindModel(clustModel.QualifiedName);
+                if (candidateModel == null)
+                    continue;
+
+                HashSet<string> clustColumns = new HashSet<string>(clustModel.AllColumns.Select(x => x.Name));
+                overlap += clustColumns.Intersect(candidateModel.AllColumns.Select(x => x.Name)).Count();
+            }
+
+            // TODO: Also match on identical associations
+
+            return overlap;
         }
 
 
@@ -229,7 +268,7 @@ namespace datamodel.schema.source {
             Model model = MaybeCreateModel(source, path, true);
 
             foreach (KeyValuePair<string, SDSS_Element> item in obj.Items) {
-                string newPath = _sameNameIsSameModel ?
+                string newPath = TheOptions.SameNameIsSameModel ?
                     item.Key :
                     string.Format("{0}.{1}", path, item.Key);
 
@@ -345,7 +384,7 @@ namespace datamodel.schema.source {
 
         #region Abstract Class Implementation
         public override string GetTitle() {
-            return _title;
+            return TheOptions.Title;
         }
 
         public override IEnumerable<Model> GetModels() {

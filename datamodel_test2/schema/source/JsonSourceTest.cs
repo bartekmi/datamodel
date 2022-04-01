@@ -22,7 +22,7 @@ namespace datamodel.schema.source {
             JsonSource source = new JsonSource("../../../schema/source/json_source_key_is_value.json", 
                 new JsonSource.Options() {
                     PathsWhereKeyIsData = new string[] {
-                        "root.key_is_value",
+                        ".key_is_value",
                     }
                 }
             );
@@ -59,16 +59,18 @@ namespace datamodel.schema.source {
 
             Assert.Equal(@"{
   ""Models"": {
-    ""root"": {
+    ""cluster1"": {
       ""Labels"": [
         {
           ""Name"": ""Instance Count"",
           ""Value"": ""1""
         }
       ],
-      ""Name"": ""root"",
-      ""QualifiedName"": ""root"",
-      ""Levels"": [],
+      ""Name"": ""cluster1"",
+      ""QualifiedName"": ""cluster1"",
+      ""Levels"": [
+        ""cluster1""
+      ],
       ""AllColumns"": [
         {
           ""Labels"": [
@@ -131,7 +133,7 @@ namespace datamodel.schema.source {
         }
       ]
     },
-    ""root.array"": {
+    ""cluster1.array"": {
       ""Labels"": [
         {
           ""Name"": ""Instance Count"",
@@ -139,8 +141,10 @@ namespace datamodel.schema.source {
         }
       ],
       ""Name"": ""array"",
-      ""QualifiedName"": ""root.array"",
-      ""Levels"": [],
+      ""QualifiedName"": ""cluster1.array"",
+      ""Levels"": [
+        ""cluster1""
+      ],
       ""AllColumns"": [
         {
           ""Labels"": [
@@ -164,7 +168,7 @@ namespace datamodel.schema.source {
         }
       ]
     },
-    ""root.object"": {
+    ""cluster1.object"": {
       ""Labels"": [
         {
           ""Name"": ""Instance Count"",
@@ -172,8 +176,10 @@ namespace datamodel.schema.source {
         }
       ],
       ""Name"": ""object"",
-      ""QualifiedName"": ""root.object"",
-      ""Levels"": [],
+      ""QualifiedName"": ""cluster1.object"",
+      ""Levels"": [
+        ""cluster1""
+      ],
       ""AllColumns"": [
         {
           ""Labels"": [
@@ -200,15 +206,15 @@ namespace datamodel.schema.source {
   },
   ""Associations"": [
     {
-      ""OwnerSide"": ""root"",
+      ""OwnerSide"": ""cluster1"",
       ""OwnerMultiplicity"": ""Aggregation"",
-      ""OtherSide"": ""root.array"",
+      ""OtherSide"": ""cluster1.array"",
       ""OtherMultiplicity"": ""Many""
     },
     {
-      ""OwnerSide"": ""root"",
+      ""OwnerSide"": ""cluster1"",
       ""OwnerMultiplicity"": ""Aggregation"",
-      ""OtherSide"": ""root.object"",
+      ""OtherSide"": ""cluster1.object"",
       ""OtherMultiplicity"": ""ZeroOrOne""
     }
   ]
