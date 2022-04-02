@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 using datamodel.schema.tweaks;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     public class JsonSource : SampleDataSchemaSource {
         public JsonSource(string filename, Options options = null) : this(new string[] { filename }, options) {
             // Do nothing

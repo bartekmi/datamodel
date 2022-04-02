@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     public class YamlSourceTest {
 
         private readonly ITestOutputHelper _output;
@@ -19,7 +19,7 @@ namespace datamodel.schema.source {
         public void Read() {
             Env.Configure();
             
-            YamlSource source = new YamlSource("../../../schema/yaml_source.Yaml", 
+            YamlSource source = new YamlSource("../../../schema/source/from_data/yaml_source.Yaml", 
                 new YamlSource.Options() {
                     Title = "root",
                 }

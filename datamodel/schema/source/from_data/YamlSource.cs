@@ -8,7 +8,7 @@ using YamlDotNet.RepresentationModel;
 
 using datamodel.schema.tweaks;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     public class YamlSource : SampleDataSchemaSource {
         public YamlSource(string filename, Options options) : this(new string[] { filename }, options) {
             // Do nothing

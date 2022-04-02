@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 using datamodel.schema.tweaks;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     // This is a base class for schema sources which try to re-create a schema from multiple
     // structured sample data files, such as JSON, YAML or XML  
     // The rules are simple:

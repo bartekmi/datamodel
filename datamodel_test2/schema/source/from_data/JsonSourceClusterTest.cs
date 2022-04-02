@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 using datamodel.schema.tweaks;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     public class JsonSourceClusterTest {
 
         [Fact]
@@ -16,9 +16,9 @@ namespace datamodel.schema.source {
             Env.Configure();
 
             JsonSource source = new JsonSource(new string[] {
-                "../../../schema/source/json_source_cluster_1.json",
-                "../../../schema/source/json_source_cluster_2.json",
-                "../../../schema/source/json_source_cluster_3.json",
+                "../../../schema/source/from_data/json_source_cluster_1.json",
+                "../../../schema/source/from_data/json_source_cluster_2.json",
+                "../../../schema/source/from_data/json_source_cluster_3.json",
               }
             );
 

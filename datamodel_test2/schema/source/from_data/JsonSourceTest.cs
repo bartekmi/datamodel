@@ -6,7 +6,7 @@ using Xunit.Abstractions;
 
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source {
+namespace datamodel.schema.source.from_data {
     public class JsonSourceTest {
 
         private readonly ITestOutputHelper _output;
@@ -19,7 +19,7 @@ namespace datamodel.schema.source {
         public void KeyIsValue() {
             Env.Configure();
             
-            JsonSource source = new JsonSource("../../../schema/source/json_source_key_is_value.json", 
+            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_key_is_value.json", 
                 new JsonSource.Options() {
                     PathsWhereKeyIsData = new string[] {
                         ".key_is_value",
@@ -49,7 +49,7 @@ namespace datamodel.schema.source {
         public void BasicProcessing() {
             Env.Configure();
             
-            JsonSource source = new JsonSource("../../../schema/source/json_source_basic.json", 
+            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_basic.json", 
                 new JsonSource.Options());
 
             string json = JsonConvert.SerializeObject(

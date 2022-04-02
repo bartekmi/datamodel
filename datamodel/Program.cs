@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using datamodel.metadata;
 using datamodel.schema;
 using datamodel.schema.source;
+using datamodel.schema.source.from_data;
 using datamodel.schema.tweaks;
 using datamodel.datadict;
 using datamodel.toplevel;
