@@ -4,22 +4,5 @@
     "c": 3.14,
     "d": true,
     "e": null,
-
-    "array": [
-        {
-            "aa": "String in array",
-            "bb": 7
-        },
-        {
-            "aa": "String in array 2",
-            "bb": 8
-        }
-    ],
-
-    "object": {
-        "aaa": "String in object",
-        "ccc": 18.7
-    },
-
-    "array_of_primitive": ["one", "two", "three" ],
+    "array_of_primitive": ["one", "two", "three" ]
 }

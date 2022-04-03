@@ -1,0 +1,12 @@
+{
+    "array": [
+        {
+            "aa": "String in array",
+            "bb": 7
+        },
+        {
+            "aa": "String in array 2",
+            "bb": 8
+        }
+    ]
+}

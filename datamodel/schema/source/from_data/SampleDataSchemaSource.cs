@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 using datamodel.schema.tweaks;
 
@@ -28,8 +27,6 @@ namespace datamodel.schema.source.from_data {
     // Open questions
     // - How to treat same paths with (very) different properties - e.g representing inheritance
     public abstract class SampleDataSchemaSource : SchemaSource {
-        private const string ROOT_PATH = "";
-        private const string KEY_COLUMN = "__key__";
 
         protected abstract SDSS_Element GetRaw(string text);
         protected Options TheOptions;
@@ -41,7 +38,7 @@ namespace datamodel.schema.source.from_data {
 
         public class Options {
             public string Title { get; set; }
-            public string[] PathsWhereKeyIsData { get; set; }
+            public string[] PathsWhereKeyIsData = new string[] {};
             // If true, any Model located at the same attribute name is considered to be identical
             public bool SameNameIsSameModel { get; set; }
 
@@ -57,25 +54,13 @@ namespace datamodel.schema.source.from_data {
         public SampleDataSchemaSource(string[] filenames, Options options) {
             TheOptions = options ?? new Options();
 
-            List<TempSource> clusters = ProcessFilesWithClustering(filenames, options);
-            _source = CreateSeededSource(options);
+            List<TempSource> clusters = ProcessFilesWithClustering(filenames);
+            _source = new TempSource();
             foreach (TempSource cluster in clusters)
                 MergeSources(_source, cluster);
 
             SetCanBeEmpty();
             SetModelInstanceCounts();
-        }
-
-        private TempSource CreateSeededSource(Options options) {
-            TempSource source = new TempSource();
-
-            if (options?.PathsWhereKeyIsData != null)
-                foreach (string path in options.PathsWhereKeyIsData) {
-                    _pathsWhereKeyIsData.Add(path);
-                    Model model = MaybeCreateModel(source, path, false);
-                }
-
-            return source;
         }
 
         #region Clustering
@@ -91,7 +76,7 @@ namespace datamodel.schema.source.from_data {
         // 3a. One cluster overlap => add any new members to that cluster
         // 3b. Multiple overlaps => join the multiple clusters into one and add new members as above
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
-        private List<TempSource> ProcessFilesWithClustering(string[] filenames, Options options) {
+        private List<TempSource> ProcessFilesWithClustering(string[] filenames) {
             List<TempSource> clusters = new List<TempSource>();
 
             // 1 as above
@@ -99,9 +84,10 @@ namespace datamodel.schema.source.from_data {
                 // 2a as above
                 string text = File.ReadAllText(filename);
                 SDSS_Element root = GetRaw(text);
+                SampleDataKeyIsData.ConvertObjectsToArrays(TheOptions, root);
 
-                TempSource candidate = CreateSeededSource(options);
-                ParseObjectOrArray(candidate, root, ROOT_PATH);
+                TempSource candidate = new TempSource();
+                ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
 
                 // 2b as above 
                 List<TempSource> overlaps = new List<TempSource>();
@@ -142,7 +128,7 @@ namespace datamodel.schema.source.from_data {
                 foreach (Model model in cluster.GetModels()) {
                     model.QualifiedName = clusterName + model.QualifiedName;
                     model.SetLevel(0, clusterName);
-                    if (model.Name == ROOT_PATH)
+                    if (model.Name == SampleDataKeyIsData.ROOT_PATH)
                         model.Name = clusterName;
                 }
 
@@ -211,40 +197,15 @@ namespace datamodel.schema.source.from_data {
         #endregion
 
         #region Recursive File Processing
-        public void ParseObjectOrArray(TempSource source, SDSS_Element token, string path) {
-            if (token is SDSS_Array array) {
-                foreach (SDSS_Element item in array) {
+        public void ParseObjectOrArray(TempSource source, SDSS_Element element, string path) {
+            if (element.IsArray) {
+                foreach (SDSS_Element item in element.ArrayItems) {
                     ParseObjectOrArray(source, item, path);
                 }
-            } else if (token is SDSS_Object obj) {
-                // If this objects fields appear to be data, take special action
-                if (IsKeyData(obj, path)) {
-                    foreach (KeyValuePair<string, SDSS_Element> item in obj.Items) {
-                        if (item.Value is SDSS_Object childObj) {
-                            Model model = ParseObject(source, childObj, path);
-                            if (model.FindColumn(KEY_COLUMN) == null)
-                                AddKeyColumn(model, item.Key);
-                        } else {
-                            // TODO: Warn
-                        }
-                    }
-                } else
-                    ParseObject(source, obj, path);
+            } else if (element.IsObject) {
+                ParseObject(source, element, path);
             } else
-                throw new Exception("Expected Array or Object, but got: " + token.Type);
-        }
-
-        private void AddKeyColumn(Model model, string example) {
-            Column column = new Column() {
-                Name = KEY_COLUMN,
-                DataType = "String",
-                CanBeEmpty = false,
-                Owner = model,
-            };
-            model.AllColumns.Insert(0, column);
-
-            if (example != null)
-                column.AddLabel("Example", example);
+                throw new Exception("Expected Array or Object, but got: " + element.DataType);
         }
 
         private Model MaybeCreateModel(TempSource source, string path, bool addInstanceCount) {
@@ -264,26 +225,27 @@ namespace datamodel.schema.source.from_data {
             return model;
         }
 
-        private Model ParseObject(TempSource source, SDSS_Object obj, string path) {
+        private Model ParseObject(TempSource source, SDSS_Element obj, string path) {
             Model model = MaybeCreateModel(source, path, true);
 
-            foreach (KeyValuePair<string, SDSS_Element> item in obj.Items) {
+            foreach (KeyValuePair<string, SDSS_Element> item in obj.ObjectItems) {
                 string newPath = TheOptions.SameNameIsSameModel ?
                     item.Key :
                     string.Format("{0}.{1}", path, item.Key);
 
-                SDSS_Element token = item.Value;
-                if (token is SDSS_Array array) {
+                SDSS_Element element = item.Value;
+                if (element.IsArray) {
                     // Array of primitive is treated like a primitive value
-                    if (IsPrimitive(array.FirstOrDefault())) {
-                        MaybeAddAttribute(model, item.Key, array.FirstOrDefault(), true);
+                    SDSS_Element first = element.ArrayItems.FirstOrDefault();
+                    if (first != null && first.IsPrimitive) {
+                        MaybeAddAttribute(model, item.Key, first, true);
                         continue;
                     }
 
                     MaybeAddAssociation(source, model, newPath, true);
-                    ParseObjectOrArray(source, array, newPath);
-                } else if (item.Value is SDSS_Object child) {
-                    ParseObjectOrArray(source, token, newPath);
+                    ParseObjectOrArray(source, element, newPath);
+                } else if (item.Value.IsObject) {
+                    ParseObjectOrArray(source, element, newPath);
                     MaybeAddAssociation(source, model, newPath, false);
                 } else {
                     MaybeAddAttribute(model, item.Key, item.Value, false);
@@ -291,29 +253,6 @@ namespace datamodel.schema.source.from_data {
             }
 
             return model;
-        }
-
-        internal static Regex PROP_NAME_REGEX = new Regex("^[_$a-zA-Z][-_$a-zA-Z0-9]*$");
-        // In some cases, rather than an object having ordinary properties, they key of the object actually
-        // constitutes data. Kubernetes Swagger has lots of this.
-        internal bool IsKeyData(SDSS_Object obj, string path) {
-            if (_pathsWhereKeyIsData.Contains(path))
-                return true;
-
-            if (obj.Items.Count() > 50 ||       // Obviously, this is a suspect heuristic and should be (at the very least) injectable
-                obj.Items.Keys.Any(x => !PROP_NAME_REGEX.IsMatch(x))) {
-
-                _pathsWhereKeyIsData.Add(path);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool IsPrimitive(SDSS_Element token) {
-            if (token is SDSS_Array || token is SDSS_Object)
-                return false;
-            return true;
         }
 
         private void MaybeAddAssociation(TempSource source, Model model, string path, bool isMany) {
@@ -332,22 +271,22 @@ namespace datamodel.schema.source.from_data {
             }
         }
 
-        private void MaybeAddAttribute(Model model, string name, SDSS_Element token, bool isMany) {
+        private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
             Column column = model.FindColumn(name);
             if (column == null) {
                 column = new Column() {
                     Name = name,
-                    DataType = GetDataType(token, isMany),
+                    DataType = GetDataType(element, isMany),
                     Owner = model,
                 };
 
-                if (token != null)
-                    column.AddLabel("Example", token.ToString());
+                if (element != null)
+                    column.AddLabel("Example", element.ToString());
 
                 model.AllColumns.Add(column);
                 _columns[column] = 0;
             } else {
-                string dataType = GetDataType(token, isMany);
+                string dataType = GetDataType(element, isMany);
                 if (dataType != column.DataType)
                     Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
                         model.Name,
@@ -359,8 +298,8 @@ namespace datamodel.schema.source.from_data {
             _columns[column]++;
         }
 
-        private string GetDataType(SDSS_Element token, bool isMany) {
-            string type = token == null ? "unknown" : token.Type;
+        private string GetDataType(SDSS_Element element, bool isMany) {
+            string type = element == null ? "unknown" : element.DataType;
             if (isMany)
                 type = "[]" + type;
             return type;
@@ -397,37 +336,4 @@ namespace datamodel.schema.source.from_data {
         }
         #endregion
     }
-
-    #region Helper Classes
-
-    // "SDSS" = "Sample Data Schema Source"
-    public abstract class SDSS_Element {
-        public string Type { get; set; }
-    }
-
-    public class SDSS_Primitive : SDSS_Element {
-        public string Value { get; set; }
-        public override string ToString() {
-            return Value;
-        }
-    }
-
-    public class SDSS_Object : SDSS_Element {
-        public Dictionary<string, SDSS_Element> Items { get; set; }
-        public SDSS_Object() {
-            Items = new Dictionary<string, SDSS_Element>();
-        }
-    }
-
-    public class SDSS_Array : SDSS_Element, IEnumerable<SDSS_Element> {
-        public IEnumerable<SDSS_Element> Items { get; set; }
-
-        public IEnumerator<SDSS_Element> GetEnumerator() {
-            return Items.GetEnumerator();
-        }
-        IEnumerator IEnumerable.GetEnumerator() {
-            return Items.GetEnumerator();
-        }
-    }
-    #endregion
 }

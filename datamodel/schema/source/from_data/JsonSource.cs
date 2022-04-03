@@ -26,19 +26,17 @@ namespace datamodel.schema.source.from_data {
 
         private SDSS_Element Convert(JToken token) {
             if (token is JObject obj) {
-                SDSS_Object sdssObj = new SDSS_Object();
+                SDSS_Element sdssObj = new SDSS_Element(ElementType.Object);
                 foreach (var pair in obj)
-                    sdssObj.Items[pair.Key] = Convert(pair.Value);
+                    sdssObj.AddKeyValue(pair.Key, Convert(pair.Value));
                 return sdssObj;
             } else if (token is JArray array) {
-                return new SDSS_Array() {
-                    Items = array.Select(x => Convert(x)),
-                };
+                return new SDSS_Element(array.Select(x => Convert(x)));
             } else {
-                return new SDSS_Primitive() {
-                    Value = token.ToString(),
-                    Type = token.Type == JTokenType.Null ? null : token.Type.ToString()
-                };
+                return new SDSS_Element(
+                    token.ToString(),
+                    token.Type == JTokenType.Null ? null : token.Type.ToString()
+                );
             }
         }
     }
