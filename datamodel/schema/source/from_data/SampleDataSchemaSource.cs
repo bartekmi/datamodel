@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using datamodel.schema.tweaks;
 
@@ -63,10 +64,11 @@ namespace datamodel.schema.source.from_data {
         private Dictionary<Column, int> _columns = new Dictionary<Column, int>();
 
         public class Options {
-            public string Title { get; set; }
+            public string Title;
             public string[] PathsWhereKeyIsData = new string[] { };
+            
             // If true, any Model located at the same attribute name is considered to be identical
-            public bool SameNameIsSameModel { get; set; }
+            public bool SameNameIsSameModel;
 
             // The minimum number of common properties in order for two sample files
             // to be considered part of the same "cluster".
@@ -75,6 +77,20 @@ namespace datamodel.schema.source.from_data {
             // If you set this to zero, even files with no shared properties will be considered to
             // belong to the same cluster - so all files will be considered the same.
             public int MinimumClusterOverlap = 1;
+
+            // If the key of an Object does NOT match this Regex, it will be assumed
+            // that all the keys of all the instances if this object should be 
+            // treated as data, and the Object itself should be treated as an Array.
+            public string KEY_IS_DATA_REGEX = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$";
+
+            private Regex _keyIsDataRegex;
+            public Regex KeyIsDataRegex {
+                get {
+                    if (_keyIsDataRegex == null)
+                        _keyIsDataRegex = new Regex(KEY_IS_DATA_REGEX);
+                    return _keyIsDataRegex;
+                }
+            }
         }
 
         public SampleDataSchemaSource(IEnumerable<TextSource> files, Options options) {

@@ -17,40 +17,44 @@ namespace datamodel.schema.source.from_data {
             ) {
 
             HashSet<string> paths = new HashSet<string>(options.PathsWhereKeyIsData);
-            RecursePass1(paths, root, ROOT_PATH);
+            RecursePass1(options, paths, root, ROOT_PATH);
             RecursePass2(paths, root, ROOT_PATH, true);
         }
 
         #region Pass 1 - Identify all paths where the object uses keys as data
-        private static void RecursePass1(HashSet<string> paths, SDSS_Element element, string path) {
+        private static void RecursePass1(
+            SampleDataSchemaSource.Options options,
+            HashSet<string> paths, 
+            SDSS_Element element, 
+            string path) {
+
             if (element.IsPrimitive)
                 return;
 
             if (element.IsArray) {
                 foreach (SDSS_Element child in element.ArrayItems)
-                    RecursePass1(paths, child, path);
+                    RecursePass1(options, paths, child, path);
             } else if (element.IsObject) {
 
                 bool isKeyData = paths.Contains(path);
                 if (!isKeyData) {
-                    isKeyData = IsKeyData(element);
+                    isKeyData = IsKeyData(options, element);
                     if (isKeyData)
                         paths.Add(path);
                 }
 
                 foreach (KeyValuePair<string, SDSS_Element> pair in element.ObjectItems) {
                     string childPath = isKeyData ? path : AppendToPath(path, pair.Key);
-                    RecursePass1(paths, pair.Value, childPath);
+                    RecursePass1(options, paths, pair.Value, childPath);
                 }
             } else
                 throw new Exception("Added new type, forgot to change code?");
         }
 
         // TODO: Move to options
-        internal static Regex PROP_NAME_REGEX = new Regex("^[_$a-zA-Z][-_$a-zA-Z0-9]*$");
-        private static bool IsKeyData(SDSS_Element obj) {
+        private static bool IsKeyData(SampleDataSchemaSource.Options options, SDSS_Element obj) {
             if (obj.ObjectItems.Count() > 50 ||       // TODO: Obviusly, this should be moved to options
-                obj.ObjectItems.Keys.Any(x => !PROP_NAME_REGEX.IsMatch(x)))
+                obj.ObjectItems.Keys.Any(x => !options.KeyIsDataRegex.IsMatch(x)))
                 return true;
 
             return false;

@@ -248,11 +248,5 @@ TextSource text = TextSource.Text(@"{
   ]
 }", json);
         }
-
-        [Fact]
-        public void RegexMatch() {
-            bool isMatch = SampleDataKeyIsData.PROP_NAME_REGEX.IsMatch("definitions");
-            Assert.True(isMatch);
-        }
     }
 }
