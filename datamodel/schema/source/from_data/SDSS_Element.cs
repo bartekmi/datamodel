@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Newtonsoft.Json;
 
 namespace datamodel.schema.source.from_data {
 
@@ -16,10 +17,11 @@ namespace datamodel.schema.source.from_data {
     // in the case of objects where key is data.
     public class SDSS_Element {
         private ElementType _type;
+        [JsonIgnore]    // Redundant - can be easily seen from what's populated
         public ElementType Type { get { return _type; } }
 
         // For primitive
-        public string Value {get; private set;}
+        public string Value { get; private set; }
         public string DataType { get; private set; }
 
         // For object
@@ -49,35 +51,52 @@ namespace datamodel.schema.source.from_data {
             DataType = dataType;
         }
 
+        // Derived
+        [JsonIgnore]
         public bool IsPrimitive { get { return _type == ElementType.Primitive; } }
+        [JsonIgnore]
         public bool IsObject { get { return _type == ElementType.Object; } }
+        [JsonIgnore]
         public bool IsArray { get { return _type == ElementType.Array; } }
 
-        public void AddKeyValue(string key, SDSS_Element element) {
+        public void AddKeyAndValue(string key, SDSS_Element element) {
             if (Type != ElementType.Object)
                 throw new Exception("Only use if type is Object");
             _objectItems[key] = element;
+        }
+
+        public void AddKeyAndValue(string key, string value) {
+            AddKeyAndValue(key, new SDSS_Element(value, "string"));
         }
 
         // There are many cases where arrays masquarade as objects, where each
         // key in the object is really just a field in the object that it contains.
         // This method re-converts such an object to the array that it really is.
         internal void ConvertObjectToArray(string keyProperty) {
-            if (_type != ElementType.Object) 
+            if (_type != ElementType.Object)
                 throw new Exception("Can only call on Object");
 
-            _type = ElementType.Array;
             List<SDSS_Element> arrayItems = new List<SDSS_Element>();
-            foreach (var item in ObjectItems) {
-                if (item.Value.Type != ElementType.Object)
-                    throw new NotImplementedException("Can only handle if children are objects");
 
-                SDSS_Element keyAttr = new SDSS_Element(item.Key, "string");
-                item.Value.AddKeyValue(keyProperty, keyAttr);
-                arrayItems.Add(item.Value);
+            foreach (var keyAndItem in ObjectItems) {
+                string key = keyAndItem.Key;
+                SDSS_Element item = keyAndItem.Value;
+
+                if (item.Type == ElementType.Object) {
+                    item.AddKeyAndValue(keyProperty, key);
+                    arrayItems.Add(item);
+                } else if (item.Type == ElementType.Array) {
+                    SDSS_Element intermediate = new SDSS_Element(ElementType.Object);
+                    intermediate.AddKeyAndValue(keyProperty, key);
+                    intermediate.AddKeyAndValue("Item", item);
+                    arrayItems.Add(intermediate);
+                } else
+                    throw new NotImplementedException("How to handle primitive elements?");
             }
 
             _objectItems = null;
+            ObjectItems = null;
+            _type = ElementType.Array;
             ArrayItems = arrayItems;
         }
 

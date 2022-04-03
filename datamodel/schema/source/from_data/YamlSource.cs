@@ -37,7 +37,7 @@ namespace datamodel.schema.source.from_data {
             if (token is YamlMappingNode obj) {
                 SDSS_Element sdssObj = new SDSS_Element(ElementType.Object);
                 foreach (var pair in obj)
-                    sdssObj.AddKeyValue(pair.Key.ToString(), Convert(pair.Value));
+                    sdssObj.AddKeyAndValue(pair.Key.ToString(), Convert(pair.Value));
                 return sdssObj;
             } else if (token is YamlSequenceNode array) {
                 return new SDSS_Element(array.Select(x => Convert(x)));

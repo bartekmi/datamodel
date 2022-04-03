@@ -110,7 +110,7 @@ namespace datamodel.schema.source.from_data {
                 // 2a as above
                 string text = file.GetText();
                 SDSS_Element root = GetRaw(text);
-                SampleDataKeyIsData.ConvertObjectsToArrays(TheOptions, root);
+                SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
 
                 TempSource candidate = new TempSource();
                 ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);

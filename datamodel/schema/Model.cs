@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 
 using datamodel.utils;
-using datamodel.metadata;
 using datamodel.toplevel;
 
 namespace datamodel.schema {

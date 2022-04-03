@@ -11,7 +11,7 @@ namespace datamodel.schema.source.from_data {
         internal const string ROOT_PATH = "";
         private const string KEY_COLUMN = "__key__";
 
-        internal static void ConvertObjectsToArrays(
+        internal static void ConvertObjectsWhereKeyIsData(
             SampleDataSchemaSource.Options options,
             SDSS_Element root
             ) {
