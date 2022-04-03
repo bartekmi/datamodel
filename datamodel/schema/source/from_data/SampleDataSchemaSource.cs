@@ -7,6 +7,32 @@ using System.Linq;
 using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.from_data {
+
+    public class TextSource {
+        private string _filename;
+        private string _text;
+        
+        public static TextSource File(string filename) {
+            return new TextSource() {
+                _filename = filename
+            };
+        }
+
+        public static TextSource Text(string text) {
+            return new TextSource() {
+                _text = text
+            };
+        }
+
+        internal string GetText() {
+            if (_filename != null)
+                return System.IO.File.ReadAllText(_filename);
+            if (_text != null)
+                return _text;
+            throw new Exception("Not set!");
+        }
+    }
+
     // This is a base class for schema sources which try to re-create a schema from multiple
     // structured sample data files, such as JSON, YAML or XML  
     // The rules are simple:
@@ -38,7 +64,7 @@ namespace datamodel.schema.source.from_data {
 
         public class Options {
             public string Title { get; set; }
-            public string[] PathsWhereKeyIsData = new string[] {};
+            public string[] PathsWhereKeyIsData = new string[] { };
             // If true, any Model located at the same attribute name is considered to be identical
             public bool SameNameIsSameModel { get; set; }
 
@@ -51,10 +77,10 @@ namespace datamodel.schema.source.from_data {
             public int MinimumClusterOverlap = 1;
         }
 
-        public SampleDataSchemaSource(string[] filenames, Options options) {
+        public SampleDataSchemaSource(IEnumerable<TextSource> files, Options options) {
             TheOptions = options ?? new Options();
 
-            List<TempSource> clusters = ProcessFilesWithClustering(filenames);
+            List<TempSource> clusters = ProcessFilesWithClustering(files);
             _source = new TempSource();
             foreach (TempSource cluster in clusters)
                 MergeSources(_source, cluster);
@@ -76,13 +102,13 @@ namespace datamodel.schema.source.from_data {
         // 3a. One cluster overlap => add any new members to that cluster
         // 3b. Multiple overlaps => join the multiple clusters into one and add new members as above
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
-        private List<TempSource> ProcessFilesWithClustering(string[] filenames) {
+        private List<TempSource> ProcessFilesWithClustering(IEnumerable<TextSource> files) {
             List<TempSource> clusters = new List<TempSource>();
 
             // 1 as above
-            foreach (string filename in filenames) {
+            foreach (TextSource file in files) {
                 // 2a as above
-                string text = File.ReadAllText(filename);
+                string text = file.GetText();
                 SDSS_Element root = GetRaw(text);
                 SampleDataKeyIsData.ConvertObjectsToArrays(TheOptions, root);
 

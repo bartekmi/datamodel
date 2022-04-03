@@ -1,16 +1,17 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 using YamlDotNet.RepresentationModel;
 
 namespace datamodel.schema.source.from_data {
     public class YamlSource : SampleDataSchemaSource {
-        public YamlSource(string filename, Options options) : this(new string[] { filename }, options) {
+        public YamlSource(TextSource file, Options options = null) : this(new TextSource[] { file }, options) {
             // Do nothing
         }
 
-        public YamlSource(string[] filenames, Options options) : base(filenames, options) {
+        public YamlSource(IEnumerable<TextSource> files, Options options = null) : base(files, options) {
             // Do nothing
         }
 

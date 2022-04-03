@@ -11,11 +11,11 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.from_data {
     public class JsonSource : SampleDataSchemaSource {
-        public JsonSource(string filename, Options options = null) : this(new string[] { filename }, options) {
+        public JsonSource(TextSource file, Options options = null) : this(new TextSource[] { file }, options) {
             // Do nothing
         }
 
-        public JsonSource(string[] filenames, Options options = null) : base(filenames, options) {
+        public JsonSource(IEnumerable<TextSource> files, Options options = null) : base(files, options) {
             // Do nothing
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace datamodel.schema.source.from_data {
                 "../../../schema/source/from_data/json_source_cluster_1.json",
                 "../../../schema/source/from_data/json_source_cluster_2.json",
                 "../../../schema/source/from_data/json_source_cluster_3.json",
-              }
+              }.Select(x => TextSource.File(x))
             );
 
             string json = FromDataUtils.ToJasonNoQuotes(source);

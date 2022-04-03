@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 using datamodel.metadata;
@@ -51,7 +52,7 @@ namespace datamodel {
             YamlSource source = new YamlSource(new string[] {
                     "../../tmp/f2.yaml",
                     "../../tmp/f3.yaml",
-                }, 
+                }.Select(x => TextSource.File(x)), 
                 new JsonSource.Options() {
                     Title = "yaml",
                     PathsWhereKeyIsData = new string[] {

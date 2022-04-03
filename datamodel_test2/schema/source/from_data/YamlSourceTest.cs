@@ -18,12 +18,21 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void Read() {
             Env.Configure();
-            
-            YamlSource source = new YamlSource("../../../schema/source/from_data/yaml_source.Yaml", 
-                new YamlSource.Options() {
-                    Title = "root",
-                }
-            );
+            TextSource text = TextSource.Text(@"a:
+  sub:
+  - name: 12
+    clust: false
+    labels:
+      some_label: my_label
+    decorate: true
+    spec:
+      containers:
+      - image: 12.5
+        command:
+        - c1
+        - c2
+");
+            YamlSource source = new YamlSource(text);
 
             string json = JsonConvert.SerializeObject(source._source, Formatting.Indented);
             _output.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> RESULTS >>>>>>>>>>>>>>>>>>>>");

@@ -1,8 +1,0 @@
-{
-    "a": "A string",
-    "b": 12,
-    "c": 3.14,
-    "d": true,
-    "e": null,
-    "array_of_primitive": ["one", "two", "three" ]
-}

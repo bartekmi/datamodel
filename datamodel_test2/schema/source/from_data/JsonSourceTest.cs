@@ -18,7 +18,18 @@ namespace datamodel.schema.source.from_data {
         public void KeyIsValue() {
             Env.Configure();
 
-            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_key_is_value.json",
+            TextSource text = TextSource.Text(@"{
+    key_is_value: {
+        one: {
+            z: 7
+        },
+        two: {
+            z: 8
+        }
+    }
+}");
+
+            JsonSource source = new JsonSource(text,
                 new JsonSource.Options() {
                     PathsWhereKeyIsData = new string[] {
                         ".key_is_value",
@@ -44,8 +55,15 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicAttributes() {
             Env.Configure();
-
-            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_basic.json");
+            TextSource text = TextSource.Text(@"{
+    a: 'A string',
+    b: 12,
+    c: 3.14,
+    d: true,
+    e: null,
+    array_of_primitive: [ 'one', 'two', 'three' ]
+}");
+            JsonSource source = new JsonSource(text);
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
@@ -98,8 +116,13 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicObject() {
             Env.Configure();
-
-            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_object.json");
+            TextSource text = TextSource.Text(@"{
+    object: {
+        aaa: ""String in object"",
+        ccc: 18.7
+    }
+}");
+            JsonSource source = new JsonSource(text);
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
@@ -158,8 +181,19 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicArray() {
             Env.Configure();
-
-            JsonSource source = new JsonSource("../../../schema/source/from_data/json_source_array.json");
+TextSource text = TextSource.Text(@"{
+    array: [
+        {
+            aa: 'String in array',
+            bb: 7
+        },
+        {
+            aa: 'String in array 2',
+            bb: 8
+        }
+    ]
+}");
+            JsonSource source = new JsonSource(text);
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
