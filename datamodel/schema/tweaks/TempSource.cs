@@ -13,6 +13,12 @@ namespace datamodel.schema.tweaks {
         public Dictionary<string, Model> Models = new Dictionary<string, Model>();
         public List<Association> Associations = new List<Association>();
 
+        // Note used, but necessary to appease abstract base class
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>();
+        }
+        public override void Initialize(Parameters parameters) {}
+
         // Derived
         [JsonIgnore]
         public IEnumerable<Column> AllColumns {

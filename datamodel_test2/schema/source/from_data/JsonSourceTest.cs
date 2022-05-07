@@ -18,7 +18,7 @@ namespace datamodel.schema.source.from_data {
         public void KeyIsValue() {
             Env.Configure();
 
-            TextSource text = TextSource.Text(@"{
+            string text = @"{
     key_is_value: {
         one: {
             z: 7
@@ -27,15 +27,14 @@ namespace datamodel.schema.source.from_data {
             z: 8
         }
     }
-}");
+}";
 
-            JsonSource source = new JsonSource(text,
-                new JsonSource.Options() {
-                    PathsWhereKeyIsData = new string[] {
-                        ".key_is_value",
-                    }
-                }
-            );
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                "paths-where-key-is-data=.key_is_value",
+                }));
+
 
             string json = FromDataUtils.ToJasonNoQuotes(source, false);
 
@@ -55,15 +54,19 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicAttributes() {
             Env.Configure();
-            TextSource text = TextSource.Text(@"{
+            string text = @"{
     a: 'A string',
     b: 12,
     c: 3.14,
     d: true,
     e: null,
     array_of_primitive: [ 'one', 'two', 'three' ]
-}");
-            JsonSource source = new JsonSource(text);
+}";
+
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                }));
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
@@ -116,13 +119,17 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicObject() {
             Env.Configure();
-            TextSource text = TextSource.Text(@"{
+            string text = @"{
     object: {
         aaa: ""String in object"",
         ccc: 18.7
     }
-}");
-            JsonSource source = new JsonSource(text);
+}";
+
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                }));
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
@@ -181,7 +188,7 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void BasicArray() {
             Env.Configure();
-TextSource text = TextSource.Text(@"{
+            string text = @"{
     array: [
         {
             aa: 'String in array',
@@ -192,8 +199,11 @@ TextSource text = TextSource.Text(@"{
             bb: 8
         }
     ]
-}");
-            JsonSource source = new JsonSource(text);
+}";
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                }));
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 

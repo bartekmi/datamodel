@@ -7,9 +7,22 @@ namespace datamodel.schema.source {
     public class SimpleSource : SchemaSource {
         private SSchema _schema;
 
-        public SimpleSource(string filename) {
-            string json = File.ReadAllText(filename);
+        private const string PARAM_FILE = "file";
+
+        public override void Initialize(Parameters parameters) {
+            string json = parameters.GetFileContent(PARAM_FILE);
             _schema = JsonConvert.DeserializeObject<SSchema>(json);
+        }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                new Parameter() {
+                    Name = PARAM_FILE,
+                    Description = "The name of the file which contains the SimpleSource JSON",
+                    Type = ParamType.File,
+                    IsMandatory = true,
+                }
+            };
         }
 
         public override string GetTitle() {

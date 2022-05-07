@@ -7,14 +7,6 @@ using YamlDotNet.RepresentationModel;
 
 namespace datamodel.schema.source.from_data {
     public class YamlSource : SampleDataSchemaSource {
-        public YamlSource(TextSource file, Options options = null) : this(new TextSource[] { file }, options) {
-            // Do nothing
-        }
-
-        public YamlSource(IEnumerable<TextSource> files, Options options = null) : base(files, options) {
-            // Do nothing
-        }
-
         public static YamlNode ReadYaml(string yamlString) {
             using (TextReader reader = new StringReader(yamlString)) {
                 YamlStream yaml = new YamlStream();

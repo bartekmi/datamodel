@@ -17,13 +17,12 @@ namespace datamodel.schema.source {
 
         [Fact]
         public void Read() {
-            string swgJson = File.ReadAllText("../../../schema/swagger_schema.json");
-            SwaggerSource source = new SwaggerSource(swgJson,
-                new SwaggerSourceOptions() {
-                    BoringNameComponents = new string[] {
-                        "io", "k8s", "api"
-                    }
-                });
+            SwaggerSource source = new SwaggerSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "file=../../../schema/swagger_schema.json",
+                "boring-name-components=io,k8s,api"
+                }));
+
 
             Schema.CreateSchema(source);
 

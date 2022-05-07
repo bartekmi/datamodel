@@ -7,7 +7,11 @@ namespace datamodel.schema {
     public class SchemaTest {
         [Fact]
         public void Hydrate() {
-            SimpleSource source = new SimpleSource("../../../schema/simple_schema.json");
+            SimpleSource source = new SimpleSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "file=../../../schema/simple_schema.json",
+                }));
+
             Schema.CreateSchema(source);
             Schema schema = Schema.Singleton;
 

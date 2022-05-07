@@ -5,10 +5,13 @@ using Newtonsoft.Json;
 using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source {
+
     public abstract class SchemaSource {
         public abstract string GetTitle();
         public abstract IEnumerable<Model> GetModels();
         public abstract IEnumerable<Association> GetAssociations();
+        public abstract IEnumerable<Parameter> GetParameters();
+        public abstract void Initialize(Parameters parameters);
 
         private TempSource _tempSource;
 

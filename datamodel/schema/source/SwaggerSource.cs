@@ -1,44 +1,64 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Net;
 using System.Linq;
 
 using Newtonsoft.Json;
 
 namespace datamodel.schema.source {
 
-    public class SwaggerSourceOptions {
-        // In some schemes (e.g. Kubernetes swagger file), the multi-part model names
-        // have repeating components that add nothing interesting. Specify them here.
-        public string[] BoringNameComponents;
-    }
-
     public class SwaggerSource : SchemaSource {
         #region Members / Abstract implementations
         private SwgSchema _schema;
-        private SwaggerSourceOptions _options;
+        private string[] _boringNameComponents;
 
         private List<Model> _models = new List<Model>();
         protected List<Association> _associations = new List<Association>();
 
-        // Helper to download json from a URL
-        public static string DownloadUrl(string url) {
-            using (WebClient client = new WebClient())
-                return client.DownloadString(url);
-        }
+        public const string PARAM_URL = "url";
+        public const string PARAM_FILE = "file";
+        public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
 
-        public SwaggerSource(string json, SwaggerSourceOptions options) {
+        public override void Initialize(Parameters parameters) {
             // https://stackoverflow.com/questions/22299390/can-not-deserialize-json-containing-ref-keys
             JsonSerializerSettings settings = new JsonSerializerSettings() {
                 MetadataPropertyHandling = MetadataPropertyHandling.Ignore,
             };
 
+            string urlData = parameters.GetUrlContent(PARAM_URL);
+            String fileData = parameters.GetFileContent(PARAM_FILE);
+            if (!(urlData != null ^ fileData != null))
+                throw new Exception(String.Format("Exactly one of these parameters must be set: {0}, {1}",
+                    PARAM_URL, PARAM_FILE));
+
+            string json = urlData == null ? fileData : urlData;
             _schema = JsonConvert.DeserializeObject<SwgSchema>(json, settings);
-            _options = options;
+            _boringNameComponents = parameters.GetStrings(PARAM_BORING_NAME_COMPONENTS);
 
             ParseDefinitions();
         }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                new Parameter() {
+                    Name = PARAM_URL,
+                    Description = "Download URL for the Swagger schema",
+                    Type = ParamType.Url,
+                },
+                new Parameter() {
+                    Name = PARAM_FILE,
+                    Description = "File for the Swagger schema",
+                    Type = ParamType.File,
+                },
+                new Parameter() {
+                    Name = PARAM_BORING_NAME_COMPONENTS,
+                    Description = @"In some schemes (e.g. Kubernetes swagger file), the multi-part model names
+        have repeating components that add nothing interesting. Specify them here as comma-separated list.",
+                    Type = ParamType.String,
+                    IsMultiple = true,
+                },
+            };
+        }
+
 
         public override string GetTitle() {
             return _schema.info?.title;
@@ -72,8 +92,8 @@ namespace datamodel.schema.source {
 
         protected virtual void PopulateModel(Model model, string qualifiedName, SwgDefinition def) {
             IEnumerable<string> pieces = qualifiedName.Split(".");
-            if (_options?.BoringNameComponents != null)
-                pieces = pieces.Where(x => !_options.BoringNameComponents.Contains(x));
+            if (_boringNameComponents != null)
+                pieces = pieces.Where(x => !_boringNameComponents.Contains(x));
 
             model.Levels = pieces.Take(pieces.Count() - 1).ToArray();
             model.Name = pieces.Last();

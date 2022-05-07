@@ -9,7 +9,7 @@ namespace datamodel.schema.source.from_data {
         public void KeyIsValueBasic() {
             Env.Configure();
 
-            TextSource text = TextSource.Text(@"{
+            string text = @"{
     key_is_value: {
         one: {
             z: 7
@@ -18,15 +18,13 @@ namespace datamodel.schema.source.from_data {
             z: 8
         }
     }
-}");
+}";
 
-            JsonSource source = new JsonSource(text,
-                new JsonSource.Options() {
-                    PathsWhereKeyIsData = new string[] {
-                        ".key_is_value",
-                    }
-                }
-            );
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                "paths-where-key-is-data=.key_is_value"
+                }));
 
             string json = FromDataUtils.ToJasonNoQuotes(source, false);
 
@@ -51,7 +49,7 @@ namespace datamodel.schema.source.from_data {
         public void KeyIsValueWithArray() {
             Env.Configure();
 
-            TextSource text = TextSource.Text(@"{
+            string text = @"{
   key_is_value: {
     'http://a.com': [ 
       { z: 7 },
@@ -61,7 +59,7 @@ namespace datamodel.schema.source.from_data {
       { z: 9 }
     ]
   }
-}");
+}";
 
             // If you need to introspect the intermediate SDSS_Element layer
             // SDSS_Element root = JsonSource.GetRawInternal(text.GetText());
@@ -69,7 +67,11 @@ namespace datamodel.schema.source.from_data {
             // string output = FromDataUtils.ToJasonNoQuotes(root);
             // Console.Write(output);
 
-            JsonSource source = new JsonSource(text);
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                }));
+                
             string json = FromDataUtils.ToJasonNoQuotes(source, true);
             // Console.Write(json);
 

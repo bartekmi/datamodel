@@ -7,7 +7,8 @@ namespace datamodel.schema.source {
     public class SimpleSourceTest {
         [Fact]
         public void Read() {
-            SimpleSource source = new SimpleSource("../../../schema/simple_schema.json");
+            SimpleSource source = new SimpleSource();
+            source.Initialize(new Parameters(source, new string[] { "file=../../../schema/simple_schema.json" }));
             Schema.CreateSchema(source);
             Schema schema = Schema.Singleton;
 

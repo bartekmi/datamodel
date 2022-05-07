@@ -26,7 +26,7 @@ namespace datamodel.schema.source {
         }
 
         private static Toc ParseYaml(string url) {
-            string yaml = SwaggerSource.DownloadUrl(url);
+            string yaml = Parameter.DownloadUrl(url);
 
             IDeserializer deserializer = new DeserializerBuilder().Build();
             Toc toc = deserializer.Deserialize<Toc>(yaml);

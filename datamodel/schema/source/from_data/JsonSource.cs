@@ -11,14 +11,6 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.from_data {
     public class JsonSource : SampleDataSchemaSource {
-        public JsonSource(TextSource file, Options options = null) : this(new TextSource[] { file }, options) {
-            // Do nothing
-        }
-
-        public JsonSource(IEnumerable<TextSource> files, Options options = null) : base(files, options) {
-            // Do nothing
-        }
-
         protected override SDSS_Element GetRaw(string json) {
                 return GetRawInternal(json);
         }

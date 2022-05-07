@@ -30,12 +30,6 @@ namespace datamodel {
             Env.Configure();
             Error.Clear();
 
-            // var options = new SwaggerSourceOptions() {
-            //     BoringNameComponents = new string[] {
-            //         "io", "k8s", "api", "pkg", "v1", "v1alpha1", "v1beta1", "v1beta2", "v2", "v2beta1", "v2beta2"
-            //     },
-            // };
-
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
             //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
             // JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
@@ -49,23 +43,19 @@ namespace datamodel {
             // );
             // AddKubernetesJsonTweaks(source);
 
-            YamlSource source = new YamlSource(new string[] {
-                    "../../tmp/f1.yaml",
-                    "../../tmp/f2.yaml",
-                    "../../tmp/f3.yaml",
-                    "../../tmp/f4.yaml",
-                    "../../tmp/f5.yaml",
-                }.Select(x => TextSource.File(x)), 
-                new JsonSource.Options() {
-                    Title = "yaml",
-                    PathsWhereKeyIsData = new string[] {
-                    },
-                    SameNameIsSameModel = false,
-                }
-            );
+            YamlSource source = new YamlSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                @"files=
+                    ../../tmp/f1.yaml,
+                    ../../tmp/f2.yaml,
+                    ../../tmp/f3.yaml,
+                    ../../tmp/f4.yaml,
+                    ../../tmp/f5.yaml",
+                "title=yaml"
+            }));
 
-            // string json = SwaggerSource.DownloadUrl("https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json");
-            // SwaggerSource source = new K8sSwaggerSource(json, options);
+
+            // SwaggerSource source = new K8sSwaggerSource();
             // AddKubernetesTweaks(source);
 
             Schema schema = Schema.CreateSchema(source);

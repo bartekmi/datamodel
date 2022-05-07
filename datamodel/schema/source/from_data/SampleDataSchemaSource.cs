@@ -9,31 +9,6 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.from_data {
 
-    public class TextSource {
-        private string _filename;
-        private string _text;
-        
-        public static TextSource File(string filename) {
-            return new TextSource() {
-                _filename = filename
-            };
-        }
-
-        public static TextSource Text(string text) {
-            return new TextSource() {
-                _text = text
-            };
-        }
-
-        internal string GetText() {
-            if (_filename != null)
-                return System.IO.File.ReadAllText(_filename);
-            if (_text != null)
-                return _text;
-            throw new Exception("Not set!");
-        }
-    }
-
     // This is a base class for schema sources which try to re-create a schema from multiple
     // structured sample data files, such as JSON, YAML or XML  
     // The rules are simple:
@@ -66,37 +41,36 @@ namespace datamodel.schema.source.from_data {
         public class Options {
             public string Title;
             public string[] PathsWhereKeyIsData = new string[] { };
-            
-            // If true, any Model located at the same attribute name is considered to be identical
             public bool SameNameIsSameModel;
-
-            // The minimum number of common properties in order for two sample files
-            // to be considered part of the same "cluster".
-            // By increasing this number, you can force files which accidentally have a few common
-            // properties to still be considered separate clusters.
-            // If you set this to zero, even files with no shared properties will be considered to
-            // belong to the same cluster - so all files will be considered the same.
             public int MinimumClusterOverlap = 1;
-
-            // If the key of an Object does NOT match this Regex, it will be assumed
-            // that all the keys of all the instances if this object should be 
-            // treated as data, and the Object itself should be treated as an Array.
             public string KEY_IS_DATA_REGEX = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$";
-
-            private Regex _keyIsDataRegex;
-            public Regex KeyIsDataRegex {
-                get {
-                    if (_keyIsDataRegex == null)
-                        _keyIsDataRegex = new Regex(KEY_IS_DATA_REGEX);
-                    return _keyIsDataRegex;
-                }
-            }
+            public Regex KeyIsDataRegex;
         }
 
-        public SampleDataSchemaSource(IEnumerable<TextSource> files, Options options) {
-            TheOptions = options ?? new Options();
+        public const string PARAM_FILES = "files";
+        public const string PARAM_RAW = "raw";
 
-            List<TempSource> clusters = ProcessFilesWithClustering(files);
+        public const string PARAM_TITLE = "title";
+        public const string PARAM_PATHS_WHERE_KEY_IS_DATA = "paths-where-key-is-data";
+        public const string PARAM_SAME_NAME_IS_SAME_MODEL = "same-name-is-same-model";
+        public const string PARAM_MINIMUM_CLUSTER_OVERLAP = "minimum-cluster-overlap";
+        public const string PARAM_KEY_IS_DATA_REGEX = "key-is-data-regex";
+        
+
+        public override void Initialize(Parameters parameters) {
+            TheOptions = new Options() {
+                Title = parameters.GetString(PARAM_TITLE),
+                PathsWhereKeyIsData = parameters.GetStrings(PARAM_PATHS_WHERE_KEY_IS_DATA),
+                SameNameIsSameModel = parameters.GetBool(PARAM_SAME_NAME_IS_SAME_MODEL),
+                MinimumClusterOverlap = parameters.GetInt(PARAM_MINIMUM_CLUSTER_OVERLAP).Value, // Safe due to default
+                KeyIsDataRegex = parameters.GetRegex(PARAM_KEY_IS_DATA_REGEX)
+            };
+
+            string raw = parameters.GetString(PARAM_RAW);
+            string[] fileContents = parameters.GetFileContents(PARAM_FILES);
+            string[] texts = raw == null ? fileContents : new string[] { raw};
+
+            List<TempSource> clusters = ProcessFilesWithClustering(texts);
             _source = new TempSource();
             foreach (TempSource cluster in clusters)
                 MergeSources(_source, cluster);
@@ -105,9 +79,63 @@ namespace datamodel.schema.source.from_data {
             SetModelInstanceCounts();
         }
 
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                // Data Sources...
+                new Parameter() {
+                    Name = PARAM_FILES,
+                    Description = @"Comma-separated list of data filesnames",
+                    Type = ParamType.File,
+                    IsMultiple = true,
+                },
+                new Parameter() {
+                    Name = PARAM_RAW,
+                    Description = @"Raw json/yaml/etc content - useful for testing",
+                    Type = ParamType.String,
+                },
+
+                // Options
+                new Parameter() {
+                    Name = PARAM_TITLE,
+                    Description = @"Title of the Schema",
+                    Type = ParamType.String,
+                },
+                new Parameter() {
+                    Name = PARAM_PATHS_WHERE_KEY_IS_DATA,
+                    Description = @"JSON paths to attributes where we know that the key represents a data field",
+                    Type = ParamType.String,
+                    IsMultiple = true,
+                },
+                new Parameter() {
+                    Name = PARAM_SAME_NAME_IS_SAME_MODEL,
+                    Description = @"If true, any Model located at the same attribute name is considered to be identical",
+                    Type = ParamType.Bool,
+                },
+                new Parameter() {
+                    Name = PARAM_MINIMUM_CLUSTER_OVERLAP,
+                    Description = @"The minimum number of common properties in order for two sample files
+to be considered part of the same 'cluster'.
+By increasing this number, you can force files which accidentally have a few common
+properties to still be considered separate clusters.
+If you set this to zero, even files with no shared properties will be considered to
+belong to the same cluster - so all files will be considered the same.",
+                    Type = ParamType.Int,
+                    Default = "1",
+                },
+                new Parameter() {
+                    Name = PARAM_KEY_IS_DATA_REGEX,
+                    Description = @"If the key of an Object does NOT match this Regex, it will be assumed
+that all the keys of all the instances if this object should be 
+treated as data, and the Object itself should be treated as an Array.",
+                    Type = ParamType.Regex,
+                    Default = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$"
+                },
+            };
+        }
+
         #region Clustering
         // Algorithm:
-        // 1. Iterate all files
+        // 1. Iterate all files/texts
         // 2a. Extract top-level model from each file
         // 2b. find overlap with each individual cluster - the parameter MIN_OVERLAP specifies the minimum overlap
         //    to be considered part of the same cluster - any smaller overlap is assumed to be accidental
@@ -118,13 +146,12 @@ namespace datamodel.schema.source.from_data {
         // 3a. One cluster overlap => add any new members to that cluster
         // 3b. Multiple overlaps => join the multiple clusters into one and add new members as above
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
-        private List<TempSource> ProcessFilesWithClustering(IEnumerable<TextSource> files) {
+        private List<TempSource> ProcessFilesWithClustering(IEnumerable<string> texts) {
             List<TempSource> clusters = new List<TempSource>();
 
             // 1 as above
-            foreach (TextSource file in files) {
+            foreach (string text in texts) {
                 // 2a as above
-                string text = file.GetText();
                 SDSS_Element root = GetRaw(text);
                 SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
 

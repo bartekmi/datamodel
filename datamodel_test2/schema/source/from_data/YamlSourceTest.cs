@@ -18,7 +18,7 @@ namespace datamodel.schema.source.from_data {
         [Fact]
         public void Read() {
             Env.Configure();
-            TextSource text = TextSource.Text(@"a:
+            string text = @"a:
   sub:
   - name: 12
     clust: false
@@ -31,8 +31,12 @@ namespace datamodel.schema.source.from_data {
         command:
         - c1
         - c2
-");
-            YamlSource source = new YamlSource(text);
+";
+
+            YamlSource source = new YamlSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                }));
 
             string json = JsonConvert.SerializeObject(source._source, Formatting.Indented);
             _output.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> RESULTS >>>>>>>>>>>>>>>>>>>>");

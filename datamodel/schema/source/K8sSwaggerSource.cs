@@ -7,8 +7,20 @@ using datamodel.utils;
 
 namespace datamodel.schema.source {
     public class K8sSwaggerSource : SwaggerSource {
-        public K8sSwaggerSource(string json, SwaggerSourceOptions options) : base(json, options) {
-            // Do nothing
+        public override void Initialize(Parameters parameters) {
+            base.Initialize(parameters);
+        }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            IEnumerable<Parameter> parameters = base.GetParameters();
+
+            parameters.Single(x => x.Name == SwaggerSource.PARAM_URL)
+                .Default = "https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json";
+
+            parameters.Single(x => x.Name == SwaggerSource.PARAM_BORING_NAME_COMPONENTS)
+                .Default = "io, k8s, api, pkg, v1, v1alpha1, v1beta1, v1beta2, v2, v2beta1, v2beta2";
+
+            return parameters;
         }
 
         protected override void PopulateModel(Model model, string qualifiedName, SwgDefinition def) {

@@ -15,12 +15,14 @@ namespace datamodel.schema.source.from_data {
         public void ClusterTest() {
             Env.Configure();
 
-            JsonSource source = new JsonSource(new string[] {
-                "../../../schema/source/from_data/json_source_cluster_1.json",
-                "../../../schema/source/from_data/json_source_cluster_2.json",
-                "../../../schema/source/from_data/json_source_cluster_3.json",
-              }.Select(x => TextSource.File(x))
-            );
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                @"files=
+                    ../../../schema/source/from_data/json_source_cluster_1.json,
+                    ../../../schema/source/from_data/json_source_cluster_2.json,
+                    ../../../schema/source/from_data/json_source_cluster_3.json,"
+                }));
+
 
             string json = FromDataUtils.ToJasonNoQuotes(source);
 
