@@ -76,7 +76,7 @@ namespace datamodel.schema.source {
 
         internal void SetDefaultIfNeeded() {
             if (Value == null && Default != null) {
-                Value = ParseSingle(Default, out string error);
+                string error = Parse(Default);
                 if (error != null)
                     throw new Exception(string.Format("Default value for {0} could not be parsed; fix your code", Name));
             }
@@ -86,12 +86,12 @@ namespace datamodel.schema.source {
     public class Parameters {
         private Dictionary<string, Parameter> _params;
 
-        public Parameters(SchemaSource source, string[] commandLine) {
+        public Parameters(SchemaSource source, IEnumerable<string> commandLine) {
             _params = source.GetParameters().ToDictionary(x => x.Name);
             Parse(commandLine);
         }
 
-        private void Parse(string[] commandLine) {
+        private void Parse(IEnumerable<string> commandLine) {
             StringBuilder builder = new StringBuilder();
 
             foreach (string paramAndValue in commandLine) {
@@ -120,12 +120,29 @@ namespace datamodel.schema.source {
             // 2. Apply default values
             foreach (Parameter parameter in _params.Values) {
                 if (parameter.IsMandatory && parameter.Value == null)
-                    builder.AppendLine(string.Format("Mandatory parameter {0} missing", parameter.Name));
+                    builder.AppendLine(string.Format("Mandatory parameter '{0}' missing", parameter.Name));
                 parameter.SetDefaultIfNeeded();
             }
 
-            if (builder.Length > 0)
+            if (builder.Length > 0) {
+                builder.AppendLine();
+                builder.AppendLine("Valid Parameters for this Schema Source:");
+                builder.AppendLine();
+                AppendUsage(builder);
                 throw new Exception(builder.ToString());
+            }
+        }
+
+        private void AppendUsage(StringBuilder builder) {
+            foreach (Parameter parameter in _params.Values) {
+                builder.AppendLine(string.Format("'{0}' ({1}{2}) - {3}:", 
+                    parameter.Name, parameter.IsMultiple ? "[]" : "", parameter.Type,
+                    parameter.IsMandatory ? "Mandatory" : "Optional"));
+                builder.AppendLine("\t" + parameter.Description);
+                if (parameter.Default != null)
+                    builder.AppendLine("\tDefault Value: " + parameter.Default);
+                builder.AppendLine();
+            }
         }
 
         public bool IsSet(string paramName) {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -26,9 +27,49 @@ namespace datamodel {
         //
         //********************************************************************************
 
+        private static void PrintUsageAndQuit(Dictionary<string, SchemaSource> schemaSources) {
+            Console.WriteLine("Usage:");
+            Console.WriteLine("\tdotnet run -- <schema-source> <arguments...>");
+            Console.WriteLine("Available schema sources:");
+
+            foreach (var item in schemaSources) {
+                Console.WriteLine("\t{0} = {1}", item.Key, item.Value.GetType().Name);
+            }
+
+            Environment.Exit(1);
+        }
+
         static void Main(string[] args) {
-            Env.Configure();
-            Error.Clear();
+            try {
+                Env.Configure();
+                Error.Clear();
+
+                Dictionary<string, SchemaSource> schemaSources = new Dictionary<string, SchemaSource>() {
+                { "json", new JsonSource() },
+                { "yaml", new YamlSource() },
+                { "k8s", new K8sSwaggerSource() },
+                { "swagger", new SwaggerSource() },
+                { "simple", new SimpleSource() },
+            };
+
+                if (args.Length < 1)
+                    PrintUsageAndQuit(schemaSources);
+
+                string sourceName = args.First();
+                if (!schemaSources.TryGetValue(sourceName, out SchemaSource source)) {
+                    Console.WriteLine("Unknwon Schema Source: {0}\n", sourceName);
+                    PrintUsageAndQuit(schemaSources);
+                }
+
+                Parameters parameters = new Parameters(source, args.Skip(1));
+                source.Initialize(parameters);
+                Schema schema = Schema.CreateSchema(source);
+
+                GenerateGraphsAndDataDictionary();
+            } catch (Exception e) {
+                Console.WriteLine(e.Message);
+                Environment.Exit(1);
+            }
 
             //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
             //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
@@ -43,28 +84,26 @@ namespace datamodel {
             // );
             // AddKubernetesJsonTweaks(source);
 
-            YamlSource source = new YamlSource();
-            source.Initialize(new Parameters(source, new string[] { 
-                @"files=
-                    ../../tmp/f1.yaml,
-                    ../../tmp/f2.yaml,
-                    ../../tmp/f3.yaml,
-                    ../../tmp/f4.yaml,
-                    ../../tmp/f5.yaml",
-                "title=yaml"
-            }));
+            // YamlSource source = new YamlSource();
+            // source.Initialize(new Parameters(source, new string[] { 
+            //     @"files=
+            //         ../../tmp/f1.yaml,
+            //         ../../tmp/f2.yaml,
+            //         ../../tmp/f3.yaml,
+            //         ../../tmp/f4.yaml,
+            //         ../../tmp/f5.yaml",
+            //     "title=yaml"
+            // }));
 
 
             // SwaggerSource source = new K8sSwaggerSource();
             // AddKubernetesTweaks(source);
 
-            Schema schema = Schema.CreateSchema(source);
 
             // schema.BoringProperties = new string[] {
             //     "apiVersion", "kind"
             // };
 
-            GenerateGraphsAndDataDictionary();
         }
 
         private static void AddKubernetesJsonTweaks(SchemaSource source) {

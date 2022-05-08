@@ -68,7 +68,13 @@ namespace datamodel.schema.source.from_data {
 
             string raw = parameters.GetString(PARAM_RAW);
             string[] fileContents = parameters.GetFileContents(PARAM_FILES);
+
+            if (!(raw != null ^ fileContents.Length > 0))
+                throw new Exception(String.Format("Exactly one of these parameters must be set: {0}, {1}",
+                    PARAM_RAW, PARAM_FILES));
+
             string[] texts = raw == null ? fileContents : new string[] { raw};
+
 
             List<TempSource> clusters = ProcessFilesWithClustering(texts);
             _source = new TempSource();
@@ -108,25 +114,25 @@ namespace datamodel.schema.source.from_data {
                 },
                 new Parameter() {
                     Name = PARAM_SAME_NAME_IS_SAME_MODEL,
-                    Description = @"If true, any Model located at the same attribute name is considered to be identical",
+                    Description = @"If true, any Model located at the same attribute name, regardless of the path, is considered to be identical",
                     Type = ParamType.Bool,
                 },
                 new Parameter() {
                     Name = PARAM_MINIMUM_CLUSTER_OVERLAP,
                     Description = @"The minimum number of common properties in order for two sample files
-to be considered part of the same 'cluster'.
-By increasing this number, you can force files which accidentally have a few common
-properties to still be considered separate clusters.
-If you set this to zero, even files with no shared properties will be considered to
-belong to the same cluster - so all files will be considered the same.",
+        to be considered part of the same 'cluster'.
+        By increasing this number, you can force files which accidentally have a few common
+        properties to still be considered separate clusters.
+        If you set this to zero, even files with no shared properties will be considered to
+        belong to the same cluster - so all files will be considered the same.",
                     Type = ParamType.Int,
                     Default = "1",
                 },
                 new Parameter() {
                     Name = PARAM_KEY_IS_DATA_REGEX,
                     Description = @"If the key of an Object does NOT match this Regex, it will be assumed
-that all the keys of all the instances if this object should be 
-treated as data, and the Object itself should be treated as an Array.",
+        that all the keys of all the instances if this object should be 
+        treated as data, and the Object itself should be treated as an Array.",
                     Type = ParamType.Regex,
                     Default = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$"
                 },

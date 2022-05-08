@@ -39,7 +39,13 @@ namespace datamodel.schema {
         public string QualifiedNameLessVersion { get; set; }
 
         // These are used to group the models into a hierarchy
-        public string[] Levels { get; set; }
+        private string[] _levels;
+        public string[] Levels { 
+            get { return _levels; }
+            set {
+                _levels = value ?? new string[0];
+            }
+        }
 
         // Description of the Model as extracted from Yaml annotation files
         public string Description { get; set; }

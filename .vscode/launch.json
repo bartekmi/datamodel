@@ -5,36 +5,30 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Gen YAML",
+      "name": "Simple SS",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
-      "args": ["genyaml"],
+      "args": [
+        "simple", 
+        "file=../datamodel_test2/schema/simple_schema.json"
+      ],
       "cwd": "${workspaceFolder}/datamodel",
-      "console": "internalConsole",
+      "console": "externalTerminal",
       "stopAtEntry": false
     },
     {
-      "name": "Gen Docs",
+      "name": "K8s",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
-      "args": ["gendocs"],
+      "args": [
+        "k8s", 
+      ],
       "cwd": "${workspaceFolder}/datamodel",
-      "console": "internalConsole",
-      "stopAtEntry": false
-    },
-    {
-      "name": "Custom",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
-      "args": ["custom"],
-      "cwd": "${workspaceFolder}/datamodel",
-      "console": "internalConsole",
+      "console": "externalTerminal",
       "stopAtEntry": false
     },
     {
