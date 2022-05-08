@@ -71,8 +71,6 @@ namespace datamodel {
                 Environment.Exit(1);
             }
 
-            //SimpleSource source = new SimpleSource("../datamodel_test2/schema/simple_schema.json");   // Path is relative to 'CWD' attribute in launch.json
-            //SwaggerSource source = K8sSwaggerSource.FromFile("../datamodel_test2/schema/swagger_schema.json", options);
             // JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
             //     new JsonSource.Options() {
             //         RootObjectName = "kubernetes",
@@ -96,10 +94,6 @@ namespace datamodel {
             // }));
 
 
-            // SwaggerSource source = new K8sSwaggerSource();
-            // AddKubernetesTweaks(source);
-
-
             // schema.BoringProperties = new string[] {
             //     "apiVersion", "kind"
             // };
@@ -120,133 +114,6 @@ namespace datamodel {
                         "get",
                     }
                 }
-            };
-        }
-
-        private static void AddKubernetesTweaks(SchemaSource source) {
-            source.PreHydrationTweaks = new List<Tweak>() {
-                new FilterOldApiVersionsTweak(),
-                new AddBaseClassTweak() {
-                    BaseClassName = "AbstractContainer",
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.core.v1.Container",
-                        "io.k8s.api.core.v1.EphemeralContainer",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "Webhook",
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.admissionregistration.v1.MutatingWebhook",
-                        "io.k8s.api.admissionregistration.v1.ValidatingWebhook",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "PersistentVolumeSource",
-                    BaseClassDescription = "Base for (only) Persistent Volume Sources",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.core.v1.AzureFilePersistentVolumeSource",
-                        "io.k8s.api.core.v1.CephFSPersistentVolumeSource",
-                        "io.k8s.api.core.v1.CinderPersistentVolumeSource",
-                        "io.k8s.api.core.v1.CSIPersistentVolumeSource",
-                        "io.k8s.api.core.v1.FlexPersistentVolumeSource",
-                        "io.k8s.api.core.v1.GlusterfsPersistentVolumeSource",
-                        "io.k8s.api.core.v1.ISCSIPersistentVolumeSource",
-                        "io.k8s.api.core.v1.LocalVolumeSource",
-                        "io.k8s.api.core.v1.RBDPersistentVolumeSource",
-                        "io.k8s.api.core.v1.ScaleIOPersistentVolumeSource",
-                        "io.k8s.api.core.v1.StorageOSPersistentVolumeSource",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "VolumeSource",
-                    BaseClassDescription = "Base for (only) Volume Sources",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.core.v1.AzureFileVolumeSource",
-                        "io.k8s.api.core.v1.CephFSVolumeSource",
-                        "io.k8s.api.core.v1.CinderVolumeSource",
-                        "io.k8s.api.core.v1.ConfigMapVolumeSource",
-                        "io.k8s.api.core.v1.CSIVolumeSource",
-                        "io.k8s.api.core.v1.DownwardAPIVolumeSource",
-                        "io.k8s.api.core.v1.EmptyDirVolumeSource",
-                        "io.k8s.api.core.v1.EphemeralVolumeSource",
-                        "io.k8s.api.core.v1.FlexVolumeSource",
-                        "io.k8s.api.core.v1.GCEPersistentDiskVolumeSource",
-                        "io.k8s.api.core.v1.GitRepoVolumeSource",
-                        "io.k8s.api.core.v1.GlusterfsVolumeSource",
-                        "io.k8s.api.core.v1.ISCSIVolumeSource",
-                        "io.k8s.api.core.v1.PersistentVolumeClaimVolumeSource",
-                        "io.k8s.api.core.v1.ProjectedVolumeSource",
-                        "io.k8s.api.core.v1.RBDVolumeSource",
-                        "io.k8s.api.core.v1.ScaleIOVolumeSource",
-                        "io.k8s.api.core.v1.SecretVolumeSource",
-                        "io.k8s.api.core.v1.StorageOSVolumeSource",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "EitherVolumeSource",
-                    BaseClassDescription = "Base for Volume Sources that can serve as either persistent or non-persistent Volume Sources",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.core.v1.AWSElasticBlockStoreVolumeSource",
-                        "io.k8s.api.core.v1.AzureDiskVolumeSource",
-                        "io.k8s.api.core.v1.FCVolumeSource",
-                        "io.k8s.api.core.v1.FlockerVolumeSource",
-                        "io.k8s.api.core.v1.HostPathVolumeSource",
-                        "io.k8s.api.core.v1.NFSVolumeSource",
-                        "io.k8s.api.core.v1.PhotonPersistentDiskVolumeSource",
-                        "io.k8s.api.core.v1.PortworxVolumeSource",
-                        "io.k8s.api.core.v1.QuobyteVolumeSource",
-                        "io.k8s.api.core.v1.VsphereVirtualDiskVolumeSource",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "AbstractMetricSource",
-                    BaseClassDescription = "Base for Metric Sources",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.autoscaling.v2.ContainerResourceMetricSource",
-                        "io.k8s.api.autoscaling.v2.ResourceMetricSource",
-                        "io.k8s.api.autoscaling.v2.ExternalMetricSource",
-                        "io.k8s.api.autoscaling.v2.PodsMetricSource",
-                        "io.k8s.api.autoscaling.v2.ObjectMetricSource",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "AbstractMetricStatus",
-                    BaseClassDescription = "Base for Metric Statuses",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.autoscaling.v2.ContainerResourceMetricStatus",
-                        "io.k8s.api.autoscaling.v2.ResourceMetricStatus",
-                        "io.k8s.api.autoscaling.v2.ExternalMetricStatus",
-                        "io.k8s.api.autoscaling.v2.PodsMetricStatus",
-                        "io.k8s.api.autoscaling.v2.ObjectMetricStatus",
-                    }
-                },
-                new AddBaseClassTweak() {
-                    BaseClassName = "AbstractSecurityContext",
-                    BaseClassDescription = "Base for Security Context and Pod Security Context",
-                    PromoteIncomingAssociations = true,
-                    DerviedQualifiedNames = new string[] {
-                        "io.k8s.api.core.v1.SecurityContext",
-                        "io.k8s.api.core.v1.PodSecurityContext",
-                    }
-                },
-            };
-            source.PostHydrationTweaks = new List<Tweak>() {
-                new K8sTocTweak(),
-                new MarkDeprecationsTweak(),
-                new MoveDerivedToPeerLevel() {
-                    BaseClassName = "io.k8s.api.core.v1.PersistentVolumeSource",
-                },
-                new MoveDerivedToPeerLevel() {
-                    BaseClassName = "io.k8s.api.core.v1.VolumeSource",
-                },
-                new MoveDerivedToPeerLevel() {
-                    BaseClassName = "io.k8s.api.core.v1.EitherVolumeSource",
-                },
             };
         }
 
