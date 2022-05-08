@@ -8,6 +8,8 @@ namespace datamodel.schema.tweaks {
     public abstract class FilterModelsTweak : Tweak {
         public abstract IEnumerable<Model> ModelsToFilterOut(TempSource source);
 
+        protected FilterModelsTweak() : base(TweakApplyStep.PreHydrate) {}
+
         public override void Apply(TempSource source) {
             IEnumerable<Model> toRemoveList = ModelsToFilterOut(source);
             HashSet<string> toRemove = new HashSet<string>(toRemoveList.Select(x => x.QualifiedName));

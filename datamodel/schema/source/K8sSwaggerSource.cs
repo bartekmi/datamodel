@@ -11,7 +11,8 @@ namespace datamodel.schema.source {
             // While some of these tweaks are basically baked-in as part of
             // the Schema-Source (e.g. K8sTocTweak), some are more arbitrary,
             // and could be read in from a config file
-            PreHydrationTweaks = new List<Tweak>() {
+            Tweaks = new List<Tweak>() {
+                // Pre-Hydrate
                 new FilterOldApiVersionsTweak(),
                 new AddBaseClassTweak() {
                     BaseClassName = "AbstractContainer",
@@ -121,17 +122,17 @@ namespace datamodel.schema.source {
                         "io.k8s.api.core.v1.PodSecurityContext",
                     }
                 },
-            };
-            PostHydrationTweaks = new List<Tweak>() {
+
+                // Post-Hydrate
                 new K8sTocTweak(),
                 new MarkDeprecationsTweak(),
-                new MoveDerivedToPeerLevel() {
+                new MoveDerivedToPeerLevelTweak() {
                     BaseClassName = "io.k8s.api.core.v1.PersistentVolumeSource",
                 },
-                new MoveDerivedToPeerLevel() {
+                new MoveDerivedToPeerLevelTweak() {
                     BaseClassName = "io.k8s.api.core.v1.VolumeSource",
                 },
-                new MoveDerivedToPeerLevel() {
+                new MoveDerivedToPeerLevelTweak() {
                     BaseClassName = "io.k8s.api.core.v1.EitherVolumeSource",
                 },
             };
@@ -220,6 +221,8 @@ namespace datamodel.schema.source {
     }
 
     public class MarkDeprecationsTweak : Tweak {
+        public MarkDeprecationsTweak() : base(TweakApplyStep.PostHydrate) { }
+
         public override void Apply(TempSource source) {
             foreach (Model model in source.Models.Values) {
                 SetDeprecatedIfNeeded(model);

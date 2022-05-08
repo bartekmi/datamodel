@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace datamodel.schema.source {
 
+    #region Helper Classs
     public enum ParamType {
         String,
         Int,
@@ -82,15 +83,33 @@ namespace datamodel.schema.source {
             }
         }
     }
+    #endregion
 
     public class Parameters {
         private Dictionary<string, Parameter> _params;
 
+        public const string GLOBAL_PARAM_TWEAKS = "tweaks";
+
         public Parameters(SchemaSource source, IEnumerable<string> commandLine) {
             _params = source.GetParameters().ToDictionary(x => x.Name);
+            AddGlobalParameters();
             Parse(commandLine);
         }
 
+        #region Global Parameters
+        private void AddGlobalParameters() {
+            _params["tweaks"] = new Parameter() {
+                Name = GLOBAL_PARAM_TWEAKS,
+                Description = "Filename of JSON file which contains 'Tweaks' to the schema",
+                Type = ParamType.File,
+                IsMultiple = true
+            };
+
+            // Add other global parameters here
+        }
+        #endregion
+
+        #region Parsing
         private void Parse(IEnumerable<string> commandLine) {
             StringBuilder builder = new StringBuilder();
 
@@ -132,7 +151,9 @@ namespace datamodel.schema.source {
                 throw new Exception(builder.ToString());
             }
         }
+        #endregion
 
+        #region Usage
         private void AppendUsage(StringBuilder builder) {
             foreach (Parameter parameter in _params.Values) {
                 builder.AppendLine(string.Format("'{0}' ({1}{2}) - {3}:", 
@@ -144,7 +165,9 @@ namespace datamodel.schema.source {
                 builder.AppendLine();
             }
         }
+        #endregion
 
+        #region Public Accessor Methods
         public bool IsSet(string paramName) {
             if (!_params.TryGetValue(paramName, out Parameter parameter))
                 throw new Exception("Inconsistent parameter requested; fix your code: " + paramName);
@@ -207,5 +230,6 @@ namespace datamodel.schema.source {
 
             return parameter.Value;
         }
+        #endregion
     }
 }

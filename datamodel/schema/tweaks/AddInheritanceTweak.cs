@@ -5,9 +5,14 @@ using System.Linq;
 using datamodel.schema.source;
 
 namespace datamodel.schema.tweaks {
+    // Simplify a class diagram by explicitly introducing a parent-child inheritance relationship
+    // 1. Delete all duplicate props/columns from child
+    // 2. Delete all duplicate owned associations from child
     public class AddInheritanceTweak : Tweak {
         public string ParentQualifiedName;
         public string DerviedQualifiedName;
+
+        public AddInheritanceTweak() : base(TweakApplyStep.PreHydrate) {}
 
         public override void Apply(TempSource source) {
             Model parent = source.GetModel(ParentQualifiedName);

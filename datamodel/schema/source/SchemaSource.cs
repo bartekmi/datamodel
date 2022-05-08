@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
 using Newtonsoft.Json;
 
 using datamodel.schema.tweaks;
@@ -17,27 +19,28 @@ namespace datamodel.schema.source {
 
         // Tweaks to apply to the schema just after receiving the data from SchemaSource
         [JsonIgnore]
-        public IEnumerable<Tweak> PreHydrationTweaks { get; set; }
-        [JsonIgnore]
-        public IEnumerable<Tweak> PostHydrationTweaks { get; set; }
+        public IEnumerable<Tweak> Tweaks { get; set; }
+
+        protected SchemaSource() {
+            Tweaks = new List<Tweak>();
+        }
 
         internal SchemaSource ApplyPreHydrationTweaks() {
             if (_tempSource != null)
                 throw new Exception("Should only call once");
 
             _tempSource = TempSource.CloneFromSource(this);
-            ApplyTweaks(PreHydrationTweaks);
+            ApplyTweaks(TweakApplyStep.PreHydrate);
             return _tempSource;
         }
 
         internal void ApplyPostHydrationTweaks() {
-            ApplyTweaks(PostHydrationTweaks);
+            ApplyTweaks(TweakApplyStep.PostHydrate);
         }
 
-        private void ApplyTweaks(IEnumerable<Tweak> tweaks) {
-            if (tweaks != null)
-                foreach (Tweak tweak in tweaks)
-                    tweak.Apply(_tempSource);
+        private void ApplyTweaks(TweakApplyStep applyStep) {
+            foreach (Tweak tweak in Tweaks.Where(x => x.ApplyStep == applyStep))
+                tweak.Apply(_tempSource);
         }
     }
 }

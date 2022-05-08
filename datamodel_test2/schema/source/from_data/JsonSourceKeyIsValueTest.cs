@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 using Xunit;
 
@@ -39,6 +41,45 @@ namespace datamodel.schema.source.from_data {
           Name: __key__,
           DataType: string
         }".Replace(" ", "")), json);
+        }
+
+        [Fact]
+        public void KeyIsValueNested() {
+            Env.Configure();
+
+            string text = @"{
+  defs: {
+    ""a.b"": {
+      props: {
+        ver: {
+          data: 1
+        }
+      }
+    }
+  }
+}";
+
+            JsonSource source = new JsonSource();
+            source.Initialize(new Parameters(source, new string[] { 
+                "raw=" + text,
+                "paths-where-key-is-data=.defs.props"
+                }));
+
+            string json = FromDataUtils.ToJasonNoQuotes(source, false);
+            Console.Write(json);
+            
+            AssertCollection(new string[] { 
+                "cluster1",
+                "cluster1.defs",
+                "cluster1.defs.props",
+              }, source.GetModels().Select(x => x.QualifiedName));
+        }
+
+        private void AssertCollection<T>(IEnumerable<T> expected, IEnumerable<T> actual) {
+          Assert.Equal(expected.Count(), actual.Count());
+
+          foreach (T item in expected)
+            Assert.Contains(item, actual);
         }
  
         [Fact]

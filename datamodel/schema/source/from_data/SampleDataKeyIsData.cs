@@ -35,7 +35,6 @@ namespace datamodel.schema.source.from_data {
                 foreach (SDSS_Element child in element.ArrayItems)
                     RecursePass1(options, paths, child, path);
             } else if (element.IsObject) {
-
                 bool isKeyData = paths.Contains(path);
                 if (!isKeyData) {
                     isKeyData = IsKeyData(options, element);
@@ -62,13 +61,13 @@ namespace datamodel.schema.source.from_data {
 
         #endregion
 
-        #region Pass 2 - Convert all objects where key is used as to arrays
+        #region Pass 2 - Convert all objects where key is used as data to arrays
         private static void RecursePass2(HashSet<string> paths, SDSS_Element element, string path, bool checkKID) {
             if (element.IsPrimitive)
                 return;
 
             // This is the magic momemnt... If we are dealing with an object which should
-            // really be an array - convert it. then, the IsArray branch will take care of the rest
+            // really be an array - convert it. Then, the IsArray branch will take care of the rest
             if (checkKID && element.IsObject && paths.Contains(path))
                 element.ConvertObjectToArray(KEY_COLUMN);
 

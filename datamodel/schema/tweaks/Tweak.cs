@@ -6,11 +6,22 @@
 
 
 namespace datamodel.schema.tweaks {
+
+    public enum TweakApplyStep {
+        PreHydrate,
+        PostHydrate,
+    }
+
     // We allow "tweaks" on top of the raw schema information passed in SchemaSource
     // One example of such a tweak is the introduction of inheritance - for example, Swagger
     // files do not have the concept of inheritance, even though the data structure obviously
     // implies it.
     public abstract class Tweak {
+        public TweakApplyStep ApplyStep {get; private set;}
         public abstract void Apply(TempSource source);
+
+        protected Tweak(TweakApplyStep applyStep) {
+            ApplyStep = applyStep;
+        }
     }
 }

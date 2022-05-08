@@ -8,6 +8,8 @@ using datamodel.utils;
 
 namespace datamodel.schema.source {
     public class K8sTocTweak : Tweak {
+        public K8sTocTweak() : base(TweakApplyStep.PostHydrate) { }
+
         public override void Apply(TempSource source) {
             K8sToc.AssignCoreLevel2Groups(source);
         }

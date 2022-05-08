@@ -40,10 +40,9 @@ namespace datamodel.schema.source.from_data {
 
         public class Options {
             public string Title;
-            public string[] PathsWhereKeyIsData = new string[] { };
+            public string[] PathsWhereKeyIsData;
             public bool SameNameIsSameModel;
-            public int MinimumClusterOverlap = 1;
-            public string KEY_IS_DATA_REGEX = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$";
+            public int MinimumClusterOverlap;
             public Regex KeyIsDataRegex;
         }
 
@@ -134,7 +133,7 @@ namespace datamodel.schema.source.from_data {
         that all the keys of all the instances if this object should be 
         treated as data, and the Object itself should be treated as an Array.",
                     Type = ParamType.Regex,
-                    Default = "^[_$a-zA-Z][-._$a-zA-Z0-9]*$"
+                    Default = "^[$a-zA-Z][_$a-zA-Z0-9]*$"
                 },
             };
         }
@@ -201,17 +200,21 @@ namespace datamodel.schema.source.from_data {
                 TempSource cluster = clusters[ii];
 
                 foreach (Model model in cluster.GetModels()) {
-                    model.QualifiedName = clusterName + model.QualifiedName;
+                    model.QualifiedName = ComputeQualifiedName(clusterName, model.QualifiedName);
                     model.SetLevel(0, clusterName);
                     if (model.Name == SampleDataKeyIsData.ROOT_PATH)
                         model.Name = clusterName;
                 }
 
                 foreach (Association assoc in cluster.GetAssociations()) {
-                    assoc.OwnerSide = clusterName + assoc.OwnerSide;
-                    assoc.OtherSide = clusterName + assoc.OtherSide;
+                    assoc.OwnerSide = ComputeQualifiedName(clusterName, assoc.OwnerSide);
+                    assoc.OtherSide = ComputeQualifiedName(clusterName, assoc.OtherSide);
                 }
             }
+        }
+
+        private string ComputeQualifiedName(string cluster, string name) {
+            return string.Format("{0}.{1}", cluster, name);
         }
 
         private void MergeSources(TempSource main, TempSource additional) {

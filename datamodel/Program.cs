@@ -63,6 +63,8 @@ namespace datamodel {
 
                 Parameters parameters = new Parameters(source, args.Skip(1));
                 source.Initialize(parameters);
+                ApplyGlobalParameters(source, parameters);
+
                 Schema schema = Schema.CreateSchema(source);
 
                 GenerateGraphsAndDataDictionary();
@@ -100,21 +102,10 @@ namespace datamodel {
 
         }
 
-        private static void AddKubernetesJsonTweaks(SchemaSource source) {
-            source.PreHydrationTweaks = new List<Tweak>() {
-                new AddBaseClassTweak() {
-                    BaseClassName = "Operation",
-                    DerviedQualifiedNames = new string[] {
-                        "head",
-                        "options",
-                        "post",
-                        "delete",
-                        "patch",
-                        "put",
-                        "get",
-                    }
-                }
-            };
+        private static void ApplyGlobalParameters(SchemaSource source, Parameters parameters) {
+            string[] tweakJsons = parameters.GetFileContents(Parameters.GLOBAL_PARAM_TWEAKS);
+            if (tweakJsons.Length > 0)
+                TweakLoader.Load(source, tweakJsons);
         }
 
         private static void GenerateGraphsAndDataDictionary() {

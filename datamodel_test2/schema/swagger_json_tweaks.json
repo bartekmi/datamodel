@@ -1,0 +1,17 @@
+[
+    {
+        "Type": "AddBaseClassTweak",
+        "Spec": {
+            "BaseClassName": "Operation",
+            "DerviedQualifiedNames": [
+                "cluster1.head",
+                "cluster1.options",
+                "cluster1.post",
+                "cluster1.delete",
+                "cluster1.patch",
+                "cluster1.put",
+                "cluster1.get"
+            ]
+        }
+    }
+]

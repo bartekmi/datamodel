@@ -1,0 +1,11 @@
+{
+  "definitions": {
+    "a.b": {
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

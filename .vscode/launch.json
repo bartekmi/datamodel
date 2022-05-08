@@ -15,7 +15,7 @@
         "file=../datamodel_test2/schema/simple_schema.json"
       ],
       "cwd": "${workspaceFolder}/datamodel",
-      "console": "externalTerminal",
+      "console": "integratedTerminal",
       "stopAtEntry": false
     },
     {
@@ -28,7 +28,24 @@
         "k8s", 
       ],
       "cwd": "${workspaceFolder}/datamodel",
-      "console": "externalTerminal",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Swagger Data",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "args": [
+        "json", 
+        "files=../datamodel_test2/schema/kubernetes_swagger.json",
+        "tweaks=../datamodel_test2/schema/swagger_json_tweaks.json",
+        "paths-where-key-is-data=.definitions.properties",
+        "same-name-is-same-model=true",
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
       "stopAtEntry": false
     },
     {

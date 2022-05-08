@@ -21,6 +21,8 @@ namespace datamodel.schema.tweaks {
         // (See comments below)
         public bool PromoteIncomingAssociations;
 
+        public AddBaseClassTweak() : base(TweakApplyStep.PreHydrate) {}
+
         public override void Apply(TempSource source) {
             string baseClassQN = ComputeBaseClassName();
 
