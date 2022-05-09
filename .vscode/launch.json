@@ -49,6 +49,21 @@
       "stopAtEntry": false
     },
     {
+      "name": "Yaml Data",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "args": [
+        "yaml", 
+        "files= ../../tmp/f1.yaml, ../../tmp/f2.yaml, ../../tmp/f3.yaml, ../../tmp/f4.yaml, ../../tmp/f5.yaml",
+        "title=yaml"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach",

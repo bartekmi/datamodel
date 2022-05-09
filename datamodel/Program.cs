@@ -72,34 +72,6 @@ namespace datamodel {
                 Console.WriteLine(e.Message);
                 Environment.Exit(1);
             }
-
-            // JsonSource source = new JsonSource("../datamodel_test2/schema/kubernetes_swagger.json", 
-            //     new JsonSource.Options() {
-            //         RootObjectName = "kubernetes",
-            //         PathsWhereKeyIsData = new string[] {
-            //             "properties",
-            //         },
-            //         SameNameIsSameModel = true,
-            //     }
-            // );
-            // AddKubernetesJsonTweaks(source);
-
-            // YamlSource source = new YamlSource();
-            // source.Initialize(new Parameters(source, new string[] { 
-            //     @"files=
-            //         ../../tmp/f1.yaml,
-            //         ../../tmp/f2.yaml,
-            //         ../../tmp/f3.yaml,
-            //         ../../tmp/f4.yaml,
-            //         ../../tmp/f5.yaml",
-            //     "title=yaml"
-            // }));
-
-
-            // schema.BoringProperties = new string[] {
-            //     "apiVersion", "kind"
-            // };
-
         }
 
         private static void ApplyGlobalParameters(SchemaSource source, Parameters parameters) {
