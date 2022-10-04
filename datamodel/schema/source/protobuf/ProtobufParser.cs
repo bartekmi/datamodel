@@ -1,0 +1,221 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace datamodel.schema.source.protobuf {
+    internal class ParseContext {
+        internal Dictionary<string, File> AllFiles = new Dictionary<string, File>();
+    }
+
+    internal class ProtobufParser {
+
+        private ProtobufTokenizer _tokenizer;
+        private ParseContext _context = new ParseContext();
+
+        internal ProtobufParser(ProtobufTokenizer tokenizer) {
+            _tokenizer = tokenizer;
+        }
+
+        internal File Parse() {
+            File file = new File();
+
+            try {
+                while (_tokenizer.HasNext()) {
+                    if (PeekAndDiscard("syntax"))
+                        ParseSyntax(file);
+                    else if (PeekAndDiscard("package"))
+                        ParsePackage(file);
+                    else if (PeekAndDiscard("import"))
+                        ParseImport(file);
+                    else if (PeekAndDiscard("option"))
+                        ParseOption();
+                    else if (PeekAndDiscard("message")) {
+                        Message message = ParseMessage();
+                        file.Messages.Add(message);
+                    } else if (PeekAndDiscard("enum")) {
+                        TypeEnum theEnum = ParseEnumDefinition();
+                        file.EnumTypes.Add(theEnum);
+                    } else if (PeekAndDiscard("service")) {
+                        Service service = ParseService();
+                        file.Services.Add(service);
+                    } else if (PeekAndDiscard(";")) {
+                        // Do nothing - emptyStatement
+                    } else
+                        throw new Exception("Unexpected token: " + Next());
+                }
+            } catch (Exception e) {
+                throw new Exception("Parse error on line " + _tokenizer.LineNumber, e);
+            }
+
+            return file;
+        }
+
+        #region Various Parse Methods
+        private void ParseSyntax(File file) {
+            Expect("=");
+            file.Syntax = Next();
+            Expect(";");
+        }
+
+        private void ParsePackage(File file) {
+            Expect("=");
+            file.Package = Next();
+            Expect(";");
+        }
+
+        private void ParseImport(File file) {
+            string type = Next();
+            string path = Next();
+            Expect(";");
+            // TODO - parsing imports is non-trivial and will require multiple passes
+        }
+
+        private void ParseOption() {
+            // For now, we will discard any options
+            string next;
+            while ((next = Next()) != ";");
+        }
+
+        private void ParseOptions() {
+            throw new NotImplementedException();
+        }
+
+        private Message ParseMessage() {
+            Message message = new Message() {
+                Name = Next(),
+            };
+
+            Expect("{");
+
+            while (!PeekAndDiscard("}")) {
+                if (PeekAndDiscard("option"))
+                    ParseOption();
+                else if (PeekAndDiscard("message")) {
+                    Message nested = ParseMessage();
+                    message.Messages.Add(nested);
+                } else if (PeekAndDiscard("enum")) {
+                    TypeEnum theEnum = ParseEnumDefinition();
+                    message.EnumTypes.Add(theEnum);
+                } else if (PeekAndDiscard(";")) {
+                    // Do nothing - emptyStatement
+                } else {     // Assume it's "item = n;"
+                    EnumValue value = new EnumValue() {
+                        Name = Next(),
+                    };
+                    Expect("=");
+                    value.Number = ParseInt();
+                    ParseOptions();
+                    message.Fields.Add(field);
+                }
+            }
+
+            return message;
+        }
+
+        private Field ParseField(Message message) {
+            throw new NotImplementedException();
+        }
+
+        private void ParseReserved() {
+            throw new NotImplementedException();
+        }
+
+        private TypeEnum ParseEnumDefinition() {
+            TypeEnum theEnum = new TypeEnum() {
+                Name = Next(),
+            };
+
+            Expect("{");
+
+            while (!PeekAndDiscard("}")) {
+                if (PeekAndDiscard("option"))
+                    ParseOption();
+                else if (PeekAndDiscard(";")) {
+                    // Do nothing - emptyStatement
+                } else {     // Assume it's "item = n;"
+                    EnumValue value = new EnumValue() {
+                        Name = Next(),
+                    };
+                    Expect("=");
+                    value.Number = ParseInt();
+                    ParseOptions();
+                    theEnum.Values.Add(value);
+                }
+            }
+
+            return theEnum;
+        }
+
+        private Service ParseService() {
+            Service service = new Service() {
+                Name = Next()
+            };
+
+            Expect("{");
+
+            while (!PeekAndDiscard("}")) {
+                if (PeekAndDiscard("option"))
+                    ParseOption();
+                else if (PeekAndDiscard("rpc")) {
+                    Rpc rpc = ParseRpc();
+                    service.Rpcs.Add(rpc);
+                } else if (PeekAndDiscard(";")) {
+                    // Do nothing - emptyStatement
+                } else
+                    throw new Exception("Unexpected token: " + Next());
+            }
+
+            return service;
+        }
+
+        private Rpc ParseRpc() {
+            Rpc rpc = new Rpc() {
+                Name = Next()
+            };
+
+            // Input
+            Expect("(");
+            PeekAndDiscard("stream");
+            rpc.InputName = Next();
+            Expect(")");
+
+            // Output
+            Expect("returns");
+            Expect("(");
+            PeekAndDiscard("stream");
+            rpc.OutputName = Next();
+            Expect(")");
+
+            return rpc;
+        }
+        #endregion
+
+        #region Utils
+        internal string Next() {
+            return _tokenizer.Next();
+        }
+
+        private int ParseInt() {
+
+        }
+
+        private bool PeekAndDiscard(string possiblyExpected) {
+            string token = _tokenizer.Peek().ToLower();
+            if (token == possiblyExpected.ToLower()) {
+                Next();
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Expect(string expected) {
+            string token = Next();
+            if (token != expected.ToLower())
+                throw new Exception(string.Format("Expected '{0}' but got '{1}'", expected, token));
+        }
+        #endregion
+    }
+}
