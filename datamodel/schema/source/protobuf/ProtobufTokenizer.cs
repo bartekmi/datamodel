@@ -17,9 +17,10 @@ namespace datamodel.schema.source.protobuf {
         private List<Token> _tokens = new List<Token>();
         private int _index = 0;
 
-        public ProtobufTokenizer(string path) {
+        public ProtobufTokenizer(TextReader reader) {
             int lineNumber = 0;
-            foreach (string raw in File.ReadAllLines(path)) {
+            string raw = null;
+            while ((raw = reader.ReadLine()) != null) {
                 lineNumber++;
                 string line = SanitizeLine(raw);
                 if (line == null)
