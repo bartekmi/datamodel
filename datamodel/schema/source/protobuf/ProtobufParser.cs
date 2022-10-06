@@ -100,24 +100,82 @@ namespace datamodel.schema.source.protobuf {
                     message.EnumTypes.Add(theEnum);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
-                } else {     // Assume it's "item = n;"
-                    EnumValue value = new EnumValue() {
-                        Name = Next(),
-                    };
-                    Expect("=");
-                    value.Number = ParseInt();
-                    ParseOptions();
-                    message.Fields.Add(field);
+                } else if (PeekAndDiscard("oneof")) {
+                    FieldOneOf oneOf = ParseOneOfField();
+                    message.Fields.Add(oneOf);
+                } else if (PeekAndDiscard("map")) {
+                    FieldMap map = ParseMapField();
+                    message.Fields.Add(map);
+                } else {
+                    Field normal = ParseNormalField();
+                    message.Fields.Add(normal);
                 }
             }
 
             return message;
         }
 
-        private Field ParseField(Message message) {
-            throw new NotImplementedException();
+        // Example:
+        //  oneof foo {
+        //      string name = 4 [...options...];
+        //      SubMessage sub_message = 9;
+        //  }
+        private FieldOneOf ParseOneOfField() {
+            FieldOneOf field = new FieldOneOf() {
+                Name = Next(),
+            };
+            Expect("{");
+
+            while (!PeekAndDiscard("}")) {
+                if (PeekAndDiscard("option"))
+                    ParseOption();
+                else if (PeekAndDiscard(";")) {
+                    // Do nothing - emptyStatement
+                } else {
+                    FieldNormal normal = ParseNormalField();
+                    field.Fields.Add(normal);
+                }
+            }
+
+            return field;
         }
 
+        // Example:
+        //  map<string, Project> projects = 3 [...options...];
+        private FieldMap ParseMapField() {
+            FieldMap map = new FieldMap();
+            Expect("<");
+            map.KeyType = new Type(Next());
+            Expect(",");
+            map.ValueType = new Type(Next());
+            Expect(">");
+            map.Name = Next();
+            Expect("=");
+            map.Number = ParseInt();
+            ParseOptions();
+            Expect(";");
+
+            return map;
+        }
+
+        // Template: 
+        //  [repeated] type name = n [ [...options...] ];
+        private FieldNormal ParseNormalField() {
+            FieldNormal field = new FieldNormal();
+            string type = Next();
+            if (type == "repeated") {
+                field.IsRepeated = true;
+                type = Next();
+            }
+            field.Type = new Type(type);
+
+            field.Name = Next();
+            Expect("=");
+            field.Number = ParseInt();
+            ParseOptions();
+            return field;
+        }
+         
         private void ParseReserved() {
             throw new NotImplementedException();
         }
@@ -198,7 +256,18 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private int ParseInt() {
+            bool isNegative = false;
+            string valueStr = Next();
+            if (valueStr == "-") {
+                isNegative = true;
+                valueStr = Next();
+            }
 
+            int value = int.Parse(valueStr);
+            if (isNegative)
+                value = -value;
+
+            return value;
         }
 
         private bool PeekAndDiscard(string possiblyExpected) {

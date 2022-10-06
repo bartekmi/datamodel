@@ -16,32 +16,111 @@ namespace datamodel.schema.source.protobuf {
 
         private List<Token> _tokens = new List<Token>();
         private int _index = 0;
+        private int _currentLine = 1;   // Only used during initial parse
 
-        public ProtobufTokenizer(TextReader reader) {
-            int lineNumber = 0;
-            string raw = null;
-            while ((raw = reader.ReadLine()) != null) {
-                lineNumber++;
-                string line = SanitizeLine(raw);
-                if (line == null)
-                    continue;
 
-                string[] pieces = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries );
-                _tokens.AddRange(pieces.Select(x => new Token() {
-                    TheToken = x,
-                    LineNumber = lineNumber,
-                }));
-            }
+        // Strategy...
+        // Consume the characters one-by-one
+        // If not in a string...
+        //   - whitespace breaks token
+        //   - The following characters are always tokens: ()<>[]=+-,;
+        // The following characters delineate a string: " and '
+        //   - String terminates on matching character
+        //   - current delineating character can be escaped: \" and \'
+        //   - whitespace is taken literally if in a string
+        //
+        // Parse states are:
+        // - Normal
+        // - In string
+        // - In escape
+
+        enum State {
+            Normal,
+            InString,
+            InEscape,
         }
 
-        private string SanitizeLine(string raw) {
-            string line = raw.Trim().Replace('\t', ' ');
+        private const string SINGLE_CHAR_TOKENS = "()<>[]=+-,;";
 
-            // Separate special chars with spaces for easier parsing
-            foreach (string specialChar in new string[] { "[", "]", ";", "\"", "'"})
-                line = line.Replace(specialChar, " " + specialChar + " ");
+        private State ProcessNormal(StringBuilder builder, char c, out char quoteChar) {
+            quoteChar = (char)0;
 
-            return line;
+            if (SINGLE_CHAR_TOKENS.Contains(c)) {
+                AddToken(builder);
+                return State.Normal;
+            }
+
+            if (c == '"' || c == '\'') {
+                quoteChar = c;
+                return State.InString;
+            }
+
+            if (c == '\\')
+                throw new Exception("Encountered backslash outside of string at line " + _currentLine);
+
+            if (char.IsWhiteSpace(c))
+                AddToken(builder);
+            else
+                builder.Append(c);      // Not checking for illegal characters
+
+            return State.Normal;
+        }
+
+        private State ProcessInString(StringBuilder builder, char c, char quoteChar) {
+            if (c == quoteChar) {
+                AddToken(builder);
+                return State.Normal;
+            }
+
+            if (c == '\\')
+                return State.InEscape;
+
+            builder.Append(c);
+            return State.InString;
+        }
+
+        private State ProcessInEscape(StringBuilder builder, char c) {
+            builder.Append(c);
+            return State.InString;
+        }
+
+        private void AddToken(StringBuilder builder) {
+            if (builder.Length == 0)
+                return;     // No data to add
+
+            _tokens.Add(new Token() {
+                TheToken = builder.ToString(),
+                LineNumber = _currentLine,
+            });
+            builder.Clear();
+        }
+
+        public ProtobufTokenizer(TextReader reader) {
+            int c;
+            State state = State.Normal;
+            StringBuilder builder = new StringBuilder();
+            char quoteChar = (char)0;
+
+            while ((c = reader.Read()) != -1) {
+                if (c == '\n')
+                    _currentLine++;
+
+                switch (state) {
+                    case State.Normal:
+                        state = ProcessNormal(builder, (char)c, out quoteChar);
+                        break;
+                    case State.InString:
+                        state = ProcessInString(builder, (char)c, quoteChar);
+                        break;
+                    case State.InEscape:
+                        state = ProcessInEscape(builder, (char)c);
+                        break;
+                    default:
+                        throw new Exception("Unknown state: " + state);
+                }
+            }
+
+            AddToken(builder);
         }
 
         #region Public Interface
@@ -64,6 +143,7 @@ namespace datamodel.schema.source.protobuf {
             _oldIndex = _index;
         }
 
+        // Return line number of most recently read or peeked token
         public int LineNumber { get { return _tokens[_oldIndex].LineNumber; } }
 
         #endregion

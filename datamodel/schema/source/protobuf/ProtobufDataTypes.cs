@@ -48,21 +48,31 @@ namespace datamodel.schema.source.protobuf {
         Optional,   // No longer applicable in Protobuf 3
         Repeated,
     }
-    internal class FieldNormal {
+    internal class FieldNormal : Field {
+        internal bool IsRepeated;
         internal FieldModifier Modifier;
         internal Type Type;
+        internal int Number;
     }
 
-    internal class FieldOneOf {
+    internal class FieldOneOf : Field {
         internal List<FieldNormal> Fields = new List<FieldNormal>();
     }
 
-    internal class FieldMap {
+    internal class FieldMap : Field {
         internal Type KeyType;
         internal Type ValueType;
+        internal int Number;
     }
 
-    internal abstract class Type {
+    internal class Type {
+        internal string Name;
+        internal TypeEnum EnumType;
+        internal Message MessageType;
+
+        internal Type(string name) {
+            Name = name;
+        }
     }
 
     internal class TypeEnum {
@@ -73,9 +83,5 @@ namespace datamodel.schema.source.protobuf {
     internal class EnumValue {
         internal string Name;
         internal int Number;
-    }
-
-    internal class TypePrimitive {
-        internal string Type;
     }
 }
