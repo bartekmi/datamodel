@@ -1,87 +1,100 @@
 using System.Collections.Generic;
 
 namespace datamodel.schema.source.protobuf {
-    internal enum ImportType {
+    public enum ImportType {
         None,
         Weak,
         Public,
     }
-    internal class File {
-        internal string Path;
-        internal string Package;
-        internal string Syntax;
-        internal ImportType ImportType;
+    public class File {
+        public string Path;
+        public string Package;
+        public string Syntax;
+        public ImportType ImportType;
 
-        internal List<File> Imports = new List<File>();
-        internal List<Service> Services = new List<Service>();
-        internal List<Message> Messages = new List<Message>();
-        internal List<TypeEnum> EnumTypes = new List<TypeEnum>();
+        public List<File> Imports = new List<File>();
+        public List<Service> Services = new List<Service>();
+        public List<Message> Messages = new List<Message>();
+        public List<TypeEnum> EnumTypes = new List<TypeEnum>();
+
+        // For the sake of JSON serialization
+        public bool ShouldSerializeImportType() { return ImportType != ImportType.None; }
+
+        public bool ShouldSerializeImports() { return Imports.Count > 0; }
+        public bool ShouldSerializeServices() { return Services.Count > 0; }
+        public bool ShouldSerializeMessages() { return Messages.Count > 0; }
+        public bool ShouldSerializeEnumTypes() { return EnumTypes.Count > 0; }
     }
 
-    internal class Service {
-        internal string Name;
-        internal List<Rpc> Rpcs = new List<Rpc>(); 
+    public class Service {
+        public string Name;
+        public List<Rpc> Rpcs = new List<Rpc>(); 
     }
 
-    internal class Rpc {
-        internal string Name;
-        internal string InputName;
-        internal string OutputName;
+    public class Rpc {
+        public string Name;
+        public string InputName;
+        public string OutputName;
 
-        internal Message Input;
-        internal Message Output;
+        public Message Input;
+        public Message Output;
     }
 
-    internal class Message {
-        internal string Name;
-        internal List<Field> Fields = new List<Field>();
-        internal List<Message> Messages = new List<Message>();
-        internal List<TypeEnum> EnumTypes = new List<TypeEnum>();
+    public class Message {
+        public string Name;
+        public List<Field> Fields = new List<Field>();
+        public List<Message> Messages = new List<Message>();
+        public List<TypeEnum> EnumTypes = new List<TypeEnum>();
+
+        // For the sake of JSON serialization
+        public bool ShouldSerializeMessages() { return Messages.Count > 0; }
+        public bool ShouldSerializeEnumTypes() { return EnumTypes.Count > 0; }
+
     }
 
-    internal abstract class Field {
-        internal string Name;
+    public abstract class Field {
+        public string Name;
     }
 
-    internal enum FieldModifier {
+    public enum FieldModifier {
         None,
         Optional,   // No longer applicable in Protobuf 3
         Repeated,
     }
-    internal class FieldNormal : Field {
-        internal bool IsRepeated;
-        internal FieldModifier Modifier;
-        internal Type Type;
-        internal int Number;
+    public class FieldNormal : Field {
+        public bool IsRepeated;
+        public FieldModifier Modifier;
+        public Type Type;
+        public int Number;
     }
 
-    internal class FieldOneOf : Field {
-        internal List<FieldNormal> Fields = new List<FieldNormal>();
+    public class FieldOneOf : Field {
+        public List<FieldNormal> Fields = new List<FieldNormal>();
     }
 
-    internal class FieldMap : Field {
-        internal Type KeyType;
-        internal Type ValueType;
-        internal int Number;
+    public class FieldMap : Field {
+        public Type KeyType;
+        public Type ValueType;
+        public int Number;
     }
 
-    internal class Type {
-        internal string Name;
-        internal TypeEnum EnumType;
-        internal Message MessageType;
+    public class Type {
+        public string Name;
+        public TypeEnum EnumType;
+        public Message MessageType;
 
-        internal Type(string name) {
+        public Type(string name) {
             Name = name;
         }
     }
 
-    internal class TypeEnum {
-        internal string Name;
-        internal List<EnumValue> Values = new List<EnumValue>();
+    public class TypeEnum {
+        public string Name;
+        public List<EnumValue> Values = new List<EnumValue>();
     }
 
-    internal class EnumValue {
-        internal string Name;
-        internal int Number;
+    public class EnumValue {
+        public string Name;
+        public int Number;
     }
 }

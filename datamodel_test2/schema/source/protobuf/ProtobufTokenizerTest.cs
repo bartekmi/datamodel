@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using System.IO;
+using System.Collections.Generic;
 
 using Xunit;
 using Xunit.Abstractions;
@@ -16,26 +17,41 @@ namespace datamodel.schema.source.protobuf {
 
         [Fact]
         public void TokenizeIdentifier() {
-            Tokenize("abc.def1");
+            TokenizeSingle("abc.def1");
         }
 
         [Fact]
         public void TokenizeInt() {
-            Tokenize("1234");
+            TokenizeSingle("1234");
+        }
+
+        [Fact]
+        public void TokenizeSymbol() {
+            TokenizeSingle("=");
         }
 
         [Fact]
         public void TokenizeFloat() {
-            Tokenize("1234.567e10");
+            TokenizeSingle("1234.567e10");
         }
 
         [Fact]
         public void TokenizeQuotedString() {
-            Tokenize("\"Don't count your chickens\"", "Don't count your chickens");
-            Tokenize("'He said to me, \"Smile!\".'", "He said to me, \"Smile!\".");
+            TokenizeSingle("\"Don't count your chickens\"", "Don't count your chickens");
+            TokenizeSingle("'He said to me, \"Smile!\".'", "He said to me, \"Smile!\".");
         }
 
-        private void Tokenize(string rawToken, string expected = null) {
+        [Fact]
+        public void TokenizeSyntax() {
+            Tokenize("syntax = 'proto3';", "syntax", "=", "proto3", ";");
+        }
+
+        [Fact]
+        public void TokenizePackage() {
+            Tokenize("package my.pkg;", "package", "my.pkg", ";");
+        }
+
+        private void TokenizeSingle(string rawToken, string expected = null) {
             string text = string.Format("first {0} last", rawToken);
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(text));
             if (expected == null)
@@ -45,7 +61,17 @@ namespace datamodel.schema.source.protobuf {
             Assert.Equal(expected, tokenizer.Next());
             Assert.Equal("last", tokenizer.Next());
         }
+
+        private void Tokenize(string text, params string[] expected) {
+            ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(text));
+            List<string> tokens = new List<string>();
+
+            while (tokenizer.HasNext())
+                tokens.Add(tokenizer.Next());
+
+            Assert.Equal(
+                string.Join("|", expected), 
+                string.Join("|", tokens.ToArray()));
+        }
     }
-
-
 }

@@ -11,6 +11,9 @@ namespace datamodel.schema.source.protobuf {
         class Token {
             public string TheToken;
             public int LineNumber;
+            public override string ToString() {
+                return string.Format("{0}:{1}", TheToken, LineNumber);
+            }
         }
         #endregion
 
@@ -46,7 +49,9 @@ namespace datamodel.schema.source.protobuf {
             quoteChar = (char)0;
 
             if (SINGLE_CHAR_TOKENS.Contains(c)) {
-                AddToken(builder);
+                MaybeAddToken(builder);
+                builder.Append(c);
+                MaybeAddToken(builder);
                 return State.Normal;
             }
 
@@ -59,7 +64,7 @@ namespace datamodel.schema.source.protobuf {
                 throw new Exception("Encountered backslash outside of string at line " + _currentLine);
 
             if (char.IsWhiteSpace(c))
-                AddToken(builder);
+                MaybeAddToken(builder);
             else
                 builder.Append(c);      // Not checking for illegal characters
 
@@ -68,7 +73,7 @@ namespace datamodel.schema.source.protobuf {
 
         private State ProcessInString(StringBuilder builder, char c, char quoteChar) {
             if (c == quoteChar) {
-                AddToken(builder);
+                MaybeAddToken(builder);
                 return State.Normal;
             }
 
@@ -84,7 +89,7 @@ namespace datamodel.schema.source.protobuf {
             return State.InString;
         }
 
-        private void AddToken(StringBuilder builder) {
+        private void MaybeAddToken(StringBuilder builder) {
             if (builder.Length == 0)
                 return;     // No data to add
 
@@ -120,7 +125,7 @@ namespace datamodel.schema.source.protobuf {
                 }
             }
 
-            AddToken(builder);
+            MaybeAddToken(builder);
         }
 
         #region Public Interface
@@ -146,6 +151,16 @@ namespace datamodel.schema.source.protobuf {
         // Return line number of most recently read or peeked token
         public int LineNumber { get { return _tokens[_oldIndex].LineNumber; } }
 
+        public string[] AllTokens() {
+            return _tokens.Select(x => x.TheToken).ToArray();
+        }
+
+        public override string ToString() {
+            StringBuilder builder = new StringBuilder();
+            foreach (string token in _tokens.Select(x => x.TheToken))
+                builder.AppendLine(token);
+            return builder.ToString();
+        }
         #endregion
     }
 }

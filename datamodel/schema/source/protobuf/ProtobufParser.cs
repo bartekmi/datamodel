@@ -60,16 +60,27 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void ParsePackage(File file) {
-            Expect("=");
             file.Package = Next();
             Expect(";");
         }
 
         private void ParseImport(File file) {
-            string type = Next();
             string path = Next();
+            
+            ImportType importType = ImportType.None;
+            if (path == "weak") {
+                importType = ImportType.Weak;
+                path = Next();
+            } else if (path == "public") {
+                importType = ImportType.Public;
+                path = Next();
+            }
+            
             Expect(";");
-            // TODO - parsing imports is non-trivial and will require multiple passes
+            file.Imports.Add(new File() {
+                Path = path,
+                ImportType = importType,
+            });
         }
 
         private void ParseOption() {
@@ -79,7 +90,10 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void ParseOptions() {
-            throw new NotImplementedException();
+            if (PeekAndDiscard("[")) {
+                string next;
+                while ((next = Next()) != "]");
+            }
         }
 
         private Message ParseMessage() {
@@ -283,7 +297,8 @@ namespace datamodel.schema.source.protobuf {
         public void Expect(string expected) {
             string token = Next();
             if (token != expected.ToLower())
-                throw new Exception(string.Format("Expected '{0}' but got '{1}'", expected, token));
+                throw new Exception(string.Format("Expected '{0}' but got '{1}' on line {2}", 
+                    expected, token, _tokenizer.LineNumber));
         }
         #endregion
     }
