@@ -51,6 +51,11 @@ namespace datamodel.schema.source.protobuf {
             Tokenize("package my.pkg;", "package", "my.pkg", ";");
         }
 
+        [Fact]
+        public void TokenizeDoubleBrace() {
+            Tokenize("{}", "{", "}");
+        }
+
         private void TokenizeSingle(string rawToken, string expected = null) {
             string text = string.Format("first {0} last", rawToken);
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(text));

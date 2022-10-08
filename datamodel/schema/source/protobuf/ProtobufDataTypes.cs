@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace datamodel.schema.source.protobuf {
     public enum ImportType {
@@ -62,10 +64,11 @@ namespace datamodel.schema.source.protobuf {
         Repeated,
     }
     public class FieldNormal : Field {
-        public bool IsRepeated;
         public FieldModifier Modifier;
         public Type Type;
         public int Number;
+
+        public bool ShouldSerializeModifier() { return Modifier != FieldModifier.None; }
     }
 
     public class FieldOneOf : Field {
@@ -79,9 +82,19 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public class Type {
+        static readonly string[] ATOMIC_TYPES = new string[] {
+            "double" , "float" , "int32" , "int64" , "uint32" , "uint64"
+            , "sint32" , "sint64" , "fixed32" , "fixed64" , "sfixed32" , "sfixed64"
+            , "bool" , "string" , "bytes"
+        };
+
         public string Name;
         public TypeEnum EnumType;
         public Message MessageType;
+
+        // Derived
+        [JsonIgnore]
+        public bool IsAtomic { get { return ATOMIC_TYPES.Any(x => x == Name ); } }
 
         public Type(string name) {
             Name = name;

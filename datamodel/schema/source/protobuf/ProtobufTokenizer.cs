@@ -43,7 +43,7 @@ namespace datamodel.schema.source.protobuf {
             InEscape,
         }
 
-        private const string SINGLE_CHAR_TOKENS = "()<>[]=+-,;";
+        private const string SINGLE_CHAR_TOKENS = "(){}<>[]=+-,;";
 
         private State ProcessNormal(StringBuilder builder, char c, out char quoteChar) {
             quoteChar = (char)0;

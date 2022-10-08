@@ -87,6 +87,141 @@ enum EnumAllowingAlias {
 }", proto);
         }
 
+        [Fact]
+        public void ParseMessage() {
+            string proto = @"
+message myMessage {
+  int64 myInt = 1 [ opt1 = 'A', opt2 = 42 ];
+  repeated string myString = 2;
+  option ignoreMe = 'will be ignored';
+  reserved 2, 15, 9 to 11;
+
+  oneof myOneOf {
+    option ignoreMe = 'will be ignored';
+    string either = 3;
+    string or = 4;
+    ;
+  }
+
+  map<string, Project> myMap = 5;
+  ;
+}
+";
+
+            RunTest(@"
+{
+  Messages: [
+    {
+      Name: myMessage,
+      Fields: [
+        {
+          Type: {
+            Name: int64
+          },
+          Number: 1,
+          Name: myInt
+        },
+        {
+          Modifier: Repeated,
+          Type: {
+            Name: string
+          },
+          Number: 2,
+          Name: myString
+        },
+        {
+          Fields: [
+            {
+              Type: {
+                Name: string
+              },
+              Number: 3,
+              Name: either
+            },
+            {
+              Type: {
+                Name: string
+              },
+              Number: 4,
+              Name: or
+            }
+          ],
+          Name: myOneOf
+        },
+        {
+          KeyType: {
+            Name: string
+          },
+          ValueType: {
+            Name: Project
+          },
+          Number: 5,
+          Name: myMap
+        }
+      ]
+    }
+  ]
+}", proto);
+        }
+
+        [Fact]
+        public void ParseMessageWithNested() {
+            string proto = @"
+message myMessage {
+  message myNested {}
+  enum myNestedEnum {}
+}
+";
+
+            RunTest(@"
+{
+  Messages: [
+    {
+      Name: myMessage,
+      Fields: [],
+      Messages: [
+        {
+          Name: myNested,
+          Fields: []
+        }
+      ],
+      EnumTypes: [
+        {
+          Name: myNestedEnum,
+          Values: []
+        }
+      ]
+    }
+  ]
+}", proto);
+        }
+
+        [Fact]
+        public void ParseService() {
+            string proto = @"
+service SearchService {
+  option ignoreMe = 'will be ignored';
+  rpc Search (SearchRequest) returns (SearchResponse);
+  ;
+}";
+
+            RunTest(@"
+{
+  Services: [
+    {
+      Name: SearchService,
+      Rpcs: [
+        {
+          Name: Search,
+          InputName: SearchRequest,
+          OutputName: SearchResponse
+        }
+      ]
+    }
+  ]
+}", proto);
+        }        
+
         private void RunTest(string expected, string proto) {
             string actual = ReadProto(proto).Trim().Replace("\"", "");
             expected = expected.Trim();

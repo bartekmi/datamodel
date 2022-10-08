@@ -106,6 +106,8 @@ namespace datamodel.schema.source.protobuf {
             while (!PeekAndDiscard("}")) {
                 if (PeekAndDiscard("option"))
                     ParseOption();
+                else if (PeekAndDiscard("reserved"))
+                    ParseReserved();
                 else if (PeekAndDiscard("message")) {
                     Message nested = ParseMessage();
                     message.Messages.Add(nested);
@@ -178,7 +180,7 @@ namespace datamodel.schema.source.protobuf {
             FieldNormal field = new FieldNormal();
             string type = Next();
             if (type == "repeated") {
-                field.IsRepeated = true;
+                field.Modifier = FieldModifier.Repeated;
                 type = Next();
             }
             field.Type = new Type(type);
@@ -191,7 +193,9 @@ namespace datamodel.schema.source.protobuf {
         }
          
         private void ParseReserved() {
-            throw new NotImplementedException();
+            // For now, we will discard reserved
+            string next;
+            while ((next = Next()) != ";");
         }
 
         private TypeEnum ParseEnumDefinition() {
