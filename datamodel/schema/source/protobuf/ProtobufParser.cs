@@ -1,3 +1,6 @@
+// The ProtobufParser class performs the first stage of the parsing of Protobuf files
+// - creating the AST, but with no attempt to connect the various enums and messages
+// to data types.
 using System;
 using System.Collections.Generic;
 using System.Linq;
