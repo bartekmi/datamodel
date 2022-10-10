@@ -202,6 +202,7 @@ message myMessage {
 service SearchService {
   option ignoreMe = 'will be ignored';
   rpc Search (SearchRequest) returns (SearchResponse);
+  rpc SearchStream (stream SearchRequest) returns (stream SearchResponse);
   ;
 }";
 
@@ -215,6 +216,13 @@ service SearchService {
           Name: Search,
           InputName: SearchRequest,
           OutputName: SearchResponse
+        },
+        {
+          Name: SearchStream,
+          InputName: SearchRequest,
+          IsInputStream: true,
+          OutputName: SearchResponse,
+          IsOutputStream: true
         }
       ]
     }

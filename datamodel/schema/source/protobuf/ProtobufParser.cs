@@ -256,14 +256,16 @@ namespace datamodel.schema.source.protobuf {
 
             // Input
             Expect("(");
-            PeekAndDiscard("stream");
+            if (PeekAndDiscard("stream"))
+                rpc.IsInputStream = true;
             rpc.InputName = Next();
             Expect(")");
 
             // Output
             Expect("returns");
             Expect("(");
-            PeekAndDiscard("stream");
+            if (PeekAndDiscard("stream"))
+                rpc.IsOutputStream = true;
             rpc.OutputName = Next();
             Expect(")");
 

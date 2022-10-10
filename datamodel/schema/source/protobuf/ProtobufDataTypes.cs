@@ -36,10 +36,16 @@ namespace datamodel.schema.source.protobuf {
     public class Rpc {
         public string Name;
         public string InputName;
+        public bool IsInputStream;
+
         public string OutputName;
+        public bool IsOutputStream;
 
         public Message Input;
         public Message Output;
+
+        public bool ShouldSerializeIsInputStream() { return IsInputStream; }
+        public bool ShouldSerializeIsOutputStream() { return IsOutputStream; }
     }
 
     public class Message {
