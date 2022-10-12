@@ -55,10 +55,12 @@ option java_package = 'com.example.foo';
         [Fact]
         public void ParseEnumType() {
             string proto = @"
-enum EnumAllowingAlias {
+//Enum Comment
+enum MyEnum {
   option allow_alias = true;
+  //Enum 0 Comment
   EAA_UNSPECIFIED = 0;
-  EAA_STARTED = 1;
+  EAA_STARTED = 1;      //Enum 1 Comment
   EAA_RUNNING = 2 [(custom_option) = ""hello world""];
 }
 ";
@@ -67,21 +69,24 @@ enum EnumAllowingAlias {
 {
   EnumTypes: [
     {
-      Name: EnumAllowingAlias,
+      Name: MyEnum,
       Values: [
         {
           Name: EAA_UNSPECIFIED,
-          Number: 0
+          Number: 0,
+          Comment: Enum 0 Comment
         },
         {
           Name: EAA_STARTED,
-          Number: 1
+          Number: 1,
+          Comment: Enum 1 Comment
         },
         {
           Name: EAA_RUNNING,
           Number: 2
         }
-      ]
+      ],
+      Comment: Enum Comment
     }
   ]
 }", proto);
@@ -90,19 +95,23 @@ enum EnumAllowingAlias {
         [Fact]
         public void ParseMessage() {
             string proto = @"
+//Message Comment
 message myMessage {
+  //Field 1 Comment
   int64 myInt = 1 [ opt1 = 'A', opt2 = 42 ];
-  repeated string myString = 2;
+  repeated string myString = 2;                 //Field 2 Comment
   option ignoreMe = 'will be ignored';
   reserved 2, 15, 9 to 11;
 
+  //OneOf Comment
   oneof myOneOf {
     option ignoreMe = 'will be ignored';
-    string either = 3;
+    string either = 3;                          //Field 3 Comment
     string or = 4;
     ;
   }
 
+  //Map Comment
   map<string, Project> myMap = 5;
   ;
 }
@@ -119,7 +128,8 @@ message myMessage {
             Name: int64
           },
           Number: 1,
-          Name: myInt
+          Name: myInt,
+          Comment: Field 1 Comment
         },
         {
           Modifier: Repeated,
@@ -127,7 +137,8 @@ message myMessage {
             Name: string
           },
           Number: 2,
-          Name: myString
+          Name: myString,
+          Comment: Field 2 Comment
         },
         {
           Fields: [
@@ -136,7 +147,8 @@ message myMessage {
                 Name: string
               },
               Number: 3,
-              Name: either
+              Name: either,
+              Comment: Field 3 Comment
             },
             {
               Type: {
@@ -146,7 +158,8 @@ message myMessage {
               Name: or
             }
           ],
-          Name: myOneOf
+          Name: myOneOf,
+          Comment: OneOf Comment
         },
         {
           KeyType: {
@@ -156,9 +169,11 @@ message myMessage {
             Name: Project
           },
           Number: 5,
-          Name: myMap
+          Name: myMap,
+          Comment: Map Comment
         }
-      ]
+      ],
+      Comment: Message Comment
     }
   ]
 }", proto);
@@ -168,7 +183,9 @@ message myMessage {
         public void ParseMessageWithNested() {
             string proto = @"
 message myMessage {
+  //Nested Message Comment
   message myNested {}
+  //Nested Enum Comment
   enum myNestedEnum {}
 }
 ";
@@ -182,13 +199,15 @@ message myMessage {
       Messages: [
         {
           Name: myNested,
-          Fields: []
+          Fields: [],
+          Comment: Nested Message Comment
         }
       ],
       EnumTypes: [
         {
           Name: myNestedEnum,
-          Values: []
+          Values: [],
+          Comment: Nested Enum Comment
         }
       ]
     }
