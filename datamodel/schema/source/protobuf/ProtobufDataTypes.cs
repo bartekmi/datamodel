@@ -3,12 +3,18 @@ using System.Linq;
 using Newtonsoft.Json;
 
 namespace datamodel.schema.source.protobuf {
+
+    public class Base {
+        public string Comment;
+        public bool ShouldSerializeComment() { return !string.IsNullOrWhiteSpace(Comment); }
+    }
+
     public enum ImportType {
         None,
         Weak,
         Public,
     }
-    public class File {
+    public class File : Base {
         public string Path;
         public string Package;
         public string Syntax;
@@ -17,7 +23,7 @@ namespace datamodel.schema.source.protobuf {
         public List<File> Imports = new List<File>();
         public List<Service> Services = new List<Service>();
         public List<Message> Messages = new List<Message>();
-        public List<TypeEnum> EnumTypes = new List<TypeEnum>();
+        public List<EnumDef> EnumTypes = new List<EnumDef>();
 
         // For the sake of JSON serialization
         public bool ShouldSerializeImportType() { return ImportType != ImportType.None; }
@@ -28,12 +34,12 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeEnumTypes() { return EnumTypes.Count > 0; }
     }
 
-    public class Service {
+    public class Service : Base {
         public string Name;
         public List<Rpc> Rpcs = new List<Rpc>(); 
     }
 
-    public class Rpc {
+    public class Rpc : Base {
         public string Name;
         public string InputName;
         public bool IsInputStream;
@@ -48,11 +54,11 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeIsOutputStream() { return IsOutputStream; }
     }
 
-    public class Message {
+    public class Message : Base {
         public string Name;
         public List<Field> Fields = new List<Field>();
         public List<Message> Messages = new List<Message>();
-        public List<TypeEnum> EnumTypes = new List<TypeEnum>();
+        public List<EnumDef> EnumTypes = new List<EnumDef>();
 
         // For the sake of JSON serialization
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
@@ -60,7 +66,7 @@ namespace datamodel.schema.source.protobuf {
 
     }
 
-    public abstract class Field {
+    public abstract class Field : Base {
         public string Name;
     }
 
@@ -95,7 +101,7 @@ namespace datamodel.schema.source.protobuf {
         };
 
         public string Name;
-        public TypeEnum EnumType;
+        public EnumDef EnumType;
         public Message MessageType;
 
         // Derived
@@ -107,12 +113,12 @@ namespace datamodel.schema.source.protobuf {
         }
     }
 
-    public class TypeEnum {
+    public class EnumDef : Base {
         public string Name;
         public List<EnumValue> Values = new List<EnumValue>();
     }
 
-    public class EnumValue {
+    public class EnumValue : Base {
         public string Name;
         public int Number;
     }

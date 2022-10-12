@@ -15,12 +15,12 @@ namespace datamodel.schema.source.protobuf {
     internal class ProtobufParser {
 
         private ProtobufTokenizer _tokenizer;
-        private ParseContext _context = new ParseContext();
 
         internal ProtobufParser(ProtobufTokenizer tokenizer) {
             _tokenizer = tokenizer;
         }
 
+        #region Main Parse
         internal File Parse() {
             File file = new File();
 
@@ -38,7 +38,7 @@ namespace datamodel.schema.source.protobuf {
                         Message message = ParseMessage();
                         file.Messages.Add(message);
                     } else if (PeekAndDiscard("enum")) {
-                        TypeEnum theEnum = ParseEnumDefinition();
+                        EnumDef theEnum = ParseEnumDefinition();
                         file.EnumTypes.Add(theEnum);
                     } else if (PeekAndDiscard("service")) {
                         Service service = ParseService();
@@ -54,6 +54,7 @@ namespace datamodel.schema.source.protobuf {
 
             return file;
         }
+        #endregion
 
         #region Various Parse Methods
         private void ParseSyntax(File file) {
@@ -101,6 +102,7 @@ namespace datamodel.schema.source.protobuf {
 
         private Message ParseMessage() {
             Message message = new Message() {
+                Comment = CurrentComment(),
                 Name = Next(),
             };
 
@@ -115,7 +117,7 @@ namespace datamodel.schema.source.protobuf {
                     Message nested = ParseMessage();
                     message.Messages.Add(nested);
                 } else if (PeekAndDiscard("enum")) {
-                    TypeEnum theEnum = ParseEnumDefinition();
+                    EnumDef theEnum = ParseEnumDefinition();
                     message.EnumTypes.Add(theEnum);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
@@ -141,6 +143,7 @@ namespace datamodel.schema.source.protobuf {
         //  }
         private FieldOneOf ParseOneOfField() {
             FieldOneOf field = new FieldOneOf() {
+                Comment = CurrentComment(),
                 Name = Next(),
             };
             Expect("{");
@@ -162,7 +165,9 @@ namespace datamodel.schema.source.protobuf {
         // Example:
         //  map<string, Project> projects = 3 [...options...];
         private FieldMap ParseMapField() {
-            FieldMap map = new FieldMap();
+            FieldMap map = new FieldMap() {
+                Comment = CurrentComment(),
+            };
             Expect("<");
             map.KeyType = new Type(Next());
             Expect(",");
@@ -180,7 +185,9 @@ namespace datamodel.schema.source.protobuf {
         // Template: 
         //  [repeated] type name = n [ [...options...] ];
         private FieldNormal ParseNormalField() {
-            FieldNormal field = new FieldNormal();
+            FieldNormal field = new FieldNormal() {
+                Comment = CurrentComment(),
+            };
             string type = Next();
             if (type == "repeated") {
                 field.Modifier = FieldModifier.Repeated;
@@ -201,8 +208,9 @@ namespace datamodel.schema.source.protobuf {
             while ((next = Next()) != ";");
         }
 
-        private TypeEnum ParseEnumDefinition() {
-            TypeEnum theEnum = new TypeEnum() {
+        private EnumDef ParseEnumDefinition() {
+            EnumDef theEnum = new EnumDef() {
+                Comment = CurrentComment(),
                 Name = Next(),
             };
 
@@ -215,6 +223,7 @@ namespace datamodel.schema.source.protobuf {
                     // Do nothing - emptyStatement
                 } else {     // Assume it's "item = n;"
                     EnumValue value = new EnumValue() {
+                        Comment = CurrentComment(),
                         Name = Next(),
                     };
                     Expect("=");
@@ -229,6 +238,7 @@ namespace datamodel.schema.source.protobuf {
 
         private Service ParseService() {
             Service service = new Service() {
+                Comment = CurrentComment(),
                 Name = Next()
             };
 
@@ -251,6 +261,7 @@ namespace datamodel.schema.source.protobuf {
 
         private Rpc ParseRpc() {
             Rpc rpc = new Rpc() {
+                Comment = CurrentComment(),
                 Name = Next()
             };
 
@@ -303,11 +314,15 @@ namespace datamodel.schema.source.protobuf {
             return false;
         }
 
-        public void Expect(string expected) {
+        private void Expect(string expected) {
             string token = Next();
             if (token != expected.ToLower())
                 throw new Exception(string.Format("Expected '{0}' but got '{1}' on line {2}", 
                     expected, token, _tokenizer.LineNumber));
+        }
+
+        private string CurrentComment() {
+            return _tokenizer.Comment;
         }
         #endregion
     }

@@ -199,8 +199,10 @@ message myMessage {
         [Fact]
         public void ParseService() {
             string proto = @"
+//Service Comment            
 service SearchService {
   option ignoreMe = 'will be ignored';
+  //Rpc Comment
   rpc Search (SearchRequest) returns (SearchResponse);
   rpc SearchStream (stream SearchRequest) returns (stream SearchResponse);
   ;
@@ -215,7 +217,8 @@ service SearchService {
         {
           Name: Search,
           InputName: SearchRequest,
-          OutputName: SearchResponse
+          OutputName: SearchResponse,
+          Comment: Rpc Comment
         },
         {
           Name: SearchStream,
@@ -224,7 +227,8 @@ service SearchService {
           OutputName: SearchResponse,
           IsOutputStream: true
         }
-      ]
+      ],
+      Comment: Service Comment
     }
   ]
 }", proto);
