@@ -49,6 +49,50 @@ message myMessage {
  }");
         }
 
+        [Fact]
+        public void ParseEnumField() {
+            string proto = @"
+message myMessage {
+    enum myEnum {
+        one = 1;    // First
+        two = 2;    // Second
+    }
+    myEnum field1 = 1;
+}
+";
+
+            RunTest(proto, @"
+ {
+   Title: myproto.proto,
+   Models: {
+     myMessage: {
+       Name: myMessage,
+       QualifiedName: myMessage,
+       AllColumns: [
+         {
+           Name: field1,
+           DataType: myEnum,
+           Enum: {
+             Name: myEnum,
+             Values: [
+               {
+                 Key: one,
+                 Value:  First
+               },
+               {
+                 Key: two,
+                 Value:  Second
+               }
+             ]
+           }
+         }
+       ]
+     }
+   },
+   Associations: []
+ }");
+        }
+
         private void RunTest(string protoContent, string expected) {
             ProtobufSource source = new ProtobufSource();
             source.InitializeInternal("/my/dir/myproto.proto", protoContent);

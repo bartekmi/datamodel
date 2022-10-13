@@ -95,7 +95,7 @@ namespace datamodel.schema.source.protobuf {
             foreach (EnumValue value in enumDef.Values)
                 theEnum.Add(value.Name, value.Comment);
 
-            _enums[enumDef.FullyQualifiedName()] = theEnum;
+            _enums[enumDef.Name] = theEnum;
         }
         #endregion
 
@@ -111,7 +111,7 @@ namespace datamodel.schema.source.protobuf {
         private void PassTwoMessage(Message message) {
             Model model = new Model() {
                 Name = message.Name,
-                QualifiedName = message.FullyQualifiedName(),
+                QualifiedName = message.Name,
                 Description = message.Comment,
                 // TODO: This can be read from options
                 // Deprecated = ...

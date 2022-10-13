@@ -7,6 +7,7 @@ namespace datamodel.schema {
 
         public string Name { get; set; }
         public string Description { get; set; }
+        public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
 
         // Key is the enum value; value is the description
         private Dictionary<string, string> _values = new Dictionary<string, string>();
