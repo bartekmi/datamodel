@@ -93,6 +93,58 @@ message myMessage {
  }");
         }
 
+        [Fact]
+        public void ParseAssociation() {
+            string proto = @"
+message myMessage {
+    message myNested {
+        string f1 = 1;
+    }
+    myNested f1 = 1;
+    repeated myNested f2 = 2;
+}
+";
+
+            RunTest(proto, @"
+ {
+   Title: myproto.proto,
+   Models: {
+     myMessage: {
+       Name: myMessage,
+       QualifiedName: myMessage,
+       AllColumns: []
+     },
+     myNested: {
+       Name: myNested,
+       QualifiedName: myNested,
+       AllColumns: [
+         {
+           Name: f1,
+           DataType: string
+         }
+       ]
+     }
+   },
+   Associations: [
+     {
+       OwnerSide: myMessage,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: myNested,
+       OtherRole: f1,
+       OtherMultiplicity: One
+     },
+     {
+       OwnerSide: myMessage,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: myNested,
+       OtherRole: f2,
+       OtherMultiplicity: Many
+     }
+   ]
+ }");
+        }
+
+        #region Utilities
         private void RunTest(string protoContent, string expected) {
             ProtobufSource source = new ProtobufSource();
             source.InitializeInternal("/my/dir/myproto.proto", protoContent);
@@ -130,5 +182,6 @@ message myMessage {
 
             return builder.ToString().Trim();
         }
+        #endregion
     }
 }

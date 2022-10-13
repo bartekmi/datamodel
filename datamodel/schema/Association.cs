@@ -31,6 +31,7 @@ namespace datamodel.schema {
         public Multiplicity OtherMultiplicity { get; set; }
 
         public string Description { get; set; }
+        public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
 
         // Hydrated
         [JsonIgnore]
