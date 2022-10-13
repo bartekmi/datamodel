@@ -20,8 +20,9 @@ namespace datamodel.schema.source.protobuf {
         [Fact]
         public void ParseSingleMessage() {
             string proto = @"
+// Message description
 message myMessage {
-    string field1 = 1;
+    string field1 = 1;              // Field description
     repeated int32 field2 = 2;
 }
 ";
@@ -33,10 +34,12 @@ message myMessage {
      myMessage: {
        Name: myMessage,
        QualifiedName: myMessage,
+       Description:  Message description,
        AllColumns: [
          {
            Name: field1,
-           DataType: string
+           DataType: string,
+           Description:  Field description
          },
          {
            Name: field2,
@@ -53,6 +56,7 @@ message myMessage {
         public void ParseEnumField() {
             string proto = @"
 message myMessage {
+    // Enum description
     enum myEnum {
         one = 1;    // First
         two = 2;    // Second
@@ -74,6 +78,7 @@ message myMessage {
            DataType: myEnum,
            Enum: {
              Name: myEnum,
+             Description:  Enum description,
              Values: [
                {
                  Key: one,
@@ -100,7 +105,7 @@ message myMessage {
     message myNested {
         string f1 = 1;
     }
-    myNested f1 = 1;
+    myNested f1 = 1;                // Association description
     repeated myNested f2 = 2;
 }
 ";
@@ -131,7 +136,8 @@ message myMessage {
        OwnerMultiplicity: Aggregation,
        OtherSide: myNested,
        OtherRole: f1,
-       OtherMultiplicity: One
+       OtherMultiplicity: One,
+       Description:  Association description
      },
      {
        OwnerSide: myMessage,
