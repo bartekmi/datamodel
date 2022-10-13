@@ -53,6 +53,83 @@ message myMessage {
         }
 
         [Fact]
+        public void ParseSingleMessageOneOf() {
+            string proto = @"
+// Message description
+message myMessage {
+  // Oneof description
+  oneof myOneof {
+    string field1 = 1;              // Field description
+    repeated int32 field2 = 2;
+  }
+}
+";
+
+            RunTest(proto, @"
+ {
+   Title: myproto.proto,
+   Models: {
+     myMessage: {
+       Name: myMessage,
+       QualifiedName: myMessage,
+       Description:  Message description,
+       AllColumns: [
+         {
+           Name: field1,
+           DataType: string,
+           Description: One-of Group: myOneof\n\n Oneof description\n\n Field description
+         },
+         {
+           Name: field2,
+           DataType: []int32,
+           Description: One-of Group: myOneof\n\n Oneof description
+         }
+       ]
+     }
+   },
+   Associations: []
+ }");
+        }
+
+        [Fact]
+        public void ParseSingleMessageMap() {
+            string proto = @"
+// Message description
+message myMessage {
+  map<int32, string> stringMap = 1;
+  map<int32, myMessage> msgMap = 2;
+}
+";
+
+            RunTest(proto, @"
+ {
+   Title: myproto.proto,
+   Models: {
+     myMessage: {
+       Name: myMessage,
+       QualifiedName: myMessage,
+       Description:  Message description,
+       AllColumns: [
+         {
+           Name: stringMap,
+           DataType: [int32]string
+         }
+       ]
+     }
+   },
+   Associations: [
+     {
+       OwnerSide: myMessage,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: myMessage,
+       OtherRole: msgMap,
+       OtherMultiplicity: Many
+     }
+   ]
+ }");
+        }
+
+        [Fact]
         public void ParseEnumField() {
             string proto = @"
 message myMessage {

@@ -133,13 +133,18 @@ namespace datamodel.schema.source.protobuf {
 
 
         private void AddFieldNormal(Model model, FieldNormal field) {
-            _enums.TryGetValue(field.Type.Name, out Enum theEnum);
+            bool isRepeated = field.Modifier == FieldModifier.Repeated;
+            AddFieldNormalOrMap(model, field, field.Type, isRepeated, null);
+        }
 
-            if (field.Type.IsAtomic || theEnum != null)
+        private void AddFieldNormalOrMap(Model model, Field field, Type type, bool isRepeated, Type mapKeyType) {
+            _enums.TryGetValue(type.Name, out Enum theEnum);
+
+            if (type.IsAtomic || theEnum != null)
                 model.AllColumns.Add(new Column() {
                     Name = field.Name,
                     Description = field.Comment,
-                    DataType = ComputeType(field),
+                    DataType = ComputeType(type, isRepeated, mapKeyType),
                     Enum = theEnum,
                     // TODO...
                     // Deprecated = Extract from Options
@@ -155,8 +160,8 @@ namespace datamodel.schema.source.protobuf {
                     OwnerSide = model.QualifiedName,
                     OwnerMultiplicity = Multiplicity.Aggregation,
 
-                    OtherSide = field.Type.Name,
-                    OtherMultiplicity = ComputeMultiplicity(field),
+                    OtherSide = type.Name,
+                    OtherMultiplicity = ComputeMultiplicity(isRepeated),
                     OtherRole = field.Name,
 
                     Description = field.Comment,
@@ -166,25 +171,42 @@ namespace datamodel.schema.source.protobuf {
 
         }
 
-        private Multiplicity ComputeMultiplicity(FieldNormal field) {
+        private string ComputeType(Type type, bool isRepeated, Type mapKeyType) {
+            if (mapKeyType == null)
+                return string.Format("{0}{1}",
+                    isRepeated ? "[]" : "",
+                    type.Name);
+            else
+                return string.Format("[{0}]{1}",
+                    mapKeyType.Name,
+                    type.Name);
+        }
+
+        private Multiplicity ComputeMultiplicity(bool isRepeated) {
             // TODO... Can be a bit more precise with protobuf v2
-            return field.Modifier == FieldModifier.Repeated ?
+            return isRepeated ?
                 Multiplicity.Many :
                 Multiplicity.One;
         }
 
-        private string ComputeType(FieldNormal field) {
-            return string.Format("{0}{1}",
-                field.Modifier == FieldModifier.Repeated ? "[]" : "",
-                field.Type.Name);
-        }
-
         private void AddFieldOneof(Model model, FieldOneOf oneof) {
+            // TODO: If all one-of sub-fields are Entities, consider representing this
+            // as a class hierarchy
 
+            foreach (FieldNormal normal in oneof.Fields) {
+                // Combine the oneof and normal field comments. A bit redundant, but better
+                // than losing the oneof comments entirely.
+                normal.Comment = string.Format("One-of Group: {0}\n\n{1}{2}",
+                    oneof.Name,
+                    string.IsNullOrWhiteSpace(oneof.Comment) ? "" : oneof.Comment + "\n\n",
+                    normal.Comment).Trim();
+
+                AddFieldNormal(model, normal);
+            }
         }
 
-        private void AddFieldMap(Model model, FieldMap map) {
-
+        private void AddFieldMap(Model model, FieldMap field) {
+            AddFieldNormalOrMap(model, field, field.ValueType, true, field.KeyType);
         }
         #endregion
     }
