@@ -22,7 +22,7 @@ namespace datamodel.schema.source.protobuf {
             string proto = @"
 message myMessage {
     string field1 = 1;
-    int32 field2 = 2;
+    repeated int32 field2 = 2;
 }
 ";
 
@@ -40,7 +40,7 @@ message myMessage {
          },
          {
            Name: field2,
-           DataType: int32
+           DataType: []int32
          }
        ]
      }
