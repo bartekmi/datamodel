@@ -50,8 +50,6 @@ namespace datamodel.schema.source.protobuf {
         public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
 
         // For the sake of JSON serialization
-        public bool ShouldSerializeImportType() { return ImportType != ImportType.None; }
-
         public bool ShouldSerializeImports() { return Imports.Count > 0; }
         public bool ShouldSerializeServices() { return Services.Count > 0; }
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
@@ -76,9 +74,6 @@ namespace datamodel.schema.source.protobuf {
 
         public Message Input;
         public Message Output;
-
-        public bool ShouldSerializeIsInputStream() { return IsInputStream; }
-        public bool ShouldSerializeIsOutputStream() { return IsOutputStream; }
     }
 
     public class Message : Base, Owner, Owned {
@@ -111,8 +106,6 @@ namespace datamodel.schema.source.protobuf {
         public FieldModifier Modifier { get; set; }
         public Type Type { get; set; }
         public int Number { get; set; }
-
-        public bool ShouldSerializeModifier() { return Modifier != FieldModifier.None; }
     }
 
     public class FieldOneOf : Field {

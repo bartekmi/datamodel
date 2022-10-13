@@ -74,7 +74,6 @@ enum MyEnum {
       Values: [
         {
           Name: EAA_UNSPECIFIED,
-          Number: 0,
           Comment: Enum 0 Comment
         },
         {
@@ -279,6 +278,7 @@ service SearchService {
             return JsonConvert.SerializeObject(file,
                 new JsonSerializerSettings {
                     NullValueHandling = NullValueHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
                     Formatting = Formatting.Indented,
                     Converters = new List<JsonConverter>() { new StringEnumConverter()},
                 });

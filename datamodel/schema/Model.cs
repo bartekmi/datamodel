@@ -46,9 +46,11 @@ namespace datamodel.schema {
                 _levels = value ?? new string[0];
             }
         }
+        public bool ShouldSerializeLevels() { return _levels != null && _levels.Length > 0; }
 
         // Description of the Model as extracted from Yaml annotation files
         public string Description { get; set; }
+        public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
 
         // Is this model Deprecated - as per Yaml annotation file
         public bool Deprecated { get; set; }
@@ -56,6 +58,8 @@ namespace datamodel.schema {
         // Associations
         public List<Column> AllColumns { get; internal set; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
+        public bool ShouldSerializeLabels() { return Labels.Count > 0; }
+
         [JsonIgnore]
         public HierarchyItem LeafHierachyItem {get;set;}
 

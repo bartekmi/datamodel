@@ -12,6 +12,7 @@ namespace datamodel.schema {
         public string DataType { get; set; }
         public bool CanBeEmpty { get; set; }
         public string Description { get; set; }
+        public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }
         

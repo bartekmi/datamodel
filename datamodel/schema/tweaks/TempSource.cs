@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 using datamodel.schema.source;
 
@@ -76,10 +77,11 @@ namespace datamodel.schema.tweaks {
 
         internal static TempSource CloneFromSource(SchemaSource source) {
             TempSource clone = new TempSource();
+
             clone.Title = source.GetTitle();
             clone.SetModels(source.GetModels());
-            clone.Models = source.GetModels().ToDictionary(x => x.QualifiedName);
             clone.Associations = new List<Association>(source.GetAssociations());
+
             return clone;
         }
 
@@ -96,5 +98,32 @@ namespace datamodel.schema.tweaks {
         public void RemoveAssociation(Association assoc) {
             Associations.Remove(assoc);
         }
+
+        #region Helpful for testing
+        internal void RemoveColumnLabels() {
+            foreach (Column column in AllColumns)
+                column.Labels = null;   // Clean up output
+        }
+
+        internal string ToJasonNoQuotes(bool removeColumnLabels = true) {
+            if (removeColumnLabels)
+                RemoveColumnLabels();
+
+            string json = JsonConvert.SerializeObject(
+                this,
+                new JsonSerializerSettings {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    Formatting = Formatting.Indented,
+                    Converters = new List<JsonConverter>() { new StringEnumConverter()},
+                });
+
+            // Quotes are a pain because the make it hard to copy-and-paste results as the 
+            // "expected" string
+            json = json.Replace("\"", "");
+
+            return json.Trim();
+        }
+        #endregion
     }
 }

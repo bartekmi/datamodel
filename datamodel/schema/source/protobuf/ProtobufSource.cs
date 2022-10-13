@@ -22,9 +22,15 @@ namespace datamodel.schema.source.protobuf {
         public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
 
         public override void Initialize(Parameters parameters) {
-            _title = Path.GetFileName(parameters.GetRawText(PARAM_FILE));
+            string fileName = parameters.GetRawText(PARAM_FILE);
+            string fileData = parameters.GetFileContent(PARAM_FILE);
 
-            String fileData = parameters.GetFileContent(PARAM_FILE);
+            InitializeInternal(fileName, fileData);
+        }
+
+        internal void InitializeInternal(string fileName, string fileData) {
+            _title = Path.GetFileName(fileName);
+
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(fileData));
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File pbFile = parser.Parse();
@@ -89,8 +95,7 @@ namespace datamodel.schema.source.protobuf {
             foreach (EnumValue value in enumDef.Values)
                 theEnum.Add(value.Name, value.Comment);
 
-            // TODO: Account for nested enums
-            _enums[enumDef.Name] = theEnum;
+            _enums[enumDef.FullyQualifiedName()] = theEnum;
         }
         #endregion
 
@@ -106,6 +111,7 @@ namespace datamodel.schema.source.protobuf {
         private void PassTwoMessage(Message message) {
             Model model = new Model() {
                 Name = message.Name,
+                QualifiedName = message.FullyQualifiedName(),
                 Description = message.Comment,
                 // TODO: This can be read from options
                 // Deprecated = ...
