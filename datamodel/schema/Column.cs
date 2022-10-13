@@ -14,6 +14,7 @@ namespace datamodel.schema {
         public string Description { get; set; }
         public bool Deprecated { get; set; }
         public Enum Enum { get; set; }
+        
         [JsonIgnore]    // Owner causes a "Self referencing loop"
         public Model Owner { get; internal set; }
         [JsonIgnore]

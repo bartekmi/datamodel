@@ -20,6 +20,7 @@ namespace datamodel.schema.source.protobuf {
         [Fact]
         public void ParseFileLevelProperties() {
             string proto = @"
+//File Comment
 syntax = 'proto3';
 
 import 'my/dir/one.proto';
@@ -53,7 +54,7 @@ option java_package = 'com.example.foo';
         }
 
         [Fact]
-        public void ParseEnumType() {
+        public void ParseEnumDef() {
             string proto = @"
 //Enum Comment
 enum MyEnum {
@@ -67,7 +68,7 @@ enum MyEnum {
 
             RunTest(@"
 {
-  EnumTypes: [
+  EnumDefs: [
     {
       Name: MyEnum,
       Values: [
@@ -203,7 +204,7 @@ message myMessage {
           Comment: Nested Message Comment
         }
       ],
-      EnumTypes: [
+      EnumDefs: [
         {
           Name: myNestedEnum,
           Values: [],

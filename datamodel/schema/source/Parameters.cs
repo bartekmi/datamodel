@@ -27,9 +27,14 @@ namespace datamodel.schema.source {
         public bool IsMultiple;
         public string Default;
 
+        // The raw text value of the parameter
+        public string Text { get; private set; }
+        // The parsed value of the parameter, including, possibly file or url read
         public object Value { get; private set; }
 
         internal string Parse(string text) {
+            Text = text;
+
             if (IsMultiple) {
                 StringBuilder builder = new StringBuilder();
                 string[] pieces = text.Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -176,11 +181,11 @@ namespace datamodel.schema.source {
         }
 
         public string GetString(string paramName) {
-            return GetParam(paramName, ParamType.String) as string;
+            return GetParamValue(paramName, ParamType.String) as string;
         }
 
         public string[] GetStrings(string paramName) {
-            object values = GetParam(paramName, ParamType.String, true);
+            object values = GetParamValue(paramName, ParamType.String, true);
             if (values == null)
                 return new string[0];
 
@@ -188,24 +193,24 @@ namespace datamodel.schema.source {
         }
 
         public int? GetInt(string paramName) {
-            return GetParam(paramName, ParamType.Int) as int?;
+            return GetParamValue(paramName, ParamType.Int) as int?;
         }
 
         public double? GetDouble(string paramName) {
-            return GetParam(paramName, ParamType.Float) as double?;
+            return GetParamValue(paramName, ParamType.Float) as double?;
         }
 
         public bool GetBool(string paramName) {
-            object value = GetParam(paramName, ParamType.Bool);
+            object value = GetParamValue(paramName, ParamType.Bool);
             return value is bool ? (bool)value : false;
         }
 
         public string GetFileContent(string paramName) {
-            return GetParam(paramName, ParamType.File) as string;
+            return GetParamValue(paramName, ParamType.File) as string;
         }
 
         public string[] GetFileContents(string paramName) {
-            object values = GetParam(paramName, ParamType.File, true);
+            object values = GetParamValue(paramName, ParamType.File, true);
             if (values == null)
                 return new string[0];
 
@@ -213,22 +218,32 @@ namespace datamodel.schema.source {
         }
 
         public string GetUrlContent(string paramName) {
-            return GetParam(paramName, ParamType.Url) as string;
+            return GetParamValue(paramName, ParamType.Url) as string;
         }
 
         public Regex GetRegex(string paramName) {
-            return GetParam(paramName, ParamType.Regex) as Regex;
+            return GetParamValue(paramName, ParamType.Regex) as Regex;
         }
 
-        private object GetParam(string paramName, ParamType type, bool isMultiple = false) {
-            if (!_params.TryGetValue(paramName, out Parameter parameter))
-                throw new Exception("Inconsistent parameter requested; fix your code: " + paramName);
+        public string GetRawText(string paramName) {
+            return GetParameter(paramName).Text;
+        }
+
+        private object GetParamValue(string paramName, ParamType type, bool isMultiple = false) {
+            Parameter parameter = GetParameter(paramName);
+            
             if (isMultiple != parameter.IsMultiple)
                 throw new Exception("Inconsistent parameter multiplicity requested; fix your code: " + paramName);
             if (parameter.Type != type)
                 throw new Exception("Inconsistent parameter type requested; fix your code: " + paramName);
 
             return parameter.Value;
+        }
+
+        private Parameter GetParameter(string paramName) {
+            if (!_params.TryGetValue(paramName, out Parameter parameter))
+                throw new Exception("Inconsistent parameter requested; fix your code: " + paramName);
+            return parameter;
         }
         #endregion
     }

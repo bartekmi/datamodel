@@ -5,6 +5,9 @@ using System.Linq;
 namespace datamodel.schema {
     public class Enum {
 
+        public string Name { get; set; }
+        public string Description { get; set; }
+
         // Key is the enum value; value is the description
         private Dictionary<string, string> _values = new Dictionary<string, string>();
 

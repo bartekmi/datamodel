@@ -5,8 +5,32 @@ using Newtonsoft.Json;
 namespace datamodel.schema.source.protobuf {
 
     public class Base {
-        public string Comment;
+        public string Comment { get; set; }
         public bool ShouldSerializeComment() { return !string.IsNullOrWhiteSpace(Comment); }
+    }
+
+    public interface Owner {
+        bool IsFile();
+    }
+
+    public interface Owned {
+        Owner Owner { get; }
+        string Name { get; }
+    }
+
+    public static class OwnedExtensions {
+        public static string FullyQualifiedName(this Owned owned) {
+            List<string> components = new List<string>();
+            while (true) {
+                components.Add(owned.Name);
+                if (owned.Owner.IsFile())
+                    break;
+                owned = (Owned)owned.Owner;
+            } 
+
+            components.Reverse();
+            return string.Join(".", components);
+        }
     }
 
     public enum ImportType {
@@ -14,16 +38,16 @@ namespace datamodel.schema.source.protobuf {
         Weak,
         Public,
     }
-    public class File : Base {
-        public string Path;
-        public string Package;
-        public string Syntax;
-        public ImportType ImportType;
+    public class File : Base, Owner {
+        public string Path { get; set; }
+        public string Package { get; set; }
+        public string Syntax { get; set; }
+        public ImportType ImportType { get; set; }
 
-        public List<File> Imports = new List<File>();
-        public List<Service> Services = new List<Service>();
-        public List<Message> Messages = new List<Message>();
-        public List<EnumDef> EnumTypes = new List<EnumDef>();
+        public List<File> Imports { get; } = new List<File>();
+        public List<Service> Services { get; }=  new List<Service>();
+        public List<Message> Messages { get; } = new List<Message>();
+        public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
 
         // For the sake of JSON serialization
         public bool ShouldSerializeImportType() { return ImportType != ImportType.None; }
@@ -31,21 +55,24 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeImports() { return Imports.Count > 0; }
         public bool ShouldSerializeServices() { return Services.Count > 0; }
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
-        public bool ShouldSerializeEnumTypes() { return EnumTypes.Count > 0; }
+        public bool ShouldSerializeEnumDefs() { return EnumDefs.Count > 0; }
+
+        // Owner interface
+        public bool IsFile() { return true; }
     }
 
     public class Service : Base {
-        public string Name;
-        public List<Rpc> Rpcs = new List<Rpc>(); 
+        public string Name { get; set; }
+        public List<Rpc> Rpcs { get; } = new List<Rpc>(); 
     }
 
     public class Rpc : Base {
-        public string Name;
-        public string InputName;
-        public bool IsInputStream;
+        public string Name { get; set; }
+        public string InputName { get; set; }
+        public bool IsInputStream { get; set; }
 
-        public string OutputName;
-        public bool IsOutputStream;
+        public string OutputName { get; set; }
+        public bool IsOutputStream { get; set; }
 
         public Message Input;
         public Message Output;
@@ -54,20 +81,25 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeIsOutputStream() { return IsOutputStream; }
     }
 
-    public class Message : Base {
-        public string Name;
-        public List<Field> Fields = new List<Field>();
-        public List<Message> Messages = new List<Message>();
-        public List<EnumDef> EnumTypes = new List<EnumDef>();
+    public class Message : Base, Owner, Owned {
+        public string Name { get; set; }
+        public List<Field> Fields { get; } = new List<Field>();
+        public List<Message> Messages { get; } = new List<Message>();
+        public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
 
         // For the sake of JSON serialization
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
-        public bool ShouldSerializeEnumTypes() { return EnumTypes.Count > 0; }
+        public bool ShouldSerializeEnumDefs() { return EnumDefs.Count > 0; }
 
+        // Owner interface
+        public bool IsFile() { return false; }
+
+        [JsonIgnore]
+        public Owner Owner { get; set; }
     }
 
     public abstract class Field : Base {
-        public string Name;
+        public string Name { get; set; }
     }
 
     public enum FieldModifier {
@@ -76,21 +108,21 @@ namespace datamodel.schema.source.protobuf {
         Repeated,
     }
     public class FieldNormal : Field {
-        public FieldModifier Modifier;
-        public Type Type;
-        public int Number;
+        public FieldModifier Modifier { get; set; }
+        public Type Type { get; set; }
+        public int Number { get; set; }
 
         public bool ShouldSerializeModifier() { return Modifier != FieldModifier.None; }
     }
 
     public class FieldOneOf : Field {
-        public List<FieldNormal> Fields = new List<FieldNormal>();
+        public List<FieldNormal> Fields { get; } = new List<FieldNormal>();
     }
 
     public class FieldMap : Field {
-        public Type KeyType;
-        public Type ValueType;
-        public int Number;
+        public Type KeyType { get; set; }
+        public Type ValueType { get; set; }
+        public int Number { get; set; }
     }
 
     public class Type {
@@ -100,9 +132,9 @@ namespace datamodel.schema.source.protobuf {
             , "bool" , "string" , "bytes"
         };
 
-        public string Name;
-        public EnumDef EnumType;
-        public Message MessageType;
+        public string Name { get; set; }
+        public EnumDef EnumType { get; set; }
+        public Message MessageType { get; set; }
 
         // Derived
         [JsonIgnore]
@@ -113,13 +145,16 @@ namespace datamodel.schema.source.protobuf {
         }
     }
 
-    public class EnumDef : Base {
-        public string Name;
-        public List<EnumValue> Values = new List<EnumValue>();
+    public class EnumDef : Base, Owned {
+        public string Name { get; set; }
+        public List<EnumValue> Values { get; } = new List<EnumValue>();
+
+        [JsonIgnore]
+        public Owner Owner { get; set; }
     }
 
     public class EnumValue : Base {
-        public string Name;
-        public int Number;
+        public string Name { get; set; }
+        public int Number { get; set; }
     }
 }

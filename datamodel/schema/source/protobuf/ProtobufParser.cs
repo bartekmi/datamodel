@@ -35,11 +35,11 @@ namespace datamodel.schema.source.protobuf {
                     else if (PeekAndDiscard("option"))
                         ParseOption();
                     else if (PeekAndDiscard("message")) {
-                        Message message = ParseMessage();
+                        Message message = ParseMessage(file);
                         file.Messages.Add(message);
                     } else if (PeekAndDiscard("enum")) {
-                        EnumDef theEnum = ParseEnumDefinition();
-                        file.EnumTypes.Add(theEnum);
+                        EnumDef theEnum = ParseEnumDefinition(file);
+                        file.EnumDefs.Add(theEnum);
                     } else if (PeekAndDiscard("service")) {
                         Service service = ParseService();
                         file.Services.Add(service);
@@ -100,10 +100,11 @@ namespace datamodel.schema.source.protobuf {
             }
         }
 
-        private Message ParseMessage() {
+        private Message ParseMessage(Owner owner) {
             Message message = new Message() {
                 Comment = CurrentComment(),
                 Name = Next(),
+                Owner = owner,
             };
 
             Expect("{");
@@ -114,11 +115,11 @@ namespace datamodel.schema.source.protobuf {
                 else if (PeekAndDiscard("reserved"))
                     ParseReserved();
                 else if (PeekAndDiscard("message")) {
-                    Message nested = ParseMessage();
+                    Message nested = ParseMessage(message);
                     message.Messages.Add(nested);
                 } else if (PeekAndDiscard("enum")) {
-                    EnumDef theEnum = ParseEnumDefinition();
-                    message.EnumTypes.Add(theEnum);
+                    EnumDef theEnum = ParseEnumDefinition(message);
+                    message.EnumDefs.Add(theEnum);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else if (PeekAndDiscard("oneof")) {
@@ -208,10 +209,11 @@ namespace datamodel.schema.source.protobuf {
             while ((next = Next()) != ";");
         }
 
-        private EnumDef ParseEnumDefinition() {
+        private EnumDef ParseEnumDefinition(Owner owner) {
             EnumDef theEnum = new EnumDef() {
                 Comment = CurrentComment(),
                 Name = Next(),
+                Owner = owner,
             };
 
             Expect("{");
