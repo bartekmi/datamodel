@@ -7,7 +7,6 @@ namespace datamodel.schema.source.protobuf {
 
     public class ProtobufSource : SchemaSource {
         #region Members / Abstract implementations
-        private string[] _boringNameComponents;
         private string _title;
 
         // 1st stage of conversion

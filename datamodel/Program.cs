@@ -8,6 +8,7 @@ using datamodel.metadata;
 using datamodel.schema;
 using datamodel.schema.source;
 using datamodel.schema.source.from_data;
+using datamodel.schema.source.protobuf;
 using datamodel.schema.tweaks;
 using datamodel.datadict;
 using datamodel.toplevel;
@@ -46,10 +47,11 @@ namespace datamodel {
 
                 Dictionary<string, SchemaSource> schemaSources = new Dictionary<string, SchemaSource>() {
                 { "json", new JsonSource() },
-                { "yaml", new YamlSource() },
                 { "k8s", new K8sSwaggerSource() },
-                { "swagger", new SwaggerSource() },
+                { "protobuf", new ProtobufSource() },
                 { "simple", new SimpleSource() },
+                { "swagger", new SwaggerSource() },
+                { "yaml", new YamlSource() },
             };
 
                 if (args.Length < 1)
