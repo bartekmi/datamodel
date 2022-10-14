@@ -38,8 +38,19 @@ namespace datamodel {
         }
         #endregion
 
+        #region Ubuntu
+        private static void ConfigureUbuntu() {
+            OUTPUT_ROOT_DIR = @"/tmp/datamodel";
+            REPO_ROOT = @"/usr/local/google/home/bartekm/bargit/datamodel";
+            MODEL_DIRS = new string[] { };      // TODO: Is this even used?
+            GRAPHVIZ_BIN_DIR = @"/usr/bin";
+            HTTP_ROOT = "";
+            GENERATE_TOP_LEVEL_GRAPH = true;    // TODO: Set as threshold instead of true/false
+        }
+        #endregion
+
         internal static void Configure() {
-            ConfigureWindows();
+            ConfigureUbuntu();
         }
     }
 }
