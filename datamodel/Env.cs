@@ -34,7 +34,7 @@ namespace datamodel {
             MODEL_DIRS = new string[] { };
             GRAPHVIZ_BIN_DIR = @"C:\Program Files\Graphviz\bin";
             HTTP_ROOT = "";
-            GENERATE_TOP_LEVEL_GRAPH = true;    // TODO: Set as threshold instead of true/false
+            GENERATE_TOP_LEVEL_GRAPH = true;
         }
         #endregion
 
@@ -45,7 +45,7 @@ namespace datamodel {
             MODEL_DIRS = new string[] { };      // TODO: Is this even used?
             GRAPHVIZ_BIN_DIR = @"/usr/bin";
             HTTP_ROOT = "";
-            GENERATE_TOP_LEVEL_GRAPH = true;    // TODO: Set as threshold instead of true/false
+            GENERATE_TOP_LEVEL_GRAPH = true;    // This should be a flag
         }
         #endregion
 

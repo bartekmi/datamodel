@@ -24,7 +24,7 @@ namespace datamodel {
         //********************************************************************************
         // Once files are generated, use this command to start local web server:
         //
-        //  python -m http.server 80             # Python 3
+        //  python3 -m http.server 8080
         //
         //********************************************************************************
 
@@ -92,7 +92,10 @@ namespace datamodel {
 
             // Graphviz MUST have access to images at the exact same path as it must ultimately
             // generate in the svg file. Hence this unsavory solution...
-            DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"), "/assets");
+            // Commenting this out for now because...
+            // 1. On Ubuntu, we don't generally have free access to the root directory
+            // 2. With current version of Graphviz, warnings are generated, but things still work fine
+            // DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"), "/assets");
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             HierarchyItemInfo.AssignColors(topLevel);
