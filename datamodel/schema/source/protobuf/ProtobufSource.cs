@@ -139,7 +139,7 @@ namespace datamodel.schema.source.protobuf {
                 theEnum != null ||      // Same for enum types
                 message == null)        // If for some reason this is NOT a know message, might as well show it as a Prop
 
-                model.AllColumns.Add(new Column() {
+                model.AllProperties.Add(new Property() {
                     Name = field.Name,
                     Description = field.Comment,
                     DataType = ComputeType(type, isRepeated, mapKeyType),

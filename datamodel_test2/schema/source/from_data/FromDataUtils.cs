@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace datamodel.schema.source.from_data {
     internal static class FromDataUtils {
         internal static void RemoveColumnLabels(SampleDataSchemaSource source) {
-            source._source.RemoveColumnLabels();
+            source._source.RemovePropertyLabels();
         }
 
         internal static string ToJasonNoQuotes(SampleDataSchemaSource source, bool removeColumnLabels = true) {

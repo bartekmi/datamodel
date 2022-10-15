@@ -56,7 +56,7 @@ namespace datamodel.schema {
         public bool Deprecated { get; set; }
 
         // Associations
-        public List<Column> AllColumns { get; internal set; }
+        public List<Property> AllProperties { get; internal set; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
         public bool ShouldSerializeLabels() { return Labels.Count > 0; }
 
@@ -75,9 +75,9 @@ namespace datamodel.schema {
         [JsonIgnore]
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]
-        public IEnumerable<Column> RegularColumns { get { return AllColumns.Where(x => !x.IsRef); } }
+        public IEnumerable<Property> RegularProperties { get { return AllProperties.Where(x => !x.IsRef); } }
         [JsonIgnore]
-        public IEnumerable<Column> RefColumns { get { return AllColumns.Where(x => x.IsRef); } }
+        public IEnumerable<Property> RefProperties { get { return AllProperties.Where(x => x.IsRef); } }
         [JsonIgnore]
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         [JsonIgnore]
@@ -86,7 +86,7 @@ namespace datamodel.schema {
         public string ColorString { get; internal set; }
 
         public Model() {
-            AllColumns = new List<Column>();
+            AllProperties = new List<Property>();
             Levels = new string[0];
         }
 
@@ -145,21 +145,21 @@ namespace datamodel.schema {
             });
         }
 
-        public Column FindColumn(string dbColumnName, string dataType = null) {
-            Column column = AllColumns.SingleOrDefault(x => x.Name.ToLower() == dbColumnName.ToLower());
-            if (column == null)
+        public Property FindProperty(string propertyName, string dataType = null) {
+            Property property = AllProperties.SingleOrDefault(x => x.Name.ToLower() == propertyName.ToLower());
+            if (property == null)
                 return null;
 
             if (dataType != null)
-                return column.DataType == dataType ? column : null;
+                return property.DataType == dataType ? property : null;
 
-            return column;
+            return property;
         }
 
-        public void RemoveColumn(string dbColumnName) {
-            Column column = FindColumn(dbColumnName);
-            if (column != null)
-                AllColumns.Remove(column);
+        public void RemoveProperty(string propertyName) {
+            Property property = FindProperty(propertyName);
+            if (property != null)
+                AllProperties.Remove(property);
         }
 
         public IEnumerable<Model> SelfAndConnected() {
@@ -174,8 +174,8 @@ namespace datamodel.schema {
 
             models.Add(model);
 
-            foreach (Column column in model.RefColumns)
-                SelfAndAllConnectedRecursive(models, column.ReferencedModel);
+            foreach (Property property in model.RefProperties)
+                SelfAndAllConnectedRecursive(models, property.ReferencedModel);
 
             if (model.Superclass != null)
                 SelfAndAllConnectedRecursive(models, model.Superclass);

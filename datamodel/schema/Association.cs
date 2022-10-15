@@ -39,7 +39,7 @@ namespace datamodel.schema {
         [JsonIgnore]
         public Model OwnerSideModel { get; set; }
         [JsonIgnore]
-        public Column RefColumn { get; set; }
+        public Property RefProperty { get; set; }
 
         // Derived
         [JsonIgnore]
@@ -59,7 +59,7 @@ namespace datamodel.schema {
             }
         }
         [JsonIgnore]
-        public string DocUrl { get { return RefColumn == null ? null : RefColumn.DocUrl; } }
+        public string DocUrl { get { return RefProperty == null ? null : RefProperty.DocUrl; } }
         [JsonIgnore]
         public bool IsPolymorphic { get { return PolymorphicName != null; } }
         [JsonIgnore]

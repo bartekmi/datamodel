@@ -173,17 +173,17 @@ namespace datamodel.schema.source {
                 model.ListSemanticsForType = assoc.OtherSide;
 
             // Populate enum definitions
-            foreach (Column column in model.RegularColumns)
-                if (column.Enum != null)
-                    PopulateEnumDefinitions(model.HumanName, column);
+            foreach (Property property in model.RegularProperties)
+                if (property.Enum != null)
+                    PopulateEnumDefinitions(model.HumanName, property);
         }
 
         private const string ENUMS_PATTERN = "\n\nPossible enum values:(\n - `.+`.*)+";
         private const string SINGLE_ENUM_PATTERN = "\n - `\"(.+)\"`(.*)$";
 
-        internal static void PopulateEnumDefinitions(string modelName, Column column) {
-            string name = string.Format("'{0}.{1}'", modelName, column.HumanName);
-            string[] enums = RegExUtils.GetMultipleCaptures(column.Description, ENUMS_PATTERN);
+        internal static void PopulateEnumDefinitions(string modelName, Property property) {
+            string name = string.Format("'{0}.{1}'", modelName, property.HumanName);
+            string[] enums = RegExUtils.GetMultipleCaptures(property.Description, ENUMS_PATTERN);
             if (enums == null) {
                 Error.Log("Could not extract enum values for field {0}", name);
                 return;
@@ -202,20 +202,20 @@ namespace datamodel.schema.source {
                 descriptions[enumAndDesc[0]] = enumAndDesc[1].Trim();
             }
 
-            foreach (var anEnum in column.Enum.Values) {
+            foreach (var anEnum in property.Enum.Values) {
                 if (!descriptions.TryGetValue(anEnum.Key, out string description)) {
                     Error.Log("Could not find enum description for field {0}, enum value {1}", name, anEnum.Key);
                     hasError = true;
                     continue;
                 }
 
-                column.Enum.SetDescription(anEnum.Key, description);
+                property.Enum.SetDescription(anEnum.Key, description);
             }
 
             if (!hasError) {
                 // Since we've successuflly extracted all enum descriptions, remove them from 
-                // the Column description
-                column.Description = RegExUtils.Replace(column.Description, ENUMS_PATTERN, "");
+                // the Property description
+                property.Description = RegExUtils.Replace(property.Description, ENUMS_PATTERN, "");
             }
         }
     }
@@ -226,7 +226,7 @@ namespace datamodel.schema.source {
         public override void Apply(TempSource source) {
             foreach (Model model in source.Models.Values) {
                 SetDeprecatedIfNeeded(model);
-                model.AllColumns.ForEach(x => SetDeprecatedIfNeeded(x));
+                model.AllProperties.ForEach(x => SetDeprecatedIfNeeded(x));
             }
         }
 

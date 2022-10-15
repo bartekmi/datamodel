@@ -130,7 +130,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: []
+      AllProperties: []
     },
     cluster1.key_is_value: {
       Labels: [
@@ -144,7 +144,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: [
+      AllProperties: [
         {
           Name: __key__,
           DataType: string
@@ -163,7 +163,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: [
+      AllProperties: [
         {
           Name: z,
           DataType: Integer

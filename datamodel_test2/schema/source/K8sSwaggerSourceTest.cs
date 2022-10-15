@@ -44,12 +44,12 @@ namespace datamodel.schema.source {
             theEnum.Add("OnDelete", "");
             theEnum.Add("RollingUpdate", "");
 
-            Column column = new Column() {
+            Property property = new Property() {
                 Enum = theEnum,
                 Description = "Type of daemon set update. Can be \"RollingUpdate\" or \"OnDelete\". Default is RollingUpdate.\n\nPossible enum values:\n - `\"OnDelete\"` Replace the old daemons only when it's killed\n - `\"RollingUpdate\"` Replace the old daemons by new ones using rolling update i.e replace them on each node one after the other.",
             };
 
-            K8sSwaggerSource.PopulateEnumDefinitions("model", column);
+            K8sSwaggerSource.PopulateEnumDefinitions("model", property);
 
             Assert.Equal("Replace the old daemons only when it's killed", theEnum.GetDescription("OnDelete"));
             Assert.Equal("Replace the old daemons by new ones using rolling update i.e replace them on each node one after the other.", theEnum.GetDescription("RollingUpdate"));

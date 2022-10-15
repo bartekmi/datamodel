@@ -43,20 +43,20 @@ namespace datamodel.schema.source {
                     SuperClassName = sModel.SuperClass,
                     Levels = sModel.Levels,
                 };
-                model.AllColumns = GetColumns(sModel.Properties);
+                model.AllProperties = GetProperties(sModel.Properties);
                 models.Add(model);
             }
 
             return models;
         }
 
-        private List<Column> GetColumns(List<SProperty> properties) {
-            List<Column> columns = new List<Column>();
-            if (properties == null)
-                return columns;
+        private List<Property> GetProperties(List<SProperty> sProperties) {
+            List<Property> properties = new List<Property>();
+            if (sProperties == null)
+                return properties;
 
-            foreach (SProperty sProp in properties) {
-                Column column = new Column() {
+            foreach (SProperty sProp in sProperties) {
+                Property property = new Property() {
                     Name = sProp.Name,
                     Description = sProp.Description,
                     DataType = sProp.Type,
@@ -64,13 +64,13 @@ namespace datamodel.schema.source {
                     Enum = GetEnum(sProp.Enum),
                 };
                 
-                if (column.DataType == null && column.Enum != null)
-                    column.DataType = "Enum";
+                if (property.DataType == null && property.Enum != null)
+                    property.DataType = "Enum";
 
-                columns.Add(column);
+                properties.Add(property);
             }
 
-            return columns;
+            return properties;
         }
 
         private Enum GetEnum(Dictionary<string, string> sEnum) {

@@ -36,7 +36,7 @@ message myMessage {
        Name: myMessage,
        QualifiedName: myMessage,
        Description:  Message description,
-       AllColumns: [
+       AllProperties: [
          {
            Name: field1,
            DataType: string,
@@ -74,7 +74,7 @@ message myMessage {
        Name: myMessage,
        QualifiedName: myMessage,
        Description:  Message description,
-       AllColumns: [
+       AllProperties: [
          {
            Name: field1,
            DataType: string,
@@ -110,7 +110,7 @@ message myMessage {
        Name: myMessage,
        QualifiedName: myMessage,
        Description:  Message description,
-       AllColumns: [
+       AllProperties: [
          {
            Name: stringMap,
            DataType: [int32]string
@@ -150,7 +150,7 @@ message myMessage {
      myMessage: {
        Name: myMessage,
        QualifiedName: myMessage,
-       AllColumns: [
+       AllProperties: [
          {
            Name: field1,
            DataType: myEnum,
@@ -195,12 +195,12 @@ message myMessage {
      myMessage: {
        Name: myMessage,
        QualifiedName: myMessage,
-       AllColumns: []
+       AllProperties: []
      },
      myNested: {
        Name: myNested,
        QualifiedName: myNested,
-       AllColumns: [
+       AllProperties: [
          {
            Name: f1,
            DataType: string

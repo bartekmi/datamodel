@@ -36,7 +36,7 @@ namespace datamodel.schema.source.from_data {
         internal TempSource _source = new TempSource();     // Internal for testing
         private HashSet<string> _pathsWhereKeyIsData = new HashSet<string>();
         private Dictionary<Model, int> _models = new Dictionary<Model, int>();
-        private Dictionary<Column, int> _columns = new Dictionary<Column, int>();
+        private Dictionary<Property, int> _propertys = new Dictionary<Property, int>();
 
         public class Options {
             public string Title;
@@ -243,14 +243,14 @@ namespace datamodel.schema.source.from_data {
             _models[main] += _models[additional];
             _models.Remove(additional);
 
-            foreach (Column addColumn in additional.AllColumns) {
-                Column mainColumn = main.FindColumn(addColumn.Name);
-                if (mainColumn == null) {
-                    main.AllColumns.Add(addColumn);
-                    addColumn.Owner = main;
+            foreach (Property addProperty in additional.AllProperties) {
+                Property mainProperty = main.FindProperty(addProperty.Name);
+                if (mainProperty == null) {
+                    main.AllProperties.Add(addProperty);
+                    addProperty.Owner = main;
                 } else {
-                    _columns[mainColumn] += _columns[addColumn];
-                    _columns.Remove(addColumn);
+                    _propertys[mainProperty] += _propertys[addProperty];
+                    _propertys.Remove(addProperty);
                 }
             }
         }
@@ -262,8 +262,8 @@ namespace datamodel.schema.source.from_data {
                 if (candidateModel == null)
                     continue;
 
-                HashSet<string> clustColumns = new HashSet<string>(clustModel.AllColumns.Select(x => x.Name));
-                overlap += clustColumns.Intersect(candidateModel.AllColumns.Select(x => x.Name)).Count();
+                HashSet<string> clustProperties = new HashSet<string>(clustModel.AllProperties.Select(x => x.Name));
+                overlap += clustProperties.Intersect(candidateModel.AllProperties.Select(x => x.Name)).Count();
             }
 
             // TODO: Also match on identical associations
@@ -350,30 +350,30 @@ namespace datamodel.schema.source.from_data {
         }
 
         private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
-            Column column = model.FindColumn(name);
-            if (column == null) {
-                column = new Column() {
+            Property property = model.FindProperty(name);
+            if (property == null) {
+                property = new Property() {
                     Name = name,
                     DataType = GetDataType(element, isMany),
                     Owner = model,
                 };
 
                 if (element != null)
-                    column.AddLabel("Example", element.ToString());
+                    property.AddLabel("Example", element.ToString());
 
-                model.AllColumns.Add(column);
-                _columns[column] = 0;
+                model.AllProperties.Add(property);
+                _propertys[property] = 0;
             } else {
                 string dataType = GetDataType(element, isMany);
-                if (dataType != column.DataType)
+                if (dataType != property.DataType)
                     Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
                         model.Name,
                         name,
                         dataType,
-                        column.DataType);
+                        property.DataType);
             }
 
-            _columns[column]++;
+            _propertys[property]++;
         }
 
         private string GetDataType(SDSS_Element element, bool isMany) {
@@ -386,10 +386,10 @@ namespace datamodel.schema.source.from_data {
 
         #region Post-Processing
         private void SetCanBeEmpty() {
-            foreach (var item in _columns) {
-                Column column = item.Key;
-                int modelCount = _models[column.Owner];
-                column.CanBeEmpty = item.Value < modelCount;
+            foreach (var item in _propertys) {
+                Property property = item.Key;
+                int modelCount = _models[property.Owner];
+                property.CanBeEmpty = item.Value < modelCount;
             }
         }
 

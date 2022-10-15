@@ -173,7 +173,7 @@ namespace datamodel.graphviz {
 
         #region Common Node Creation - for both Models and Extra Models
 
-        private HtmlEntity CreateLabel(IEnumerable<Model> models, Model dbModel, bool includeColumns) {
+        private HtmlEntity CreateLabel(IEnumerable<Model> models, Model dbModel, bool includeProperties) {
 
             HtmlTable table = new HtmlTable()
                 .SetAttrHtml("border", 0)
@@ -189,37 +189,37 @@ namespace datamodel.graphviz {
 
             table.AddTr(new HtmlTr(headerTd));
 
-            if (!includeColumns)
+            if (!includeProperties)
                 return table;
 
-            // Columns
-            foreach (Column column in dbModel.AllColumns) {
-                if (Schema.Singleton.IsInteresting(column) &&
-                    !column.Deprecated &&
-                    !(column.IsPolymorphicId || column.IsPolymorphicType)) {
+            // Propertys
+            foreach (Property property in dbModel.AllProperties) {
+                if (Schema.Singleton.IsInteresting(property) &&
+                    !property.Deprecated &&
+                    !(property.IsPolymorphicId || property.IsPolymorphicType)) {
 
                     HtmlTr row = new HtmlTr();
-                    Model referencedModel = column.IsRef ? column.ReferencedModel : null;
+                    Model referencedModel = property.IsRef ? property.ReferencedModel : null;
 
-                    string columnName = HtmlUtils.BULLET + column.HumanName;
-                    HtmlTd columnNameTd = new HtmlTd();
-                    row.AddTd(columnNameTd);
+                    string propertyName = HtmlUtils.BULLET + property.HumanName;
+                    HtmlTd propertyNameTd = new HtmlTd();
+                    row.AddTd(propertyNameTd);
 
                     // Mandatory?
-                    if (!column.CanBeEmpty) {
+                    if (!property.CanBeEmpty) {
                         row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.CHECKMARK_SMALL))
-                            .SetAttrHtml("tooltip", column.IsRef ?
+                            .SetAttrHtml("tooltip", property.IsRef ?
                                 "This associated object must be specified" :
                                 "This attribute must be specified")
-                            .SetAttrHtml("href", column.DocUrl));
+                            .SetAttrHtml("href", property.DocUrl));
                     }
 
-                    // Ref Column
-                    if (column.IsRef) {
+                    // Ref Property
+                    if (property.IsRef) {
                         if (models.Contains(referencedModel))
-                            continue;           // Do not include Ref column if in this graph... It will be shown via an association line
+                            continue;           // Do not include Ref property if in this graph... It will be shown via an association line
 
-                        columnNameTd.Text = columnName;
+                        propertyNameTd.Text = propertyName;
 
                         if (referencedModel != null) {
                             // TODO(bartekmi) Currently, we only show a link to the largest graph. Consider exposing links to all sizes.
@@ -242,17 +242,17 @@ namespace datamodel.graphviz {
                             row.SetAttrAllChildren("bgcolor", referencedModel.ColorString);
                         }
                     }
-                    // Regular Column
+                    // Regular Property
                     else {
-                        string dataType = string.Format("<FONT COLOR=\"gray25\">({0})</FONT>", ToShortType(column));
-                        columnNameTd.Text = string.Format("{0} {1}", columnName, dataType);
+                        string dataType = string.Format("<FONT COLOR=\"gray25\">({0})</FONT>", ToShortType(property));
+                        propertyNameTd.Text = string.Format("{0} {1}", propertyName, dataType);
                     }
 
-                    // Attributes for the column name Html-like element
-                    columnNameTd
+                    // Attributes for the property name Html-like element
+                    propertyNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", CreateColumntoolTip(column))
-                        .SetAttrHtml("href", column.DocUrl);
+                        .SetAttrHtml("tooltip", CreatePropertyToolTip(property))
+                        .SetAttrHtml("href", property.DocUrl);
 
                     table.AddTr(row);
                 }
@@ -261,28 +261,28 @@ namespace datamodel.graphviz {
             return table;
         }
 
-        private static string CreateColumntoolTip(Column column) {
+        private static string CreatePropertyToolTip(Property property) {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine(string.Format("Go to Data Dictionary for Column '{0}'", column.HumanName));
+            builder.AppendLine(string.Format("Go to Data Dictionary for Property '{0}'", property.HumanName));
 
-            if (!string.IsNullOrEmpty(column.Description)) {
+            if (!string.IsNullOrEmpty(property.Description)) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                builder.AppendLine(column.DescriptionParagraphs().First());
+                builder.AppendLine(property.DescriptionParagraphs().First());
             }
 
-            if (column.Enum != null) {
+            if (property.Enum != null) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                foreach (var value in column.Enum.Values)
+                foreach (var value in property.Enum.Values)
                     builder.AppendLine(string.Format("{0}{1}: {2}",
                         HtmlUtils.LINE_BREAK,
                         value.Key,
                         value.Value));
             }
 
-            if (column.Labels.Count() > 0) {
+            if (property.Labels.Count() > 0) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                foreach (Label label in column.Labels)
+                foreach (Label label in property.Labels)
                     builder.AppendLine(string.Format("{0}{1}: {2}",
                         HtmlUtils.LINE_BREAK,
                         label.Name,
@@ -318,9 +318,9 @@ namespace datamodel.graphviz {
                 builder.AppendLine(label + ": " + value);
         }
 
-        private string ToShortType(Column column) {
+        private string ToShortType(Property property) {
             // Potential to inject shortened data types here...
-            return column.DataType;
+            return property.DataType;
         }
         #endregion
 
@@ -351,7 +351,7 @@ namespace datamodel.graphviz {
         private string ToEdgeToolTip(Association association) {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine(string.Format("{0}.{1}", association.OwnerSideModel.HumanName, association.RefColumn.HumanName));
+            builder.AppendLine(string.Format("{0}.{1}", association.OwnerSideModel.HumanName, association.RefProperty.HumanName));
             builder.Append(association.Description);
 
             return builder.ToString();

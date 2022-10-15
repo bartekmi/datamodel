@@ -20,7 +20,7 @@ namespace datamodel.schema {
         public Dictionary<string, PolymorphicInterface> Interfaces { get; private set; }
 
         private Dictionary<string, Model> _byQualifiedName;
-        private Dictionary<Model, List<Column>> _incomingRefColumns;
+        private Dictionary<Model, List<Property>> _incomingRefProperties;
         private Dictionary<Model, List<Association>> _refAssociationsForModel;
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
@@ -74,7 +74,7 @@ namespace datamodel.schema {
             };
 
             _schema._byQualifiedName = _schema.Models.ToDictionary(x => x.QualifiedName);
-            _schema.CreateRefColumns();
+            _schema.CreateRefProperties();
 
             _schema.Rehydrate();
             rawSource.ApplyPostHydrationTweaks();
@@ -82,7 +82,7 @@ namespace datamodel.schema {
             return _schema;
         }
 
-        private void CreateRefColumns() {
+        private void CreateRefProperties() {
             foreach (Association assoc in Associations) {
                 if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model refModel))
                     Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
@@ -93,7 +93,7 @@ namespace datamodel.schema {
                 if (refModel == null || otherModel == null)
                     continue;
 
-                Column refColumn = new Column() {
+                Property refProperty = new Property() {
                     Name = assoc.OtherRole ?? assoc.OtherSide,
                     Description = assoc.Description,
                     DataType = "ID",
@@ -101,8 +101,8 @@ namespace datamodel.schema {
                     ReferencedModel = otherModel,
                 };
 
-                refModel.AllColumns.Add(refColumn);
-                assoc.RefColumn = refColumn;
+                refModel.AllProperties.Add(refProperty);
+                assoc.RefProperty = refProperty;
             }
         }
         #endregion
@@ -110,22 +110,22 @@ namespace datamodel.schema {
         #region Rehydrate
 
         private void Rehydrate() {
-            RehydrateColumnOwner();
+            RehydratePropertyOwner();
             RehydrateSuperAndDerivedClasses();
             RemoveDuplicatePolymorphicInterfaces();
 
             RehydrateModelsOnAssociations();
             RehydrateIncomingAssociations();
             RehydrateInterfacesForModels();
-            RehydratePolymorphicRefColumns();
+            RehydratePolymorphicRefProperties();
             RehydratePolymorphicAssociations();
             RehydrateRefAssociationsForModels();
         }
 
-        private void RehydrateColumnOwner() {
+        private void RehydratePropertyOwner() {
             foreach (Model model in Models) {
-                foreach (Column column in model.AllColumns)
-                    column.Owner = model;
+                foreach (Property property in model.AllProperties)
+                    property.Owner = model;
             }
         }
 
@@ -133,12 +133,12 @@ namespace datamodel.schema {
         // The models both have a polymorphic interface, but they really refer to the same thing
         private void RemoveDuplicatePolymorphicInterfaces() {
             foreach (var keyValue in new Dictionary<string, PolymorphicInterface>(Interfaces)) {        // Clone to allow remove while iterating
-                Column column = keyValue.Value.Column;
+                Property property = keyValue.Value.Property;
                 Model superclass = keyValue.Value.Model.Superclass;
 
                 // Too lazy to make recursive
                 while (superclass != null) {
-                    if (superclass.FindColumn(column.Name) != null) {
+                    if (superclass.FindProperty(property.Name) != null) {
                         Interfaces.Remove(keyValue.Key);
                         Error.Log("Removing duplicate Polymorphic Interface: " + keyValue.Key);
                         break;
@@ -148,16 +148,16 @@ namespace datamodel.schema {
             }
         }
 
-        private void RehydratePolymorphicRefColumns() {
+        private void RehydratePolymorphicRefProperties() {
             foreach (PolymorphicInterface _interface in Interfaces.Values) {
-                _interface.Column.IsPolymorphicId = true;
-                Model model = _interface.Column.Owner;
-                string idColumnName = _interface.Column.Name;
-                string typeColumnName = idColumnName
-                    .Substring(0, idColumnName.Length - "_id".Length)
+                _interface.Property.IsPolymorphicId = true;
+                Model model = _interface.Property.Owner;
+                string idPropertyName = _interface.Property.Name;
+                string typePropertyName = idPropertyName
+                    .Substring(0, idPropertyName.Length - "_id".Length)
                     + "_type";
-                Column typeColumn = model.FindColumn(typeColumnName);
-                typeColumn.IsPolymorphicType = true;
+                Property typeProperty = model.FindProperty(typePropertyName);
+                typeProperty.IsPolymorphicType = true;
             }
         }
 
@@ -171,11 +171,11 @@ namespace datamodel.schema {
             // Set the OwnerSideModel for the polymorphic associations 
             foreach (Association association in Associations.Where(x => x.IsPolymorphic)) {
                 if (Interfaces.TryGetValue(association.PolymorphicName, out PolymorphicInterface _interface)) {
-                    Column refColumn = _interface.Column;
-                    if (refColumn != null)
-                        association.OwnerSideModel = refColumn.Owner;
+                    Property refProperty = _interface.Property;
+                    if (refProperty != null)
+                        association.OwnerSideModel = refProperty.Owner;
                     else
-                        Error.Log("WARNING: Ref Column null for " + association);
+                        Error.Log("WARNING: Ref Property null for " + association);
                 }
             }
 
@@ -204,8 +204,8 @@ namespace datamodel.schema {
         }
 
         private void RehydrateIncomingAssociations() {
-            _incomingRefColumns = Models
-                .SelectMany(x => x.RefColumns)
+            _incomingRefProperties = Models
+                .SelectMany(x => x.RefProperties)
                 .GroupBy(x => x.ReferencedModel)
                 .Where(x => x.Key != null)
                 .ToDictionary(x => x.Key, x => x.ToList());
@@ -222,11 +222,11 @@ namespace datamodel.schema {
                         model.Superclass = parent;
                         parent.DerivedClasses.Add(model);
 
-                        // Remove duplicate column definitions
-                        foreach (Column column in parent.AllColumns) {
-                            Column duplicate = model.FindColumn(column.Name);
+                        // Remove duplicate property definitions
+                        foreach (Property property in parent.AllProperties) {
+                            Property duplicate = model.FindProperty(property.Name);
                             if (duplicate != null)
-                                model.AllColumns.Remove(duplicate);
+                                model.AllProperties.Remove(duplicate);
                         }
                     }
             }
@@ -258,11 +258,11 @@ namespace datamodel.schema {
             return "Level " + (level + 1);
         }
 
-        public bool IsInteresting(Column column) {
+        public bool IsInteresting(Property property) {
             if (BoringProperties == null)
                 return true;
 
-            return BoringProperties.Contains(column.Name) ? false : true;
+            return BoringProperties.Contains(property.Name) ? false : true;
         }
 
         public Model FindByQualifiedName(string qualifiedName) {
@@ -271,10 +271,10 @@ namespace datamodel.schema {
             return null;
         }
 
-        public IEnumerable<Column> IncomingRefColumns(Model model) {
-            if (_incomingRefColumns.TryGetValue(model, out List<Column> columns))
-                return columns;
-            return new Column[0];
+        public IEnumerable<Property> IncomingRefProperties(Model model) {
+            if (_incomingRefProperties.TryGetValue(model, out List<Property> propertyies))
+                return propertyies;
+            return new Property[0];
         }
 
         public IEnumerable<PolymorphicInterface> InterfacesForModel(Model model) {

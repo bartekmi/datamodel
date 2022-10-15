@@ -85,7 +85,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: [
+      AllProperties: [
         {
           Name: a,
           DataType: String
@@ -148,7 +148,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: []
+      AllProperties: []
     },
     cluster1.object: {
       Labels: [
@@ -162,7 +162,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: [
+      AllProperties: [
         {
           Name: aaa,
           DataType: String
@@ -222,7 +222,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: []
+      AllProperties: []
     },
     cluster1.array: {
       Labels: [
@@ -236,7 +236,7 @@ namespace datamodel.schema.source.from_data {
       Levels: [
         cluster1
       ],
-      AllColumns: [
+      AllProperties: [
         {
           Name: aa,
           DataType: String

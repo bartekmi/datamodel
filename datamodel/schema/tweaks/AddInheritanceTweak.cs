@@ -21,10 +21,10 @@ namespace datamodel.schema.tweaks {
             derived.SuperClassName = ParentQualifiedName;
 
             // Remove every Prop/Column from derived that exists in parent
-            foreach (Column propInDerived in derived.AllColumns.ToList()) {
-                Column propInParent = parent.FindColumn(propInDerived.Name, propInDerived.DataType);
+            foreach (Property propInDerived in derived.AllProperties.ToList()) {
+                Property propInParent = parent.FindProperty(propInDerived.Name, propInDerived.DataType);
                 if (propInParent != null)
-                    derived.AllColumns.Remove(propInDerived);
+                    derived.AllProperties.Remove(propInDerived);
             }
 
             // Remove every duplicate owned association from Derived

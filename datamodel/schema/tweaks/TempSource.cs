@@ -22,9 +22,9 @@ namespace datamodel.schema.tweaks {
 
         // Derived
         [JsonIgnore]
-        public IEnumerable<Column> AllColumns {
+        public IEnumerable<Property> AllProperties {
             get {
-                return Models.Values.SelectMany(x => x.AllColumns);
+                return Models.Values.SelectMany(x => x.AllProperties);
             }
         }
 
@@ -100,14 +100,14 @@ namespace datamodel.schema.tweaks {
         }
 
         #region Helpful for testing
-        internal void RemoveColumnLabels() {
-            foreach (Column column in AllColumns)
-                column.Labels = null;   // Clean up output
+        internal void RemovePropertyLabels() {
+            foreach (Property property in AllProperties)
+                property.Labels = null;   // Clean up output
         }
 
-        internal string ToJasonNoQuotes(bool removeColumnLabels = true) {
-            if (removeColumnLabels)
-                RemoveColumnLabels();
+        internal string ToJasonNoQuotes(bool removePropertyLabels = true) {
+            if (removePropertyLabels)
+                RemovePropertyLabels();
 
             string json = JsonConvert.SerializeObject(
                 this,

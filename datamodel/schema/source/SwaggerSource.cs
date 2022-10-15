@@ -83,7 +83,7 @@ namespace datamodel.schema.source {
 
         private Model ParseDefinition(string qualifiedName, SwgDefinition def) {
             Model model = new Model();
-            model.AllColumns = ParseProperties(qualifiedName, def.required, def.properties);
+            model.AllProperties = ParseProperties(qualifiedName, def.required, def.properties);
 
             PopulateModel(model, qualifiedName, def);
 
@@ -101,8 +101,8 @@ namespace datamodel.schema.source {
             model.Description = def.description;
         }
 
-        private List<Column> ParseProperties(string modelName, IEnumerable<string> required, Dictionary<string, SwgProperty> properties) {
-            List<Column> columns = new List<Column>();
+        private List<Property> ParseProperties(string modelName, IEnumerable<string> required, Dictionary<string, SwgProperty> properties) {
+            List<Property> columns = new List<Property>();
             if (properties == null)
                 return columns;
 
@@ -151,8 +151,8 @@ namespace datamodel.schema.source {
         }
 
         #region Column Creation
-        private Column ExtractColumn(bool isRequired, string name, bool isArray, SwgProperty prop) {
-            Column column = new Column() {
+        private Property ExtractColumn(bool isRequired, string name, bool isArray, SwgProperty prop) {
+            Property property = new Property() {
                 Name = name,
                 Description = prop.description,
                 DataType = ComputeType(isArray, prop),
@@ -160,7 +160,7 @@ namespace datamodel.schema.source {
                 Enum = ExtractEnum(prop.Enum),
             };
 
-            return column;
+            return property;
         }
 
         // This was arrived largely by reverse-engineering the Kubernetes Swagger file

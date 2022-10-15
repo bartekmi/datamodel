@@ -90,19 +90,19 @@ namespace datamodel.schema.source.from_data {
         }
 
         internal static void MaybeAddKeyColumn(Model model, string example) {
-            if (model.FindColumn(KEY_COLUMN) != null)
+            if (model.FindProperty(KEY_COLUMN) != null)
                 return;
 
-            Column column = new Column() {
+            Property property = new Property() {
                 Name = KEY_COLUMN,
                 DataType = "String",
                 CanBeEmpty = false,
                 Owner = model,
             };
-            model.AllColumns.Insert(0, column);
+            model.AllProperties.Insert(0, property);
 
             if (example != null)
-                column.AddLabel("Example", example);
+                property.AddLabel("Example", example);
         }
         #endregion
     }

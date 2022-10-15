@@ -38,7 +38,7 @@ namespace datamodel.schema.tweaks {
                 QualifiedName = baseClassQN,
                 Description = ComputeDescription(),
                 IsAbstract = true,
-                AllColumns = new List<Column>(),
+                AllProperties = new List<Property>(),
                 Levels = levels,
             };
             source.AddModel(baseClass);
@@ -59,10 +59,10 @@ namespace datamodel.schema.tweaks {
 
             // Iterate props of first... See if present in all others
             // If yes, add to base class and remove from all derived
-            foreach (Column propInFirst in first.AllColumns.ToList()) {
+            foreach (Property propInFirst in first.AllProperties.ToList()) {
                 bool foundInAllPeers = true;
                 foreach (Model peer in models.Skip(1)) {
-                    Column prop = peer.FindColumn(propInFirst.Name, propInFirst.DataType);
+                    Property prop = peer.FindProperty(propInFirst.Name, propInFirst.DataType);
                     if (prop == null) {
                         foundInAllPeers = false;
                         break;
@@ -73,9 +73,9 @@ namespace datamodel.schema.tweaks {
                     // All peer models have this property... Promote to base class
                     // Note that it is possible that we lose information, since we arbitrarily use the description
                     // of the property from the first instance of the derived class 
-                    baseClass.AllColumns.Add(propInFirst);
+                    baseClass.AllProperties.Add(propInFirst);
                     foreach (Model model in models)
-                        model.RemoveColumn(propInFirst.Name);
+                        model.RemoveProperty(propInFirst.Name);
                 }
             }
         }

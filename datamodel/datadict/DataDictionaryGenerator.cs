@@ -113,28 +113,28 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Attributes").Class("heading2")));
 
-            foreach (Column column in dbModel.RegularColumns)
-                if (Schema.Singleton.IsInteresting(column)) {
-                    // Column Header
+            foreach (Property property in dbModel.RegularProperties)
+                if (Schema.Singleton.IsInteresting(property)) {
+                    // Property Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
-                            column.CanBeEmpty ? null : HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute must be specified"),
-                            new HtmlElement("span", column.HumanName).Class("heading3"),
-                            new HtmlElement("span", "(" + column.DataType + ")").Class("faded gap-left"),
-                            DeprecatedSpan(column)
+                            property.CanBeEmpty ? null : HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute must be specified"),
+                            new HtmlElement("span", property.HumanName).Class("heading3"),
+                            new HtmlElement("span", "(" + property.DataType + ")").Class("faded gap-left"),
+                            DeprecatedSpan(property)
                         )
-                      ).Attr("id", column.Name)
+                      ).Attr("id", property.Name)
                        .Class("attribute"));        // Id for anchor
 
-                    // Column Description
-                    AddDescriptionRow(table, column);
+                    // Property Description
+                    AddDescriptionRow(table, property);
 
                     // Optional labels
-                    foreach (Label label in column.Labels)
+                    foreach (Label label in property.Labels)
                         AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
 
-                    // Column Enum Values
-                    AddEnumValuesRow(table, column);
+                    // Property Enum Values
+                    AddEnumValuesRow(table, property);
                 }
         }
 
@@ -143,13 +143,13 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Outgoing Associations").Class("heading2")));
 
-            foreach (Column column in dbModel.RefColumns) {
-                Model referenced = column.ReferencedModel;
+            foreach (Property property in dbModel.RefProperties) {
+                Model referenced = property.ReferencedModel;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
-                string name = string.Format("{0} ({1})", column.HumanName, link);
-                bool isRequired = !column.CanBeEmpty;
+                string name = string.Format("{0} ({1})", property.HumanName, link);
+                bool isRequired = !property.CanBeEmpty;
 
-                AddRefColumnInfo(table, column, column.ReferencedModel, name, isRequired);
+                AddRefPropertyInfo(table, property, property.ReferencedModel, name, isRequired);
             }
         }
 
@@ -157,24 +157,24 @@ namespace datamodel.datadict {
             HtmlTable table = body.Add(new HtmlTable());
 
             table.AddTr(new HtmlTr(new HtmlTh("Incoming Associations").Class("heading2")));
-            var orderedIncoming = Schema.Singleton.IncomingRefColumns(dbModel)
+            var orderedIncoming = Schema.Singleton.IncomingRefProperties(dbModel)
                 .OrderBy(x => x.Owner.HumanName)
                 .ThenBy(x => x.HumanName);
 
-            foreach (Column column in orderedIncoming) {
-                Model referenced = column.Owner;
+            foreach (Property property in orderedIncoming) {
+                Model referenced = property.Owner;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
-                string name = string.Format("{0}.{1}", link, column.HumanName);
+                string name = string.Format("{0}.{1}", link, property.HumanName);
 
-                AddRefColumnInfo(table, column, column.Owner, name, false);
+                AddRefPropertyInfo(table, property, property.Owner, name, false);
             }
         }
 
-        private static void AddRefColumnInfo(HtmlTable table, Column column, Model other, string name, bool isRequired) {
-            if (Schema.Singleton.IsInteresting(column)) {
+        private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string name, bool isRequired) {
+            if (Schema.Singleton.IsInteresting(property)) {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
-                // Column Header
+                // Property Header
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
                         isRequired ? HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This associated object must be specified") : null,
@@ -182,14 +182,14 @@ namespace datamodel.datadict {
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,
                         new HtmlElement("span").Class("gap-left"),
-                        DeprecatedSpan(column)
+                        DeprecatedSpan(property)
                     )
-                ).Attr("id", column.Name);        // Id for anchor
+                ).Attr("id", property.Name);        // Id for anchor
 
                 table.AddTr(tr);
 
-                // Column Description
-                AddDescriptionRow(table, column);
+                // Property Description
+                AddDescriptionRow(table, property);
             }
         }
 
@@ -203,8 +203,8 @@ namespace datamodel.datadict {
                 descriptionTd.Add(new HtmlP(paragraphText));
         }
 
-        private static void AddEnumValuesRow(HtmlTable table, Column column) {
-            if (column.Enum != null) {
+        private static void AddEnumValuesRow(HtmlTable table, Property property) {
+            if (property.Enum != null) {
                 HtmlTd enumValuesTd = table
                     .Add(new HtmlTr())
                     .Add(new HtmlTd());
@@ -212,7 +212,7 @@ namespace datamodel.datadict {
                 enumValuesTd.Add(new HtmlTable(
                         new HtmlTr(new HtmlTh("Enum Values"),
                             new HtmlTh("Enum Descriptions")).Class("enum-header"),
-                        column.Enum.Values.Select(x =>
+                        property.Enum.Values.Select(x =>
                             new HtmlTr(x.Key.ToString(), x.Value).Class("enum-data"))
                     ).Class("enum-table")
                 );
