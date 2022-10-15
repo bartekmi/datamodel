@@ -108,6 +108,14 @@ namespace datamodel.schema.source.protobuf {
                 Owner = owner,
             };
 
+            message.Fields.AddRange(ParseMessageBody(message));
+
+            return message;
+        }
+
+        private List<Field> ParseMessageBody(Message message) {
+            List<Field> fields = new List<Field>();
+
             Expect("{");
 
             while (!PeekAndDiscard("}")) {
@@ -115,6 +123,8 @@ namespace datamodel.schema.source.protobuf {
                     ParseOption();
                 else if (PeekAndDiscard("reserved"))
                     ParseReserved();
+                else if (PeekAndDiscard("extensions"))          // Protobuf 2
+                    ParseExtension();
                 else if (PeekAndDiscard("message")) {
                     Message nested = ParseMessage(message);
                     message.Messages.Add(nested);
@@ -130,12 +140,12 @@ namespace datamodel.schema.source.protobuf {
                     FieldMap map = ParseMapField();
                     message.Fields.Add(map);
                 } else {
-                    Field normal = ParseNormalField();
+                    Field normal = ParseNormalOrGroupField(message);
                     message.Fields.Add(normal);
                 }
             }
 
-            return message;
+            return fields;
         }
 
         // Example:
@@ -156,7 +166,8 @@ namespace datamodel.schema.source.protobuf {
                 else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else {
-                    FieldNormal normal = ParseNormalField();
+                    string type = Next();
+                    FieldNormal normal = ParseNormalField(FieldModifier.None, type);
                     field.Fields.Add(normal);
                 }
             }
@@ -186,20 +197,41 @@ namespace datamodel.schema.source.protobuf {
 
         // Template: 
         //  [repeated] type name = n [ [...options...] ];
-        private FieldNormal ParseNormalField() {
+        private Field ParseNormalOrGroupField(Message message) {
+            string groupOrType = Next();
+            FieldModifier modifier = FieldModifier.None;
+
+            if (groupOrType == "repeated") {
+                modifier = FieldModifier.Repeated;
+                groupOrType = Next();
+            } else if (groupOrType == "optional") {    // Happens even in proto3, desipte not mentioned in lang. spec
+                modifier = FieldModifier.Optional;
+                groupOrType = Next();
+            }
+
+            if (groupOrType == "group")     // Could explicitly check syntax is proto2
+                return ParseGroupField(message, modifier);
+            else 
+                return ParseNormalField(modifier, groupOrType);
+        }
+
+        private FieldGroup ParseGroupField(Message message, FieldModifier modifier) {
+            FieldGroup field = new FieldGroup() {
+                Comment = CurrentComment(),
+                Name = Next(),
+            };
+
+            field.Fields.AddRange(ParseMessageBody(message));
+
+            return field;
+        }
+
+        private FieldNormal ParseNormalField(FieldModifier modifier, string type) {
             FieldNormal field = new FieldNormal() {
+                Modifier = modifier,
                 Comment = CurrentComment(),
             };
-            string type = Next();
 
-            if (type == "repeated") {
-                field.Modifier = FieldModifier.Repeated;
-                type = Next();
-            } else if (type == "optional") {    // Not in official Language Spec, but occurs in practice
-                field.Modifier = FieldModifier.Optional;
-                type = Next();
-            }
-            
             field.Type = new Type(type);
 
             field.Name = Next();
@@ -289,6 +321,15 @@ namespace datamodel.schema.source.protobuf {
             Expect(")");
 
             return rpc;
+        }
+        #endregion
+
+        #region Protobuf 2 Specific
+
+        private void ParseExtension() {
+            // For now, we will discard 
+            string next;
+            while ((next = Next()) != ";");
         }
         #endregion
 

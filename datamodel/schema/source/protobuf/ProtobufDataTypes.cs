@@ -150,4 +150,22 @@ namespace datamodel.schema.source.protobuf {
         public string Name { get; set; }
         public int Number { get; set; }
     }
+
+    #region Specific to Protobuf 2
+    public class FieldGroup : Field {
+       public FieldModifier Modifier { get; set; }
+       public List<Field> Fields { get; } = new List<Field>();
+       public int Number { get; set; }
+    }
+
+    // TODO: Extensions are important, but it is not yet clear to me how best to represent them visually.
+    // The Protobuf2 language guide specifically wans against confusing extensions with inheritance.
+    // And yet inheritance could be implemented with extensions if each "child" class used a spacified
+    // range of extensions. Of course, this is wrought with danger, since two child classes could 
+    // accidentally use the same reserved Number for a field.
+
+    // One simple solution would be to simply add the "extended" fields to the original Model/Message.
+    // This is kind-of how things were intended.
+
+   #endregion
 }

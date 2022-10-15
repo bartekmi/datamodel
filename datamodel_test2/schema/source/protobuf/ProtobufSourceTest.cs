@@ -60,7 +60,7 @@ message myMessage {
   // Oneof description
   oneof myOneof {
     string field1 = 1;              // Field description
-    repeated int32 field2 = 2;
+    int32 field2 = 2;
   }
 }
 ";
@@ -81,7 +81,7 @@ message myMessage {
          },
          {
            Name: field2,
-           DataType: []int32,
+           DataType: int32,
            Description: One-of Group: myOneof\n\n Oneof description
          }
        ]
