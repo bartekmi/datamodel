@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,9 +72,27 @@ namespace datamodel {
 
                 GenerateGraphsAndDataDictionary();
             } catch (Exception e) {
-                Console.WriteLine(e.Message);
+                Console.WriteLine(BuildMessage(e));
                 Environment.Exit(1);
             }
+        }
+
+        private static string BuildMessage(Exception e) {
+            StringBuilder builder = new StringBuilder();
+
+            bool first = true;
+            while (e != null) {
+                string line = string.Format("{0}{1}{2}", 
+                    first ? "" : "\t", 
+                    e.Message, 
+                    e.GetType() == typeof(Exception) ? "" : string.Format(" ({0})", e.GetType().Name));
+
+                builder.AppendLine(line);
+                e = e.InnerException;
+                first = false;
+            }
+
+            return builder.ToString();
         }
 
         private static void ApplyGlobalParameters(SchemaSource source, Parameters parameters) {

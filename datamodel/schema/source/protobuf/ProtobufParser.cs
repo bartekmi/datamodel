@@ -49,7 +49,8 @@ namespace datamodel.schema.source.protobuf {
                         throw new Exception("Unexpected token: " + Next());
                 }
             } catch (Exception e) {
-                throw new Exception("Parse error on line " + _tokenizer.LineNumber, e);
+                string message = string.Format("Parse error on line {0}.", _tokenizer.LineNumber);
+                throw new Exception(message, e);
             }
 
             return file;
