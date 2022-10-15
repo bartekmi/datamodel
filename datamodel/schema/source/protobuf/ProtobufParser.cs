@@ -191,10 +191,15 @@ namespace datamodel.schema.source.protobuf {
                 Comment = CurrentComment(),
             };
             string type = Next();
+
             if (type == "repeated") {
                 field.Modifier = FieldModifier.Repeated;
                 type = Next();
+            } else if (type == "optional") {    // Not in official Language Spec, but occurs in practice
+                field.Modifier = FieldModifier.Optional;
+                type = Next();
             }
+            
             field.Type = new Type(type);
 
             field.Name = Next();

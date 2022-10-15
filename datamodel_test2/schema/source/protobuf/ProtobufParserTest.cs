@@ -100,6 +100,7 @@ message myMessage {
   //Field 1 Comment
   int64 myInt = 1 [ opt1 = 'A', opt2 = 42 ];
   repeated string myString = 2;                 //Field 2 Comment
+  optional string myOptional = 3;
   option ignoreMe = 'will be ignored';
   reserved 2, 15, 9 to 11;
 
@@ -139,6 +140,14 @@ message myMessage {
           Number: 2,
           Name: myString,
           Comment: Field 2 Comment
+        },
+        {
+          Modifier: Optional,
+          Type: {
+            Name: string
+          },
+          Number: 3,
+          Name: myOptional
         },
         {
           Fields: [
