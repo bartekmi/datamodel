@@ -135,13 +135,13 @@ namespace datamodel.schema.source.protobuf {
                     // Do nothing - emptyStatement
                 } else if (PeekAndDiscard("oneof")) {
                     FieldOneOf oneOf = ParseOneOfField();
-                    message.Fields.Add(oneOf);
+                    fields.Add(oneOf);
                 } else if (PeekAndDiscard("map")) {
                     FieldMap map = ParseMapField();
-                    message.Fields.Add(map);
+                    fields.Add(map);
                 } else {
                     Field normal = ParseNormalOrGroupField(message);
-                    message.Fields.Add(normal);
+                    fields.Add(normal);
                 }
             }
 
@@ -201,43 +201,41 @@ namespace datamodel.schema.source.protobuf {
             string groupOrType = Next();
             FieldModifier modifier = FieldModifier.None;
 
-            if (groupOrType == "repeated") {
-                modifier = FieldModifier.Repeated;
-                groupOrType = Next();
-            } else if (groupOrType == "optional") {    // Happens even in proto3, desipte not mentioned in lang. spec
-                modifier = FieldModifier.Optional;
-                groupOrType = Next();
+            // Parse optional modifier
+            switch (groupOrType) {
+                case "required":
+                    modifier = FieldModifier.Required;
+                    break;
+                case "optional":
+                    modifier = FieldModifier.Optional;
+                    break;
+                case "repeated":
+                    modifier = FieldModifier.Repeated;
+                    break;
             }
+            if (modifier != FieldModifier.None)
+                groupOrType = Next();
 
-            if (groupOrType == "group")     // Could explicitly check syntax is proto2
+            // Parse either a normal or gropu field
+            if (groupOrType == "group")     // Proto2. Could explicitly check syntax first.
                 return ParseGroupField(message, modifier);
             else 
                 return ParseNormalField(modifier, groupOrType);
         }
 
-        private FieldGroup ParseGroupField(Message message, FieldModifier modifier) {
-            FieldGroup field = new FieldGroup() {
-                Comment = CurrentComment(),
-                Name = Next(),
-            };
-
-            field.Fields.AddRange(ParseMessageBody(message));
-
-            return field;
-        }
-
         private FieldNormal ParseNormalField(FieldModifier modifier, string type) {
+            // Order of populating fields is important
             FieldNormal field = new FieldNormal() {
                 Modifier = modifier,
                 Comment = CurrentComment(),
+                Type = new Type(type),
+                Name = Next(),
             };
 
-            field.Type = new Type(type);
-
-            field.Name = Next();
             Expect("=");
             field.Number = ParseInt();
             ParseOptions();
+
             return field;
         }
          
@@ -331,6 +329,45 @@ namespace datamodel.schema.source.protobuf {
             string next;
             while ((next = Next()) != ";");
         }
+
+        // repeated group Result = 1 {
+        //     required string url = 2;
+        //     optional string title = 3;
+        //     repeated string snippets = 4;
+        // }
+        private FieldGroup ParseGroupField(Message message, FieldModifier modifier) {
+            // Order of populating fields is important
+            FieldGroup field = new FieldGroup() {
+                Comment = CurrentComment(),
+                Name = Next(),
+            };
+
+            Expect("=");
+            field.Number = ParseInt();
+
+            field.Fields.AddRange(ParseMessageBody(message));
+
+            return field;
+        }
+
+        private Extend ParseExtend() {
+            // Order of populating fields is important
+            Extend extend = new Extend() {
+                Comment = CurrentComment(),
+                MessageType = Next(),
+            };
+            Expect("{");
+
+            while (!PeekAndDiscard("}")) {
+                if (PeekAndDiscard(";")) {
+                    // Do nothing - emptyStatement
+                } else
+                    extend.Fields.Add(ParseNormalOrGroupField(extend.Message));
+            }
+
+            return extend;
+        }
+
         #endregion
 
         #region Utils

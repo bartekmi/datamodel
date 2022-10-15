@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 
+using datamodel.utils;
 namespace datamodel.schema.source.protobuf {
     public class ProtobufPerserTest {
         private const bool DUMP_TOKENS = false;
@@ -17,6 +18,7 @@ namespace datamodel.schema.source.protobuf {
             _output = output;
         }
 
+        #region Protobuf 2 & 3 - Shared
         [Fact]
         public void ParseFileLevelProperties() {
             string proto = @"
@@ -261,10 +263,92 @@ service SearchService {
   ]
 }", proto);
         }        
+        #endregion
+
+        #region Protobuf 2 Specific
+        [Fact]
+        public void ParseProto2_Extensions() {
+            string proto = @"
+syntax = 'proto2';
+message myMessage {
+  extensions 100 to 199;
+  extensions 4, 20 to max;
+}
+";
+
+            RunTest(@"
+ {
+   Syntax: proto2,
+   Messages: [
+     {
+       Name: myMessage,
+       Fields: []
+     }
+   ]
+ }", proto);
+        }
+
+        [Fact]
+        public void ParseProto2_GroupField() {
+            string proto = @"
+syntax = 'proto2';
+message myMessage {
+  repeated group Result = 1 {
+      required string url = 2;
+      optional string title = 3;
+      repeated string snippets = 4;
+  }
+}
+";
+
+            RunTest(@"
+ {
+   Syntax: proto2,
+   Messages: [
+     {
+       Name: myMessage,
+       Fields: [
+         {
+           Fields: [
+             {
+               Modifier: Required,
+               Type: {
+                 Name: string
+               },
+               Number: 2,
+               Name: url
+             },
+             {
+               Modifier: Optional,
+               Type: {
+                 Name: string
+               },
+               Number: 3,
+               Name: title
+             },
+             {
+               Modifier: Repeated,
+               Type: {
+                 Name: string
+               },
+               Number: 4,
+               Name: snippets
+             }
+           ],
+           Number: 1,
+           Name: Result
+         }
+       ]
+     }
+   ]
+ }", proto);
+        }
+
+        #endregion
 
         private void RunTest(string expected, string proto) {
             string actual = ReadProto(proto).Trim().Replace("\"", "");
-            expected = expected.Trim();
+            expected = JsonFormattingUtils.DeleteFirstSpace(expected);
 
             if (actual != expected) {
                 _output.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");

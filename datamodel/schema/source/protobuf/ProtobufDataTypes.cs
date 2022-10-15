@@ -99,7 +99,8 @@ namespace datamodel.schema.source.protobuf {
 
     public enum FieldModifier {
         None,
-        Optional,   // No longer applicable in Protobuf 3
+        Required,   // Protobuf 2 only
+        Optional,   // Protobuf 2, but can use in 3
         Repeated,
     }
     public class FieldNormal : Field {
@@ -166,6 +167,15 @@ namespace datamodel.schema.source.protobuf {
 
     // One simple solution would be to simply add the "extended" fields to the original Model/Message.
     // This is kind-of how things were intended.
+    public class Extend : Base {
+        public string MessageType { get; set; }
+        public List<Field> Fields { get; } = new List<Field>();
+
+        // Since we may need to accumulate properties of a Message such
+        // as nested message or enum definitions, we need this dummy
+        // Message. Later, it could be merged with the "parent" message
+        public Message Message { get; } = new Message();
+    }
 
    #endregion
 }
