@@ -34,9 +34,7 @@ namespace datamodel.schema.source.protobuf {
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File pbFile = parser.Parse();
 
-            // TODO: How best to represent Services and Rpc's? Service could be a "class"
-            // which holds multiple Rpc's which hold request/response messages, but this
-            // could get messy.
+            // TODO(issues/25) - Show Services and Rpc's
 
             PassOne(pbFile);
             PassTwo();
@@ -67,8 +65,7 @@ namespace datamodel.schema.source.protobuf {
 
         #endregion
 
-        #region Pass One
-        // Pass one build a dictionary of all messages and enums
+        #region Pass One - Build dictionary of all messages and enums
 
         private void PassOne(File pbFile) {
             foreach (Message message in pbFile.Messages)
@@ -98,9 +95,7 @@ namespace datamodel.schema.source.protobuf {
         }
         #endregion
 
-        #region Pass Two
-        // Pass two iterates dictionary of messages, creates Models, fills in properties
-        // and associations.
+        #region Pass Two - Iterates messages, creates Models, fill in properties, associations
 
         private void PassTwo() {
             foreach (Message message in _messages.Values)
@@ -138,8 +133,12 @@ namespace datamodel.schema.source.protobuf {
 
         private void AddFieldNormalOrMap(Model model, Field field, Type type, bool isRepeated, Type mapKeyType) {
             _enums.TryGetValue(type.Name, out Enum theEnum);
+            _messages.TryGetValue(type.Name, out Message message);
 
-            if (type.IsAtomic || theEnum != null)
+            if (type.IsAtomic ||        // Atomic types obviously to be represented as Properties
+                theEnum != null ||      // Same for enum types
+                message == null)        // If for some reason this is NOT a know message, might as well show it as a Prop
+
                 model.AllColumns.Add(new Column() {
                     Name = field.Name,
                     Description = field.Comment,
