@@ -40,6 +40,9 @@ namespace datamodel.schema.source.protobuf {
                     } else if (PeekAndDiscard("enum")) {
                         EnumDef theEnum = ParseEnumDefinition(file);
                         file.EnumDefs.Add(theEnum);
+                    } else if (PeekAndDiscard("extend")) {
+                        Extend extend = ParseExtend();
+                        file.Extends.Add(extend);
                     } else if (PeekAndDiscard("service")) {
                         Service service = ParseService();
                         file.Services.Add(service);
@@ -131,6 +134,9 @@ namespace datamodel.schema.source.protobuf {
                 } else if (PeekAndDiscard("enum")) {
                     EnumDef theEnum = ParseEnumDefinition(message);
                     message.EnumDefs.Add(theEnum);
+                } else if (PeekAndDiscard("extend")) {
+                    Extend extend = ParseExtend();
+                    message.Extends.Add(extend);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else if (PeekAndDiscard("oneof")) {

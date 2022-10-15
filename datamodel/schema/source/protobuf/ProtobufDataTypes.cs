@@ -48,12 +48,14 @@ namespace datamodel.schema.source.protobuf {
         public List<Service> Services { get; }=  new List<Service>();
         public List<Message> Messages { get; } = new List<Message>();
         public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
+        public List<Extend> Extends { get; } = new List<Extend>();      // Protobuf 2 only
 
         // For the sake of JSON serialization
         public bool ShouldSerializeImports() { return Imports.Count > 0; }
         public bool ShouldSerializeServices() { return Services.Count > 0; }
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
         public bool ShouldSerializeEnumDefs() { return EnumDefs.Count > 0; }
+        public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
         public bool IsFile() { return true; }
@@ -81,10 +83,13 @@ namespace datamodel.schema.source.protobuf {
         public List<Field> Fields { get; } = new List<Field>();
         public List<Message> Messages { get; } = new List<Message>();
         public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
+        public List<Extend> Extends { get; } = new List<Extend>();      // Protobuf 2 only
 
         // For the sake of JSON serialization
+        public bool ShouldSerializeFields() { return Fields.Count > 0; }
         public bool ShouldSerializeMessages() { return Messages.Count > 0; }
         public bool ShouldSerializeEnumDefs() { return EnumDefs.Count > 0; }
+        public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
         public bool IsFile() { return false; }

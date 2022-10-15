@@ -206,11 +206,9 @@ message myMessage {
   Messages: [
     {
       Name: myMessage,
-      Fields: [],
       Messages: [
         {
           Name: myNested,
-          Fields: [],
           Comment: Nested Message Comment
         }
       ],
@@ -281,8 +279,7 @@ message myMessage {
    Syntax: proto2,
    Messages: [
      {
-       Name: myMessage,
-       Fields: []
+       Name: myMessage
      }
    ]
  }", proto);
@@ -337,6 +334,73 @@ message myMessage {
            ],
            Number: 1,
            Name: Result
+         }
+       ]
+     }
+   ]
+ }", proto);
+        }
+
+        [Fact]
+        public void ParseProto2_Extend() {
+            string proto = @"
+syntax = 'proto2';
+extend Foo {
+  optional int32 bar = 126;
+}";
+
+            RunTest(@"
+ {
+   Syntax: proto2,
+   Extends: [
+     {
+       MessageType: Foo,
+       Fields: [
+         {
+           Modifier: Optional,
+           Type: {
+             Name: int32
+           },
+           Number: 126,
+           Name: bar
+         }
+       ],
+       Message: {}
+     }
+   ]
+ }", proto);
+        }
+
+        [Fact]
+        public void ParseProto2_ExtendInMessage() {
+            string proto = @"
+syntax = 'proto2';
+message myMessage {
+  extend Foo {
+    optional int32 bar = 126;
+  }
+}";
+
+            RunTest(@"
+ {
+   Syntax: proto2,
+   Messages: [
+     {
+       Name: myMessage,
+       Extends: [
+         {
+           MessageType: Foo,
+           Fields: [
+             {
+               Modifier: Optional,
+               Type: {
+                 Name: int32
+               },
+               Number: 126,
+               Name: bar
+             }
+           ],
+           Message: {}
          }
        ]
      }
