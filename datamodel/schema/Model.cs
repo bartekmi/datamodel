@@ -35,6 +35,8 @@ namespace datamodel.schema {
 
         // Some schemas - e.g. Swagger - have a version attached to each Model
         public string Version { get; set; }
+
+        // TODO: This is an implementation convenience and does not belong here. Remove.
         [JsonIgnore]
         public string QualifiedNameLessVersion { get; set; }
 
@@ -57,6 +59,7 @@ namespace datamodel.schema {
 
         // Associations
         public List<Property> AllProperties { get; internal set; }
+        public bool ShouldSerializeAllProperties() { return AllProperties.Count > 0; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
         public bool ShouldSerializeLabels() { return Labels.Count > 0; }
 

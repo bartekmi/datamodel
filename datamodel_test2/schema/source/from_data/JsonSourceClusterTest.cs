@@ -49,13 +49,13 @@ namespace datamodel.schema.source.from_data {
         },
         {
           Name: b,
-          DataType: Integer,
-          CanBeEmpty: true
+          CanBeEmpty: true,
+          DataType: Integer
         },
         {
           Name: c,
-          DataType: Integer,
-          CanBeEmpty: true
+          CanBeEmpty: true,
+          DataType: Integer
         }
       ]
     },

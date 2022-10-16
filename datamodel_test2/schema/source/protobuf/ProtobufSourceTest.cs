@@ -39,8 +39,8 @@ message myMessage {
        AllProperties: [
          {
            Name: field1,
-           DataType: string,
-           Description:  Field description
+           Description:  Field description,
+           DataType: string
          },
          {
            Name: field2,
@@ -48,8 +48,7 @@ message myMessage {
          }
        ]
      }
-   },
-   Associations: []
+   }
  }");
         }
 
@@ -77,18 +76,17 @@ message myMessage {
        AllProperties: [
          {
            Name: field1,
-           DataType: string,
-           Description: One-of Group: myOneof\n\n Oneof description\n\n Field description
+           Description: One-of Group: myOneof\n\n Oneof description\n\n Field description,
+           DataType: string
          },
          {
            Name: field2,
-           DataType: int32,
-           Description: One-of Group: myOneof\n\n Oneof description
+           Description: One-of Group: myOneof\n\n Oneof description,
+           DataType: int32
          }
        ]
      }
-   },
-   Associations: []
+   }
  }");
         }
 
@@ -171,8 +169,7 @@ message myMessage {
          }
        ]
      }
-   },
-   Associations: []
+   }
  }");
         }
 
@@ -194,8 +191,7 @@ message myMessage {
    Models: {
      myMessage: {
        Name: myMessage,
-       QualifiedName: myMessage,
-       AllProperties: []
+       QualifiedName: myMessage
      },
      myNested: {
        Name: myNested,

@@ -129,8 +129,7 @@ namespace datamodel.schema.source.from_data {
       QualifiedName: cluster1,
       Levels: [
         cluster1
-      ],
-      AllProperties: []
+      ]
     },
     cluster1.key_is_value: {
       Labels: [

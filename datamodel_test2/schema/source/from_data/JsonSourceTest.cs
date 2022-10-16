@@ -111,8 +111,7 @@ namespace datamodel.schema.source.from_data {
         }
       ]
     }
-  },
-  Associations: []
+  }
 }", json);
         }
 
@@ -147,8 +146,7 @@ namespace datamodel.schema.source.from_data {
       QualifiedName: cluster1,
       Levels: [
         cluster1
-      ],
-      AllProperties: []
+      ]
     },
     cluster1.object: {
       Labels: [
@@ -221,8 +219,7 @@ namespace datamodel.schema.source.from_data {
       QualifiedName: cluster1,
       Levels: [
         cluster1
-      ],
-      AllProperties: []
+      ]
     },
     cluster1.array: {
       Labels: [

@@ -9,17 +9,14 @@ namespace datamodel.schema {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Property : IDbElement {
         public string Name { get; set; }
-        public string DataType { get; set; }
         public bool CanBeEmpty { get; set; }
         public string Description { get; set; }
         public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
         public bool Deprecated { get; set; }
-        public Enum Enum { get; set; }
+        private DataType _dataType = new DataType();
         
         [JsonIgnore]    // Owner causes a "Self referencing loop"
         public Model Owner { get; internal set; }
-        [JsonIgnore]
-        public Model ReferencedModel { get; set; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
 
         // Derived 
@@ -29,6 +26,21 @@ namespace datamodel.schema {
         public bool IsRef { get { return ReferencedModel != null; } }
         [JsonIgnore]
         public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
+
+        // DataType wrappers
+        public string DataType { 
+            get { return _dataType.Name; }
+            set { _dataType.Name = value; }
+        }
+        public Enum Enum { 
+            get { return _dataType.Enum; }
+            set { _dataType.Enum = value; }
+        }
+        [JsonIgnore]
+        public Model ReferencedModel { 
+            get { return _dataType.ReferencedModel; }
+            set { _dataType.ReferencedModel = value; }
+        }
 
         // Rehydrated
         [JsonIgnore]
