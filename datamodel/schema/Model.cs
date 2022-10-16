@@ -28,6 +28,7 @@ namespace datamodel.schema {
         public string ListSemanticsForType { get; set; }
 
         // Name of the Model
+        // TODO: This should be derived from QualifiedName, but this could be a big job
         public string Name { get; set; }
 
         // This (possibly longer) name must be guaranteed to be globally unique
@@ -58,10 +59,13 @@ namespace datamodel.schema {
         public bool Deprecated { get; set; }
 
         // Associations
-        public List<Property> AllProperties { get; internal set; }
-        public bool ShouldSerializeAllProperties() { return AllProperties.Count > 0; }
-        public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
-        public bool ShouldSerializeLabels() { return Labels.Count > 0; }
+        public List<Property> AllProperties { get; internal set; } = new List<Property>();
+        public bool ShouldSerializeAllProperties() { return AllProperties != null && AllProperties.Count > 0; }
+        public List<Method> Methods { get; internal set; } = new List<Method>();
+        public bool ShouldSerializeMethods() { return Methods != null && Methods.Count > 0; }
+        // Arbitrary user-defined labels
+        public List<Label> Labels = new List<Label>();
+        public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         [JsonIgnore]
         public HierarchyItem LeafHierachyItem {get;set;}

@@ -12,6 +12,7 @@ namespace datamodel.schema {
         public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
         public bool Deprecated { get; set; }
 
-
+        public List<DataType> ParameterTypes { get; set; } = new List<DataType>();
+        public DataType ReturnType { get; set; }
     }
 }

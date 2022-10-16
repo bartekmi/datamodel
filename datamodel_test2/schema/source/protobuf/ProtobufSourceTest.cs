@@ -224,6 +224,38 @@ message myMessage {
  }");
         }
 
+        [Fact]
+        public void ParseService() {
+            string proto = @"
+service SearchService {
+  rpc Search(SearchRequest) returns (SearchResponse);
+}";
+
+            RunTest(proto, @"
+ {
+   Title: myproto.proto,
+   Models: {
+     SearchService: {
+       Name: SearchService,
+       QualifiedName: SearchService,
+       Methods: [
+         {
+           Name: Search,
+           ParameterTypes: [
+             {
+               Name: SearchRequest
+             }
+           ],
+           ReturnType: {
+             Name: SearchResponse
+           }
+         }
+       ]
+     }
+   }
+ }");
+        }
+
         #region Utilities
         private void RunTest(string protoContent, string expected) {
             ProtobufSource source = new ProtobufSource();

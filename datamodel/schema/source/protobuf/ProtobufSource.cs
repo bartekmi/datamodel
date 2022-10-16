@@ -37,7 +37,7 @@ namespace datamodel.schema.source.protobuf {
             // TODO(issues/25) - Show Services and Rpc's
 
             PassOne(pbFile);
-            PassTwo();
+            PassTwo(pbFile);
         }
 
         public override IEnumerable<Parameter> GetParameters() {
@@ -97,9 +97,44 @@ namespace datamodel.schema.source.protobuf {
 
         #region Pass Two - Iterates messages, creates Models, fill in properties, associations
 
-        private void PassTwo() {
+        private void PassTwo(File pbFile) {
             foreach (Message message in _messages.Values)
                 PassTwoMessage(message);
+            foreach (Service service in pbFile.Services)
+                PassTwoService(service);
+        }
+
+        private void PassTwoService(Service service) {
+            Model model = new Model() {
+                Name = service.Name,
+                QualifiedName = service.Name,
+                Description = service.Comment,
+                // TODO: Try to derive Deprecated
+            };
+
+            // For now, we take the easy way and simply reference the models for input and output type.
+            // This will no-doubt pollute the diagram, but let's get a sense of it first before
+            // trying to make improvements.
+            foreach (Rpc rpc in service.Rpcs) {
+                model.Methods.Add(new Method() {
+                    Name = rpc.Name,
+                    Description = rpc.Comment,
+                    ParameterTypes = new List<DataType>() {
+                        CreateDataType(rpc.InputName),
+                    },
+                    ReturnType = CreateDataType(rpc.OutputName),
+                });
+            }
+
+            _models.Add(model);
+        }
+
+        private DataType CreateDataType(string name) {
+            _enums.TryGetValue(name, out Enum theEnum);
+            return new DataType() {
+                Name = name,
+                Enum = theEnum,
+            };
         }
 
         private void PassTwoMessage(Message message) {
@@ -107,8 +142,7 @@ namespace datamodel.schema.source.protobuf {
                 Name = message.Name,
                 QualifiedName = message.Name,
                 Description = message.Comment,
-                // TODO: This can be read from options
-                // Deprecated = ...
+                // TODO: Try to derive Deprecated
             };
 
             foreach (Field field in message.Fields) {
@@ -144,9 +178,8 @@ namespace datamodel.schema.source.protobuf {
                     Description = field.Comment,
                     DataType = ComputeType(type, isRepeated, mapKeyType),
                     Enum = theEnum,
-                    // TODO...
-                    // Deprecated = Extract from Options
-                    // CanBeEmpty - This can be deduced, but only for proto2, so we need File
+                    // TODO: Try to derive Deprecated
+                    // TODO: CanBeEmpty can be deduced, but only for proto2, so we need File
                 });
 
             else {
