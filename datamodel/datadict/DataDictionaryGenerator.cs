@@ -30,6 +30,7 @@ namespace datamodel.datadict {
             GenerateModelHeader(body, model);
             GenerateModelDerivedClasses(body, model);
             GenerateModelAttributes(body, model);
+            GenerateModelMethods(body, model);
             GenerateModelOutgoingAssociations(body, model);
             GenerateModelIncomingAssociations(body, model);
 
@@ -136,6 +137,38 @@ namespace datamodel.datadict {
                     // Property Enum Values
                     AddEnumValuesRow(table, property);
                 }
+        }
+
+        private static void GenerateModelMethods(HtmlElement body, Model model) {
+            if (model.Methods.Count == 0)
+                return;
+
+            HtmlTable table = body.Add(new HtmlTable());
+
+            table.AddTr(new HtmlTr(new HtmlTh("Methods").Class("heading2")));
+
+            foreach (Method method in model.Methods) {
+                // Method Header
+                string methodHeader = string.Format("{0}({1}) {2}",
+                    method.HumanName,
+                    string.Join(", ", method.ParameterTypes.Select(x => x.Name)),
+                    method.ReturnType.Name);
+
+                table.AddTr(new HtmlTr(
+                    new HtmlTd(
+                        new HtmlElement("span", methodHeader).Class("heading3"),
+                        DeprecatedSpan(method)
+                    )
+                    ).Attr("id", method.Name)
+                    .Class("attribute"));        // Id for anchor
+
+                // Method Description
+                AddDescriptionRow(table, method);
+
+                // Optional labels
+                foreach (Label label in method.Labels)
+                    AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
+            }
         }
 
         private static void GenerateModelOutgoingAssociations(HtmlElement body, Model dbModel) {
