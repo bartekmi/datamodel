@@ -110,7 +110,7 @@ namespace datamodel.schema {
         #region Rehydrate
 
         private void Rehydrate() {
-            RehydratePropertyOwner();
+            RehydrateMemberOwner();
             RehydrateSuperAndDerivedClasses();
             RemoveDuplicatePolymorphicInterfaces();
 
@@ -122,10 +122,10 @@ namespace datamodel.schema {
             RehydrateRefAssociationsForModels();
         }
 
-        private void RehydratePropertyOwner() {
+        private void RehydrateMemberOwner() {
             foreach (Model model in Models) {
-                foreach (Property property in model.AllProperties)
-                    property.Owner = model;
+                foreach (Member member in model.AllMembers)
+                    member.Owner = model;
             }
         }
 

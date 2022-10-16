@@ -64,7 +64,7 @@ namespace datamodel.schema {
         public List<Method> Methods { get; internal set; } = new List<Method>();
         public bool ShouldSerializeMethods() { return Methods != null && Methods.Count > 0; }
         // Arbitrary user-defined labels
-        public List<Label> Labels = new List<Label>();
+        public List<Label> Labels { get; set; }= new List<Label>();
         public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         [JsonIgnore]
@@ -79,6 +79,8 @@ namespace datamodel.schema {
 
 
         #region Derived
+        [JsonIgnore]
+        public IEnumerable<Member> AllMembers { get { return AllProperties.Cast<Member>().Concat(Methods); } }
         [JsonIgnore]
         public string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]

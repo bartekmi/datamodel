@@ -7,26 +7,16 @@ using datamodel.toplevel;
 
 namespace datamodel.schema {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class Property : IDbElement {
-        public string Name { get; set; }
+    public class Property : Member {
         public bool CanBeEmpty { get; set; }
-        public string Description { get; set; }
-        public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
-        public bool Deprecated { get; set; }
         private DataType _dataType = new DataType();
         
-        [JsonIgnore]    // Owner causes a "Self referencing loop"
-        public Model Owner { get; internal set; }
-        public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
-        public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         // Derived 
         [JsonIgnore]
-        public string HumanName { get { return NameUtils.ToHuman(Name); } }
+        public override string HumanName { get { return NameUtils.ToHuman(Name); } }
         [JsonIgnore]
         public bool IsRef { get { return ReferencedModel != null; } }
-        [JsonIgnore]
-        public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
 
         // DataType wrappers
         public string DataType { 

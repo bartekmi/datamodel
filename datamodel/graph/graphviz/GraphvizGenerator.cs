@@ -192,8 +192,34 @@ namespace datamodel.graphviz {
             if (!includeProperties)
                 return table;
 
-            // Propertys
-            foreach (Property property in dbModel.AllProperties) {
+            CreateLabelProperties(models, dbModel, table);
+            CreateLabelMethods(models, dbModel, table);
+
+            return table;
+        }
+
+        private void CreateLabelMethods(IEnumerable<Model> models, Model dbModel, HtmlTable table) {
+        foreach (Method method in dbModel.Methods) {
+                HtmlTr row = new HtmlTr();
+
+                string propertyName = HtmlUtils.BULLET + method.HumanName;
+                HtmlTd propertyNameTd = new HtmlTd() {
+                    Text = method.HumanFullRepresentation,
+                };
+                row.AddTd(propertyNameTd);
+
+                // Attributes for the property name Html-like element
+                propertyNameTd
+                    .SetAttrHtml("align", "left")
+                    .SetAttrHtml("tooltip", CreateMemberToolTip(method, null))
+                    .SetAttrHtml("href", method.DocUrl);
+
+                table.AddTr(row);
+            }
+        }
+
+        private void CreateLabelProperties(IEnumerable<Model> models, Model model, HtmlTable table) {
+            foreach (Property property in model.AllProperties) {
                 if (Schema.Singleton.IsInteresting(property) &&
                     !property.Deprecated &&
                     !(property.IsPolymorphicId || property.IsPolymorphicType)) {
@@ -251,29 +277,23 @@ namespace datamodel.graphviz {
                     // Attributes for the property name Html-like element
                     propertyNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", CreatePropertyToolTip(property))
+                        .SetAttrHtml("tooltip", CreateMemberToolTip(property, property.Enum))
                         .SetAttrHtml("href", property.DocUrl);
 
                     table.AddTr(row);
                 }
             }
-
-            return table;
         }
 
-        private static string CreatePropertyToolTip(Property property) {
+        private static string CreateMemberToolTip(IDbElement property, datamodel.schema.Enum theEnum) {
             StringBuilder builder = new StringBuilder();
 
-            builder.AppendLine(string.Format("Go to Data Dictionary for Property '{0}'", property.HumanName));
-
-            if (!string.IsNullOrEmpty(property.Description)) {
-                builder.AppendLine(HtmlUtils.LINE_BREAK);
+            if (!string.IsNullOrEmpty(property.Description)) 
                 builder.AppendLine(property.DescriptionParagraphs().First());
-            }
 
-            if (property.Enum != null) {
+            if (theEnum != null) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                foreach (var value in property.Enum.Values)
+                foreach (var value in theEnum.Values)
                     builder.AppendLine(string.Format("{0}{1}: {2}",
                         HtmlUtils.LINE_BREAK,
                         value.Key,
@@ -318,7 +338,7 @@ namespace datamodel.graphviz {
                 builder.AppendLine(label + ": " + value);
         }
 
-        private string ToShortType(Property property) {
+        private static string ToShortType(Property property) {
             // Potential to inject shortened data types here...
             return property.DataType;
         }

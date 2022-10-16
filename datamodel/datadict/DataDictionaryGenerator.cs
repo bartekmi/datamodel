@@ -149,14 +149,9 @@ namespace datamodel.datadict {
 
             foreach (Method method in model.Methods) {
                 // Method Header
-                string methodHeader = string.Format("{0}({1}) {2}",
-                    method.HumanName,
-                    string.Join(", ", method.ParameterTypes.Select(x => x.Name)),
-                    method.ReturnType.Name);
-
                 table.AddTr(new HtmlTr(
                     new HtmlTd(
-                        new HtmlElement("span", methodHeader).Class("heading3"),
+                        new HtmlElement("span", method.HumanFullRepresentation).Class("heading3"),
                         DeprecatedSpan(method)
                     )
                     ).Attr("id", method.Name)
