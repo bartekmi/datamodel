@@ -232,7 +232,7 @@ service SearchService {
   option ignoreMe = 'will be ignored';
   //Rpc Comment
   rpc Search (SearchRequest) returns (SearchResponse);
-  rpc SearchStream (stream SearchRequest) returns (stream SearchResponse);
+  rpc SearchStream (stream SearchRequest) returns (stream SearchResponse) { option a=1; option b=2; }
   ;
 }";
 

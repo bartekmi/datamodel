@@ -18,7 +18,7 @@ namespace datamodel.schema {
         [JsonIgnore]    // Owner causes a "Self referencing loop"
         public Model Owner { get; internal set; }
         public List<Label> Labels = new List<Label>();      // Arbitrary user-defined labels
-        public bool ShouldSerializeLabels() { return Labels.Count > 0; }
+        public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         // Derived 
         [JsonIgnore]

@@ -303,6 +303,10 @@ namespace datamodel.schema.source.protobuf {
             return service;
         }
 
+        // service SearchService {
+        //   rpc Search (SearchRequest) returns (SearchResponse);           // Alternative #1
+        //   rpc Search2 (MyRequest) returns (MyResponse) {...options...}   // Alternative #2
+        // }
         private Rpc ParseRpc() {
             Rpc rpc = new Rpc() {
                 Comment = CurrentComment(),
@@ -323,6 +327,21 @@ namespace datamodel.schema.source.protobuf {
                 rpc.IsOutputStream = true;
             rpc.OutputName = Next();
             Expect(")");
+
+            // Note the two alternate endings
+            if (PeekAndDiscard(";")) {              // Alternative #1
+                // We're done
+            } else {                                // Alternative #2
+                Expect("{");
+                while (!PeekAndDiscard("}")) {
+                    if (PeekAndDiscard(";")) {
+                        // Do nothing - emptyStatement
+                    } else if (PeekAndDiscard("option"))
+                        ParseOption();
+                    else
+                        throw new Exception("Expecting option or ;");
+                }
+            }
 
             return rpc;
         }
