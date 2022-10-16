@@ -19,6 +19,6 @@ namespace datamodel.schema {
 
         // Derived 
         [JsonIgnore]
-        public string HumanName { get { return NameUtils.ToHuman(Name); } }
+        public string HumanName { get { return NameUtils.ToHuman(Name, true); } }
     }
 }

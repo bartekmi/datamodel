@@ -20,12 +20,14 @@ namespace datamodel.utils {
                 text.Substring(1);
         }
 
-        public static string ToHuman(string nonHuman) {
+        public static string ToHuman(string nonHuman, bool dropSpaces = false) {
             if (nonHuman == null)
                 return null;
-            return nonHuman.Contains('_') ?
+            string human = nonHuman.Contains('_') ?
                 SnakeCaseToHuman(nonHuman) :
                 MixedCaseToHuman(nonHuman);
+
+            return dropSpaces ? human.Replace(" ", "") : human;
         }
 
         public static IEnumerable<string> ToWords(string nonHuman) {
