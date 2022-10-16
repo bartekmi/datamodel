@@ -262,7 +262,7 @@ namespace datamodel.graphviz {
                             }
 
                             row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
-                               .SetAttrHtml("tooltip", string.Format("Go to Data Dictionary of linked model: '{0}'", referencedModel.HumanName))
+                               .SetAttrHtml("tooltip", string.Format("Click to go to Data Dictionary of linked model: '{0}'", referencedModel.HumanName))
                                .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
 
                             row.SetAttrAllChildren("bgcolor", referencedModel.ColorString);
