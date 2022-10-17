@@ -159,7 +159,7 @@ namespace datamodel.schema.source.protobuf {
         //      string name = 4 [...options...];
         //      SubMessage sub_message = 9;
         //  }
-        private FieldOneOf ParseOneOfField(Owner owner) {
+        private FieldOneOf ParseOneOfField(Message owner) {
             FieldOneOf field = new FieldOneOf(owner) {
                 Comment = CurrentComment(),
                 Name = Next(),
@@ -183,7 +183,7 @@ namespace datamodel.schema.source.protobuf {
 
         // Example:
         //  map<string, Project> projects = 3 [...options...];
-        private FieldMap ParseMapField(Owner owner) {
+        private FieldMap ParseMapField(Message owner) {
             FieldMap map = new FieldMap(owner) {
                 Comment = CurrentComment(),
             };
@@ -229,7 +229,7 @@ namespace datamodel.schema.source.protobuf {
                 return ParseNormalField(message, modifier, groupOrType);
         }
 
-        private FieldNormal ParseNormalField(Owner owner, FieldModifier modifier, string type) {
+        private FieldNormal ParseNormalField(Message owner, FieldModifier modifier, string type) {
             // Order of populating fields is important
             FieldNormal field = new FieldNormal(owner) {
                 Modifier = modifier,

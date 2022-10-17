@@ -1,0 +1,14 @@
+package b;
+
+import "c.proto";
+
+// types-of-interest from a.proto: b.msgB1, b.msgB1.nestedB
+
+message msgB1 {                    // In a.proto, this is 'b.msgB1'
+  message nestedB {}               // In a.proto, this is 'b.msgB1.nesstedB'
+}
+
+message msgB2 {
+  c.msgC             f1 = 1;       // We will NOT parse the imports of this file 
+                                   // since c.msgC is NOT in types of interest
+}

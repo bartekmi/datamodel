@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Collections.ObjectModel;
 
+using Newtonsoft.Json;
 // This class takes care of imports in protobuf.
 
 namespace datamodel.schema.source.protobuf {
     public class ProtobufImporter {
+        private string _importBasePath;
+
+        public ProtobufImporter(string importBasePath) {
+            _importBasePath = importBasePath;
+        }
 
         public FileBundle ReadDirTree(string paths) {
             throw new NotImplementedException();
@@ -16,7 +23,7 @@ namespace datamodel.schema.source.protobuf {
             FileBundle bundle = new FileBundle();
 
             foreach (string path in paths)
-                ReadFile(bundle, path, new HashSet<string>());
+                ReadFile(bundle, path, null);
 
             return bundle;
         }
@@ -26,7 +33,10 @@ namespace datamodel.schema.source.protobuf {
         //
         // 1. Parse the file at 'path'
         // 2. Get the list of all external imported types
-        // 3. Discard types which are NOT USED WITHIN 'typesOfInterest'
+        // 3. Prepare list of types we are interested in within the import files...
+        // 3.a  For initial file, we are interested in EVERYTHING 
+        //   b  For imported files, we are only interested in new types which are embedded in Messages
+        //      found in 'typesOfInterest'
         // 4. If the resulting list is non-empty, parse all imports
         //
         // NOTE: This could be improved in a couple of ways
@@ -34,10 +44,10 @@ namespace datamodel.schema.source.protobuf {
         // b) Rather than parsing the entire file, just get to the point where we've tokenized up to the package def
         //    and do not proceed further if that file defines a package in which we have no interest.
 
-        // Example...
+        // Example... (Note that unit tests exist just for this)
         //
         // # File a.proto
-        // import "b.proto" 
+        // import "b.proto";
         // message msgA {
         //   b.msgB1            f1 = 1;
         //   b.msgB1.nestedB    f2 = 2;
@@ -47,8 +57,7 @@ namespace datamodel.schema.source.protobuf {
         //
         // # File b.proto
         // package b;
-        // import "c.proto" 
-        // import "d.proto" 
+        // import "c.proto";
         // message msgB1 {                    // This is type 'b.msgB1'
         //   message nestedB {}               // This is type 'b.msgB1.nesstedB'
         // }
@@ -56,7 +65,7 @@ namespace datamodel.schema.source.protobuf {
         //   c.msgC             f1 = 1;       // We will NOT parse the imports of B 
         //                                    // since c.msgC is NOT in types of interest
         // }
-        private void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest) {
+        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest) {
             // TODO... This is too simplistic, because we may have different typesOfInterest
             // if (bundle.HasFile(path))
             //     return;
@@ -76,14 +85,18 @@ namespace datamodel.schema.source.protobuf {
             HashSet<string> importedTypesOfInterest = new HashSet<string>();
             foreach (Type type in importedTypes) {
                 Message owner = type.OwnerField.Owner as Message;
-                if (typesOfInterest.Contains(owner.FullyQualifiedName()))
-                    importedTypesOfInterest.Add(type.Name);
+                if (typesOfInterest == null ||                                  // 3a above
+                    typesOfInterest.Contains(owner.FullyQualifiedName())) {     // 3b above
+                        importedTypesOfInterest.Add(type.Name);
+                    }
             }
 
             // Step 4
             if (importedTypesOfInterest.Count > 0)
-                foreach (Import import in file.Imports) 
-                    ReadFile(bundle, import.ImportPath, importedTypesOfInterest);
+                foreach (Import import in file.Imports) {
+                    string importPath = Path.Join(_importBasePath, import.ImportPath);
+                    ReadFile(bundle, importPath, importedTypesOfInterest);
+                }
         }
 
         private HashSet<Type> FindImportedTypes(File file) {
@@ -125,6 +138,15 @@ namespace datamodel.schema.source.protobuf {
         // Key: path, Value: parsed File
         private Dictionary<string, File> _fileDict = new Dictionary<string, File>();
         private Dictionary<string, List<File>> _packageDict = new Dictionary<string, List<File>>();
+
+        [JsonIgnore]
+        public ReadOnlyDictionary<string, File> FileDict { get; private set; }
+        public ReadOnlyDictionary<string, List<File>> PackageDict { get; private set; }
+
+        internal FileBundle() {
+            FileDict = new ReadOnlyDictionary<string, File>(_fileDict);
+            PackageDict = new ReadOnlyDictionary<string, List<File>>(_packageDict);
+        }
 
         public bool HasFile(string path) {
             return _fileDict.ContainsKey(path);

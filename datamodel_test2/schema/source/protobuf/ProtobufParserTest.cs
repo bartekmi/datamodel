@@ -411,7 +411,7 @@ message myMessage {
         #endregion
 
         private void RunTest(string expected, string proto) {
-            string actual = ReadProto(proto).Trim().Replace("\"", "");
+            string actual = ReadProto(proto);
             expected = JsonFormattingUtils.DeleteFirstSpace(expected);
 
             if (actual != expected) {
@@ -431,14 +431,7 @@ message myMessage {
 
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File file = parser.Parse();
-
-            return JsonConvert.SerializeObject(file,
-                new JsonSerializerSettings {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
-                    Formatting = Formatting.Indented,
-                    Converters = new List<JsonConverter>() { new StringEnumConverter()},
-                });
+            return JsonFormattingUtils.JsonPretty(file);
         }
     }
 }

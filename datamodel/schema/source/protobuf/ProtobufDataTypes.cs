@@ -108,7 +108,7 @@ namespace datamodel.schema.source.protobuf {
         [JsonIgnore]
         public Owner Owner { get; set; }
 
-        public Field(Owner owner) {
+        public Field(Message owner) {
             Owner = owner;
         }
     }
@@ -124,7 +124,7 @@ namespace datamodel.schema.source.protobuf {
         public Type Type { get; set; }
         public int Number { get; set; }
 
-        public FieldNormal(Owner owner) : base(owner){}
+        public FieldNormal(Message owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return new Type[] { Type };
@@ -134,7 +134,7 @@ namespace datamodel.schema.source.protobuf {
     public class FieldOneOf : Field {
         public List<FieldNormal> Fields { get; } = new List<FieldNormal>();
 
-        public FieldOneOf(Owner owner) : base(owner){}
+        public FieldOneOf(Message owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return Fields.Select(x => x.Type);
@@ -146,7 +146,7 @@ namespace datamodel.schema.source.protobuf {
         public Type ValueType { get; set; }
         public int Number { get; set; }
 
-        public FieldMap(Owner owner) : base(owner){}
+        public FieldMap(Message owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return new Type[] { KeyType, ValueType };
@@ -174,6 +174,10 @@ namespace datamodel.schema.source.protobuf {
             OwnerField = ownerField;
             Name = name;
         }
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     public class EnumDef : Base, Owned {
@@ -195,7 +199,7 @@ namespace datamodel.schema.source.protobuf {
         public List<Field> Fields { get; } = new List<Field>();
         public int Number { get; set; }
 
-        public FieldGroup(Owner owner) : base(owner){}
+        public FieldGroup(Message owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return Fields.SelectMany(x => UsedTypes());

@@ -1,0 +1,10 @@
+package a;
+
+import "b.proto";
+
+// types-of-interest: b.msgB1, b.msgB1.nestedB
+
+message msgA {
+  b.msgB1            f1 = 1;
+  b.msgB1.nestedB    f2 = 2;
+}
