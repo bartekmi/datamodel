@@ -94,6 +94,7 @@ namespace datamodel.schema.source.protobuf {
         // Owner interface
         public bool IsFile() { return false; }
 
+        // Owned interface
         [JsonIgnore]
         public Owner Owner { get; set; }
     }
@@ -102,6 +103,14 @@ namespace datamodel.schema.source.protobuf {
         // Return list of all types used by this field
         public abstract IEnumerable<Type> UsedTypes();
         public string Name { get; set; }
+
+        // Owned interface
+        [JsonIgnore]
+        public Owner Owner { get; set; }
+
+        public Field(Owner owner) {
+            Owner = owner;
+        }
     }
 
     public enum FieldModifier {
@@ -115,6 +124,8 @@ namespace datamodel.schema.source.protobuf {
         public Type Type { get; set; }
         public int Number { get; set; }
 
+        public FieldNormal(Owner owner) : base(owner){}
+
         public override IEnumerable<Type> UsedTypes() {
             return new Type[] { Type };
         }
@@ -122,6 +133,8 @@ namespace datamodel.schema.source.protobuf {
 
     public class FieldOneOf : Field {
         public List<FieldNormal> Fields { get; } = new List<FieldNormal>();
+
+        public FieldOneOf(Owner owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return Fields.Select(x => x.Type);
@@ -132,6 +145,8 @@ namespace datamodel.schema.source.protobuf {
         public Type KeyType { get; set; }
         public Type ValueType { get; set; }
         public int Number { get; set; }
+
+        public FieldMap(Owner owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return new Type[] { KeyType, ValueType };
@@ -146,6 +161,8 @@ namespace datamodel.schema.source.protobuf {
         };
 
         public string Name { get; set; }
+        [JsonIgnore]
+        public Field OwnerField { get; private set; }
 
         // Derived
         [JsonIgnore]
@@ -153,7 +170,8 @@ namespace datamodel.schema.source.protobuf {
         [JsonIgnore]
         public bool IsImported { get => Name.Contains('.'); }
 
-        public Type(string name) {
+        public Type(Field ownerField, string name) {
+            OwnerField = ownerField;
             Name = name;
         }
     }
@@ -176,6 +194,8 @@ namespace datamodel.schema.source.protobuf {
         public FieldModifier Modifier { get; set; }
         public List<Field> Fields { get; } = new List<Field>();
         public int Number { get; set; }
+
+        public FieldGroup(Owner owner) : base(owner){}
 
         public override IEnumerable<Type> UsedTypes() {
             return Fields.SelectMany(x => UsedTypes());

@@ -140,10 +140,10 @@ namespace datamodel.schema.source.protobuf {
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else if (PeekAndDiscard("oneof")) {
-                    FieldOneOf oneOf = ParseOneOfField();
+                    FieldOneOf oneOf = ParseOneOfField(message);
                     fields.Add(oneOf);
                 } else if (PeekAndDiscard("map")) {
-                    FieldMap map = ParseMapField();
+                    FieldMap map = ParseMapField(message);
                     fields.Add(map);
                 } else {
                     Field normal = ParseNormalOrGroupField(message);
@@ -159,8 +159,8 @@ namespace datamodel.schema.source.protobuf {
         //      string name = 4 [...options...];
         //      SubMessage sub_message = 9;
         //  }
-        private FieldOneOf ParseOneOfField() {
-            FieldOneOf field = new FieldOneOf() {
+        private FieldOneOf ParseOneOfField(Owner owner) {
+            FieldOneOf field = new FieldOneOf(owner) {
                 Comment = CurrentComment(),
                 Name = Next(),
             };
@@ -173,7 +173,7 @@ namespace datamodel.schema.source.protobuf {
                     // Do nothing - emptyStatement
                 } else {
                     string type = Next();
-                    FieldNormal normal = ParseNormalField(FieldModifier.None, type);
+                    FieldNormal normal = ParseNormalField(owner, FieldModifier.None, type);
                     field.Fields.Add(normal);
                 }
             }
@@ -183,14 +183,14 @@ namespace datamodel.schema.source.protobuf {
 
         // Example:
         //  map<string, Project> projects = 3 [...options...];
-        private FieldMap ParseMapField() {
-            FieldMap map = new FieldMap() {
+        private FieldMap ParseMapField(Owner owner) {
+            FieldMap map = new FieldMap(owner) {
                 Comment = CurrentComment(),
             };
             Expect("<");
-            map.KeyType = new Type(Next());
+            map.KeyType = new Type(map, Next());
             Expect(",");
-            map.ValueType = new Type(Next());
+            map.ValueType = new Type(map, Next());
             Expect(">");
             map.Name = Next();
             Expect("=");
@@ -226,17 +226,17 @@ namespace datamodel.schema.source.protobuf {
             if (groupOrType == "group")     // Proto2. Could explicitly check syntax first.
                 return ParseGroupField(message, modifier);
             else 
-                return ParseNormalField(modifier, groupOrType);
+                return ParseNormalField(message, modifier, groupOrType);
         }
 
-        private FieldNormal ParseNormalField(FieldModifier modifier, string type) {
+        private FieldNormal ParseNormalField(Owner owner, FieldModifier modifier, string type) {
             // Order of populating fields is important
-            FieldNormal field = new FieldNormal() {
+            FieldNormal field = new FieldNormal(owner) {
                 Modifier = modifier,
                 Comment = CurrentComment(),
-                Type = new Type(type),
-                Name = Next(),
             };
+            field.Type = new Type(field, type);
+            field.Name = Next();
 
             Expect("=");
             field.Number = ParseInt();
@@ -362,7 +362,7 @@ namespace datamodel.schema.source.protobuf {
         // }
         private FieldGroup ParseGroupField(Message message, FieldModifier modifier) {
             // Order of populating fields is important
-            FieldGroup field = new FieldGroup() {
+            FieldGroup field = new FieldGroup(message) {
                 Comment = CurrentComment(),
                 Name = Next(),
             };

@@ -16,31 +16,77 @@ namespace datamodel.schema.source.protobuf {
             FileBundle bundle = new FileBundle();
 
             foreach (string path in paths)
-                ReadFile(bundle, path, null);
+                ReadFile(bundle, path, new HashSet<string>());
 
             return bundle;
         }
 
-        private void ReadFile(FileBundle bundle, string path, string[] typesOfInterest) {
+
+        // Algorithm...
+        //
+        // 1. Parse the file at 'path'
+        // 2. Get the list of all external imported types
+        // 3. Discard types which are NOT USED WITHIN 'typesOfInterest'
+        // 4. If the resulting list is non-empty, parse all imports
+        //
+        // NOTE: This could be improved in a couple of ways
+        // a) Usage package name of tpye of interest to help choose imports
+        // b) Rather than parsing the entire file, just get to the point where we've tokenized up to the package def
+        //    and do not proceed further if that file defines a package in which we have no interest.
+
+        // Example...
+        //
+        // # File a.proto
+        // import "b.proto" 
+        // message msgA {
+        //   b.msgB1            f1 = 1;
+        //   b.msgB1.nestedB    f2 = 2;
+        // }
+        //
+        // ==>   types-of-interest: [b.msgB1, b.msgB1.nestedB]
+        //
+        // # File b.proto
+        // package b;
+        // import "c.proto" 
+        // import "d.proto" 
+        // message msgB1 {                    // This is type 'b.msgB1'
+        //   message nestedB {}               // This is type 'b.msgB1.nesstedB'
+        // }
+        // message msgB2 {
+        //   c.msgC             f1 = 1;       // We will NOT parse the imports of B 
+        //                                    // since c.msgC is NOT in types of interest
+        // }
+        private void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest) {
             // TODO... This is too simplistic, because we may have different typesOfInterest
             // if (bundle.HasFile(path))
             //     return;
 
+            // Step 1: Read and parse file
             string fileData = System.IO.File.ReadAllText(path);
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(fileData));
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File file = parser.Parse();
             file.Path = path;
-
             bundle.AddFile(file);
 
-            foreach (Import import in file.Imports) {
-                string[] importTypesOfInterest = GetImportedTypes(file);
-                ReadFile(bundle, import.ImportPath, importTypesOfInterest);
+            // Step 2
+            HashSet<Type> importedTypes = FindImportedTypes(file);
+
+            // Step 3
+            HashSet<string> importedTypesOfInterest = new HashSet<string>();
+            foreach (Type type in importedTypes) {
+                Message owner = type.OwnerField.Owner as Message;
+                if (typesOfInterest.Contains(owner.FullyQualifiedName()))
+                    importedTypesOfInterest.Add(type.Name);
             }
+
+            // Step 4
+            if (importedTypesOfInterest.Count > 0)
+                foreach (Import import in file.Imports) 
+                    ReadFile(bundle, import.ImportPath, importedTypesOfInterest);
         }
 
-        private string[] GetImportedTypes(File file) {
+        private HashSet<Type> FindImportedTypes(File file) {
             List<Type> types = new List<Type>();
 
             foreach (Message message in file.Messages)
@@ -48,11 +94,7 @@ namespace datamodel.schema.source.protobuf {
             foreach (Extend extend in file.Extends)
                 AddTypesForExtend(types, extend);
 
-            return types
-                .Where(x => x.IsImported)
-                .Select(x => x.Name)
-                .Distinct()
-                .ToArray();
+            return new HashSet<Type>(types.Where(x => x.IsImported));
         }
 
         private void AddTypesForMessage(List<Type> types, Message message) {
@@ -97,11 +139,13 @@ namespace datamodel.schema.source.protobuf {
 
             // Remember package => list of files
             string package = file.Package;
-            if (!_packageDict.TryGetValue(package, out List<File> files)) {
-                files = new List<File>();
-                _packageDict[package] = files;
+            if (!string.IsNullOrWhiteSpace(package)) {
+                if (!_packageDict.TryGetValue(package, out List<File> files)) {
+                    files = new List<File>();
+                    _packageDict[package] = files;
+                }
+                files.Add(file);
             }
-            files.Add(file);
         }
         #endregion
     }
