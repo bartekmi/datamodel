@@ -38,13 +38,13 @@ message myMessage {
        Description:  Message description,
        AllProperties: [
          {
+           DataType: string,
            Name: field1,
-           Description:  Field description,
-           DataType: string
+           Description:  Field description
          },
          {
-           Name: field2,
-           DataType: []int32
+           DataType: []int32,
+           Name: field2
          }
        ]
      }
@@ -75,14 +75,14 @@ message myMessage {
        Description:  Message description,
        AllProperties: [
          {
+           DataType: string,
            Name: field1,
-           Description: One-of Group: myOneof\n\n Oneof description\n\n Field description,
-           DataType: string
+           Description: One-of Group: myOneof\n\n Oneof description\n\n Field description
          },
          {
+           DataType: int32,
            Name: field2,
-           Description: One-of Group: myOneof\n\n Oneof description,
-           DataType: int32
+           Description: One-of Group: myOneof\n\n Oneof description
          }
        ]
      }
@@ -110,8 +110,8 @@ message myMessage {
        Description:  Message description,
        AllProperties: [
          {
-           Name: stringMap,
-           DataType: [int32]string
+           DataType: [int32]string,
+           Name: stringMap
          }
        ]
      }
@@ -150,7 +150,6 @@ message myMessage {
        QualifiedName: myMessage,
        AllProperties: [
          {
-           Name: field1,
            DataType: myEnum,
            Enum: {
              Name: myEnum,
@@ -165,7 +164,8 @@ message myMessage {
                  Value:  Second
                }
              ]
-           }
+           },
+           Name: field1
          }
        ]
      }
@@ -198,8 +198,8 @@ message myMessage {
        QualifiedName: myNested,
        AllProperties: [
          {
-           Name: f1,
-           DataType: string
+           DataType: string,
+           Name: f1
          }
        ]
      }
@@ -240,7 +240,6 @@ service SearchService {
        QualifiedName: SearchService,
        Methods: [
          {
-           Name: Search,
            ParameterTypes: [
              {
                Name: SearchRequest
@@ -248,7 +247,8 @@ service SearchService {
            ],
            ReturnType: {
              Name: SearchResponse
-           }
+           },
+           Name: Search
          }
        ]
      }

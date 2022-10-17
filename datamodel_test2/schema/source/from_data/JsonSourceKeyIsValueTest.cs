@@ -32,14 +32,14 @@ namespace datamodel.schema.source.from_data {
 
             Assert.True(json.Replace(" ", "")
                 .Contains(@"{
+          DataType: string,
+          Name: __key__,
           Labels: [
             {
               Name: Example,
               Value: one
             }
-          ],
-          Name: __key__,
-          DataType: string
+          ]
         }".Replace(" ", "")), json);
         }
 
@@ -119,25 +119,19 @@ namespace datamodel.schema.source.from_data {
             Assert.Equal(@"{
   Models: {
     cluster1: {
+      Name: cluster1,
+      QualifiedName: cluster1,
+      Levels: [
+        cluster1
+      ],
       Labels: [
         {
           Name: Instance Count,
           Value: 1
         }
-      ],
-      Name: cluster1,
-      QualifiedName: cluster1,
-      Levels: [
-        cluster1
       ]
     },
     cluster1.key_is_value: {
-      Labels: [
-        {
-          Name: Instance Count,
-          Value: 2
-        }
-      ],
       Name: key_is_value,
       QualifiedName: cluster1.key_is_value,
       Levels: [
@@ -145,18 +139,18 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: __key__,
-          DataType: string
+          DataType: string,
+          Name: __key__
+        }
+      ],
+      Labels: [
+        {
+          Name: Instance Count,
+          Value: 2
         }
       ]
     },
     cluster1.key_is_value.Item: {
-      Labels: [
-        {
-          Name: Instance Count,
-          Value: 3
-        }
-      ],
       Name: Item,
       QualifiedName: cluster1.key_is_value.Item,
       Levels: [
@@ -164,8 +158,14 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: z,
-          DataType: Integer
+          DataType: Integer,
+          Name: z
+        }
+      ],
+      Labels: [
+        {
+          Name: Instance Count,
+          Value: 3
         }
       ]
     }

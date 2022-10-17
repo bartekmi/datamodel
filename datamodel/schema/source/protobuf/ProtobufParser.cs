@@ -85,8 +85,8 @@ namespace datamodel.schema.source.protobuf {
             }
             
             Expect(";");
-            file.Imports.Add(new File() {
-                Path = path,
+            file.Imports.Add(new Import() {
+                ImportPath = path,
                 ImportType = importType,
             });
         }

@@ -15,7 +15,7 @@ namespace datamodel.schema {
         public bool ShouldSerializeDescription() { return !string.IsNullOrWhiteSpace(Description); }
         public bool Deprecated { get; set; }
         public List<Label> Labels { get; set; } = new List<Label>();      // Arbitrary user-defined labels
-        public bool ShouldSerializeLabels() { return Labels.Count > 0; }
+        public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         // Hydrated
         [JsonIgnore]    // Owner causes a "Self referencing loop"

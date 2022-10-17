@@ -31,12 +31,6 @@ namespace datamodel.schema.source.from_data {
             Assert.Equal(@"{
   Models: {
     cluster1: {
-      Labels: [
-        {
-          Name: Instance Count,
-          Value: 2
-        }
-      ],
       Name: cluster1,
       QualifiedName: cluster1,
       Levels: [
@@ -44,28 +38,28 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: a,
-          DataType: Integer
+          DataType: Integer,
+          Name: a
         },
         {
-          Name: b,
           CanBeEmpty: true,
-          DataType: Integer
+          DataType: Integer,
+          Name: b
         },
         {
-          Name: c,
           CanBeEmpty: true,
-          DataType: Integer
+          DataType: Integer,
+          Name: c
         }
-      ]
-    },
-    cluster1.obj1: {
+      ],
       Labels: [
         {
           Name: Instance Count,
           Value: 2
         }
-      ],
+      ]
+    },
+    cluster1.obj1: {
       Name: obj1,
       QualifiedName: cluster1.obj1,
       Levels: [
@@ -73,18 +67,18 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: n,
-          DataType: String
+          DataType: String,
+          Name: n
+        }
+      ],
+      Labels: [
+        {
+          Name: Instance Count,
+          Value: 2
         }
       ]
     },
     cluster2: {
-      Labels: [
-        {
-          Name: Instance Count,
-          Value: 1
-        }
-      ],
       Name: cluster2,
       QualifiedName: cluster2,
       Levels: [
@@ -92,18 +86,18 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: z,
-          DataType: Integer
+          DataType: Integer,
+          Name: z
         }
-      ]
-    },
-    cluster2.obj999: {
+      ],
       Labels: [
         {
           Name: Instance Count,
           Value: 1
         }
-      ],
+      ]
+    },
+    cluster2.obj999: {
       Name: obj999,
       QualifiedName: cluster2.obj999,
       Levels: [
@@ -111,8 +105,14 @@ namespace datamodel.schema.source.from_data {
       ],
       AllProperties: [
         {
-          Name: n,
-          DataType: String
+          DataType: String,
+          Name: n
+        }
+      ],
+      Labels: [
+        {
+          Name: Instance Count,
+          Value: 1
         }
       ]
     }

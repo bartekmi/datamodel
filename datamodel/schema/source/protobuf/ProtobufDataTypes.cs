@@ -32,19 +32,12 @@ namespace datamodel.schema.source.protobuf {
             return string.Join(".", components);
         }
     }
-
-    public enum ImportType {
-        None,
-        Weak,
-        Public,
-    }
     public class File : Base, Owner {
         public string Path { get; set; }
         public string Package { get; set; }
         public string Syntax { get; set; }
-        public ImportType ImportType { get; set; }
 
-        public List<File> Imports { get; } = new List<File>();
+        public List<Import> Imports { get; } = new List<Import>();
         public List<Service> Services { get; }=  new List<Service>();
         public List<Message> Messages { get; } = new List<Message>();
         public List<EnumDef> EnumDefs { get; } = new List<EnumDef>();
@@ -61,6 +54,16 @@ namespace datamodel.schema.source.protobuf {
         public bool IsFile() { return true; }
     }
 
+    public enum ImportType {
+        None,
+        Weak,
+        Public,
+    }
+    public class Import {
+        public string ImportPath { get; set; }
+        public ImportType ImportType { get; set; }
+    }
+
     public class Service : Base {
         public string Name { get; set; }
         public List<Rpc> Rpcs { get; } = new List<Rpc>(); 
@@ -73,9 +76,6 @@ namespace datamodel.schema.source.protobuf {
 
         public string OutputName { get; set; }
         public bool IsOutputStream { get; set; }
-
-        public Message Input;
-        public Message Output;
     }
 
     public class Message : Base, Owner, Owned {
@@ -99,6 +99,8 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public abstract class Field : Base {
+        // Return list of all types used by this field
+        public abstract IEnumerable<Type> UsedTypes();
         public string Name { get; set; }
     }
 
@@ -112,16 +114,28 @@ namespace datamodel.schema.source.protobuf {
         public FieldModifier Modifier { get; set; }
         public Type Type { get; set; }
         public int Number { get; set; }
+
+        public override IEnumerable<Type> UsedTypes() {
+            return new Type[] { Type };
+        }
     }
 
     public class FieldOneOf : Field {
         public List<FieldNormal> Fields { get; } = new List<FieldNormal>();
+
+        public override IEnumerable<Type> UsedTypes() {
+            return Fields.Select(x => x.Type);
+        }
     }
 
     public class FieldMap : Field {
         public Type KeyType { get; set; }
         public Type ValueType { get; set; }
         public int Number { get; set; }
+
+        public override IEnumerable<Type> UsedTypes() {
+            return new Type[] { KeyType, ValueType };
+        }
     }
 
     public class Type {
@@ -132,12 +146,12 @@ namespace datamodel.schema.source.protobuf {
         };
 
         public string Name { get; set; }
-        public EnumDef EnumType { get; set; }
-        public Message MessageType { get; set; }
 
         // Derived
         [JsonIgnore]
-        public bool IsAtomic { get { return ATOMIC_TYPES.Any(x => x == Name ); } }
+        public bool IsAtomic { get => ATOMIC_TYPES.Any(x => x == Name ); } 
+        [JsonIgnore]
+        public bool IsImported { get => Name.Contains('.'); }
 
         public Type(string name) {
             Name = name;
@@ -159,9 +173,13 @@ namespace datamodel.schema.source.protobuf {
 
     #region Specific to Protobuf 2
     public class FieldGroup : Field {
-       public FieldModifier Modifier { get; set; }
-       public List<Field> Fields { get; } = new List<Field>();
-       public int Number { get; set; }
+        public FieldModifier Modifier { get; set; }
+        public List<Field> Fields { get; } = new List<Field>();
+        public int Number { get; set; }
+
+        public override IEnumerable<Type> UsedTypes() {
+            return Fields.SelectMany(x => UsedTypes());
+        }
     }
 
     // TODO: Extensions are important, but it is not yet clear to me how best to represent them visually.

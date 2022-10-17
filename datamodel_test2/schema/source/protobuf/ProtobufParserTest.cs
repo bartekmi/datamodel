@@ -41,14 +41,14 @@ option java_package = 'com.example.foo';
   Syntax: proto3,
   Imports: [
     {
-      Path: my/dir/one.proto
+      ImportPath: my/dir/one.proto
     },
     {
-      Path: my/dir/two.proto,
+      ImportPath: my/dir/two.proto,
       ImportType: Weak
     },
     {
-      Path: my/dir/three.proto,
+      ImportPath: my/dir/three.proto,
       ImportType: Public
     }
   ]
