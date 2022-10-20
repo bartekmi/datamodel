@@ -30,7 +30,6 @@ message myMessage {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      myMessage: {
        Name: myMessage,
@@ -67,7 +66,6 @@ message myMessage {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      myMessage: {
        Name: myMessage,
@@ -102,7 +100,6 @@ message myMessage {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      myMessage: {
        Name: myMessage,
@@ -143,7 +140,6 @@ message myMessage {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      myMessage: {
        Name: myMessage,
@@ -187,7 +183,6 @@ message myMessage {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      myMessage: {
        Name: myMessage,
@@ -233,7 +228,6 @@ service SearchService {
 
             RunTest(proto, @"
  {
-   Title: myproto.proto,
    Models: {
      SearchService: {
        Name: SearchService,
@@ -258,8 +252,9 @@ service SearchService {
 
         #region Utilities
         private void RunTest(string protoContent, string expected) {
+            FileBundle bundle = DummyFileBundle(protoContent);
             ProtobufSource source = new ProtobufSource();
-            source.InitializeInternal("/my/dir/myproto.proto", protoContent);
+            source.InitializeInternal(bundle);
 
             TempSource tempSource = TempSource.CloneFromSource(source);
             string actual = tempSource.ToJasonNoQuotes();
@@ -273,6 +268,15 @@ service SearchService {
                 Assert.Equal(expected, actual);
             }
         }
-        #endregion
+
+        private FileBundle DummyFileBundle(string protoContent) {
+          // Note: no actual imports are planned
+          ProtobufImporter importer = new ProtobufImporter(null);
+          return importer.ProcessFile(new PathAndContent() {
+            Path = "",
+            Content = protoContent,
+          });
+        }
+       #endregion
     }
 }

@@ -17,33 +17,38 @@ namespace datamodel.schema.source.protobuf {
         private List<Model> _models = new List<Model>();
         private List<Association> _associations = new List<Association>();
 
-        public const string PARAM_PATH = "path";
+        public const string PARAM_PATHS = "paths";
+        public const string PARAM_IMPORT_ROOT = "import-root";
         public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
 
         public override void Initialize(Parameters parameters) {
-            string fileName = parameters.GetRawText(PARAM_PATH);
-            string fileData = parameters.GetFileContent(PARAM_PATH);
+            FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);
+            IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
+            string firstPath = files.FirstOrDefault()?.Path;
+            _title = Path.GetFileName(firstPath);
 
-            InitializeInternal(fileName, fileData);
+            string importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
+
+            ProtobufImporter importer = new ProtobufImporter(importRoot);
+            FileBundle bundle = importer.ProcessFiles(files);
+            InitializeInternal(bundle);
         }
 
-        internal void InitializeInternal(string fileName, string fileData) {
-            _title = Path.GetFileName(fileName);
-
-            ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(fileData));
-            ProtobufParser parser = new ProtobufParser(tokenizer);
-            File pbFile = parser.Parse();
-
-            // TODO(issues/25) - Show Services and Rpc's
-
-            PassOne(pbFile);
-            PassTwo(pbFile);
+        internal void InitializeInternal(FileBundle bundle) {
+            PassOne(bundle);
+            PassTwo(bundle);
         }
 
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>() {
                 new ParameterFileOrDir() {
-                    Name = PARAM_PATH,
+                    Name = PARAM_IMPORT_ROOT,
+                    Description = "Root directory where imports are looked for",
+                    IsMandatory = false,
+                    Default = ".",
+                },
+                new ParameterFileOrDir() {
+                    Name = PARAM_PATHS,
                     Description = "The name of the file or directoery which contains the root protobuf file(s). If directory, it is scanned recursively.",
                     IsMandatory = true,
                     IsMultiple = true,
@@ -68,10 +73,10 @@ namespace datamodel.schema.source.protobuf {
 
         #region Pass One - Build dictionary of all messages and enums
 
-        private void PassOne(File file) {
-            foreach (Message message in file.Messages)
+        private void PassOne(FileBundle bundle) {
+            foreach (Message message in bundle.AllMessages())
                 PassOneMessage(message);
-            foreach (EnumDef enumDef in file.EnumDefs)
+            foreach (EnumDef enumDef in bundle.AllEnumDefs())
                 PassOneEnum(enumDef);
         }
 
@@ -98,10 +103,10 @@ namespace datamodel.schema.source.protobuf {
 
         #region Pass Two - Iterates messages, creates Models, fill in properties, associations
 
-        private void PassTwo(File file) {
+        private void PassTwo(FileBundle bundle) {
             foreach (Message message in _messages.Values)
                 PassTwoMessage(message);
-            foreach (Service service in file.Services)
+            foreach (Service service in bundle.AllServices())
                 PassTwoService(service);
         }
 

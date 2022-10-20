@@ -22,9 +22,8 @@ namespace datamodel.schema.source.protobuf {
             string basePath = "../../../schema/source/protobuf";
             ProtobufImporter importer = new ProtobufImporter(basePath);
 
-            FileBundle bundle = importer.ReadFiles(new string[] {
-                Path.Join(basePath, "a.proto")
-            });
+            string path = Path.Join(basePath, "a.proto");
+            FileBundle bundle = importer.ProcessFile(PathAndContent.Read(path));
 
             _output.WriteLine("Printing bundle...");
             _output.WriteLine(JsonFormattingUtils.JsonPretty(bundle));

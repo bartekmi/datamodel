@@ -15,15 +15,15 @@ namespace datamodel.schema.source.protobuf {
             _importBasePath = importBasePath;
         }
 
-        public FileBundle ReadDirTree(string paths) {
-            throw new NotImplementedException();
+        public FileBundle ProcessFile(PathAndContent file) {
+            return ProcessFiles(new PathAndContent[] { file });
         }
 
-        public FileBundle ReadFiles(string[] paths) {
+        public FileBundle ProcessFiles(IEnumerable<PathAndContent> files) {
             FileBundle bundle = new FileBundle();
 
-            foreach (string path in paths)
-                ReadFile(bundle, path, null, true);     // Top level file - include in results
+            foreach (PathAndContent file in files)
+                ReadFile(bundle, file, null, true);     // Top level file - include in results
 
             return bundle;
         }
@@ -65,18 +65,20 @@ namespace datamodel.schema.source.protobuf {
         //   c.msgC             f1 = 1;       // We will NOT parse the imports of B 
         //                                    // since c.msgC is NOT in types of interest
         // }
-        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest, bool includeInResults) {
+        internal void ReadFile(FileBundle bundle, PathAndContent pac, HashSet<string> typesOfInterest, bool includeInResults) {
             // TODO... This is too simplistic, because we may have different typesOfInterest
             // if (bundle.HasFile(path))
             //     return;
 
             // Step 1: Read and parse file
-            string fileData = System.IO.File.ReadAllText(path);
-            ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(fileData));
+            ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File file = parser.Parse();
-            file.Path = path;
+            file.Path = pac.Path;
             file.IncludeInResults = includeInResults;
+            if (includeInResults)
+                foreach (Message message in file.AllMessages())
+                    message.IncludeInResults = true;
             bundle.AddFile(file);
 
             // Step 2
@@ -100,6 +102,12 @@ namespace datamodel.schema.source.protobuf {
                     ReadFile(bundle, importPath, importedTypesOfInterest, false);   // Do not include in results indiscriminantly
                 }
         }
+
+        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest, bool includeInResults) {
+            PathAndContent pac = PathAndContent.Read(path);
+            ReadFile(bundle, pac, typesOfInterest, includeInResults);
+        }
+
 
         private HashSet<Type> FindImportedTypes(File file) {
             List<Type> types = new List<Type>();

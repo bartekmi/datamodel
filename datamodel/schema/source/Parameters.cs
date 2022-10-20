@@ -124,6 +124,10 @@ namespace datamodel.schema.source {
             IsDir = isDir;
             Files = files;
         }
+
+        public static IEnumerable<PathAndContent> Combine(IEnumerable<FileOrDir> fileOrDirs) {
+            return fileOrDirs.SelectMany(x => x.Files);
+        }
     }
     public class PathAndContent {
         public string Path;
@@ -274,6 +278,18 @@ namespace datamodel.schema.source {
 
         public string GetRawText(string paramName) {
             return GetParameter(paramName).Text;
+        }
+
+        public FileOrDir GetFileOrDir(string paramName) {
+            return GetParamValue(paramName, ParamType.FileOrDir) as FileOrDir;
+        }
+
+        public FileOrDir[] GetFileOrDirs(string paramName) {
+            object values = GetParamValue(paramName, ParamType.FileOrDir, true);
+            if (values == null)
+                return new FileOrDir[0];
+
+            return ((List<object>)values).Cast<FileOrDir>().ToArray();
         }
 
         private object GetParamValue(string paramName, ParamType type, bool isMultiple = false) {
