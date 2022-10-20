@@ -15,10 +15,10 @@ namespace datamodel.schema.source {
         Float,
         Bool,
         File,
+        FileOrDir,
         Url,
         Regex,
     }
-
     public class Parameter {
         public string Name;
         public string Description;
@@ -36,42 +36,46 @@ namespace datamodel.schema.source {
             Text = text;
 
             if (IsMultiple) {
-                StringBuilder builder = new StringBuilder();
+                StringBuilder errorBuilder = new StringBuilder();
                 string[] pieces = text.Split(',', StringSplitOptions.RemoveEmptyEntries);
                 List<object> values = new List<object>();
                 Value = values;
 
                 foreach (string piece in pieces) {
-                    values.Add(ParseSingle(piece.Trim(), out string error));
+                    values.Add(ParseSingleWithCatch(piece.Trim(), out string error));
                     if (error != null)
-                        builder.AppendLine(error);
+                        errorBuilder.AppendLine(error);
                 }
 
-                return builder.Length == 0 ? null : builder.ToString();
+                return errorBuilder.Length == 0 ? null : errorBuilder.ToString();
             } else {
-                Value = ParseSingle(text, out string error);
+                Value = ParseSingleWithCatch(text, out string error);
                 return error;
             }
         }
 
-        private object ParseSingle(string text, out string error) {
+        private object ParseSingleWithCatch(string text, out string error) {
             error = null;
 
             try {
-                switch (Type) {
-                    case ParamType.String: return text;
-                    case ParamType.Int: return int.Parse(text);
-                    case ParamType.Float: return double.Parse(text);
-                    case ParamType.Bool: return bool.Parse(text);
-                    case ParamType.File: return File.ReadAllText(text);
-                    case ParamType.Url: return DownloadUrl(text);
-                    case ParamType.Regex: return new Regex(text);
-                    default:
-                        throw new Exception("Unknown type; fix your code: " + Type);
-                }
+                return ParseSingle(text);
             } catch {
                 error = string.Format("Could not parse/read {0} from '{1}'", Type, text);
                 return null;
+            }
+        }
+
+        internal virtual object ParseSingle(string text) {
+            switch (Type) {
+                case ParamType.String: return text;
+                case ParamType.Int: return int.Parse(text);
+                case ParamType.Float: return double.Parse(text);
+                case ParamType.Bool: return bool.Parse(text);
+                case ParamType.File: return File.ReadAllText(text);
+                case ParamType.Url: return DownloadUrl(text);
+                case ParamType.Regex: return new Regex(text);
+                default:
+                    throw new Exception("Unknown type; fix your code: " + Type);
             }
         }
 
@@ -86,6 +90,49 @@ namespace datamodel.schema.source {
                 if (error != null)
                     throw new Exception(string.Format("Default value for {0} could not be parsed; fix your code", Name));
             }
+        }
+    }
+    public class ParameterFileOrDir : Parameter {
+        public string FilePattern;
+
+        public ParameterFileOrDir() {
+            Type = ParamType.FileOrDir;
+        }
+
+        internal override object ParseSingle(string path) {
+            FileAttributes attr = File.GetAttributes(path);
+            if ((attr & FileAttributes.Directory) == FileAttributes.Directory) {
+                List<PathAndContent> files = new List<PathAndContent>();
+                ReadRecursively(files, path);
+                return new FileOrDir(true, files);
+            } else
+                return new FileOrDir(false, new List<PathAndContent>() { PathAndContent.Read(path)});
+        }
+
+        private void ReadRecursively(List<PathAndContent> files, string dir) {
+            files.AddRange(Directory.GetFiles(dir).Select(x => PathAndContent.Read(x)));
+            foreach (string nestedDir in Directory.GetDirectories(dir, FilePattern))
+                ReadRecursively(files, nestedDir);
+        }
+    }
+    public class FileOrDir {
+        public bool IsDir { get; private set; }
+        // Guaranteed to be only one if this IsDir is false
+        public List<PathAndContent> Files { get; private set; }
+
+        internal FileOrDir(bool isDir, List<PathAndContent> files) {
+            IsDir = isDir;
+            Files = files;
+        }
+    }
+    public class PathAndContent {
+        public string Path;
+        public string Content;
+        internal static PathAndContent Read(string path) {
+            return new PathAndContent() {
+                Path = path,
+                Content = File.ReadAllText(path),
+            };
         }
     }
     #endregion

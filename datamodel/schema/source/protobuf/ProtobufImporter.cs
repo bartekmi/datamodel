@@ -23,7 +23,7 @@ namespace datamodel.schema.source.protobuf {
             FileBundle bundle = new FileBundle();
 
             foreach (string path in paths)
-                ReadFile(bundle, path, null);
+                ReadFile(bundle, path, null, true);     // Top level file - include in results
 
             return bundle;
         }
@@ -65,7 +65,7 @@ namespace datamodel.schema.source.protobuf {
         //   c.msgC             f1 = 1;       // We will NOT parse the imports of B 
         //                                    // since c.msgC is NOT in types of interest
         // }
-        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest) {
+        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest, bool includeInResults) {
             // TODO... This is too simplistic, because we may have different typesOfInterest
             // if (bundle.HasFile(path))
             //     return;
@@ -76,6 +76,7 @@ namespace datamodel.schema.source.protobuf {
             ProtobufParser parser = new ProtobufParser(tokenizer);
             File file = parser.Parse();
             file.Path = path;
+            file.IncludeInResults = includeInResults;
             bundle.AddFile(file);
 
             // Step 2
@@ -87,6 +88,7 @@ namespace datamodel.schema.source.protobuf {
                 Message owner = type.OwnerField.Owner as Message;
                 if (typesOfInterest == null ||                                  // 3a above
                     typesOfInterest.Contains(owner.FullyQualifiedName())) {     // 3b above
+                        owner.IncludeInResults = true;
                         importedTypesOfInterest.Add(type.Name);
                     }
             }
@@ -95,7 +97,7 @@ namespace datamodel.schema.source.protobuf {
             if (importedTypesOfInterest.Count > 0)
                 foreach (Import import in file.Imports) {
                     string importPath = Path.Join(_importBasePath, import.ImportPath);
-                    ReadFile(bundle, importPath, importedTypesOfInterest);
+                    ReadFile(bundle, importPath, importedTypesOfInterest, false);   // Do not include in results indiscriminantly
                 }
         }
 
@@ -130,7 +132,6 @@ namespace datamodel.schema.source.protobuf {
 
             AddTypesForMessage(types, extend.Message);
         }
-
     }
 
     #region Helper Classes
@@ -169,6 +170,23 @@ namespace datamodel.schema.source.protobuf {
                 files.Add(file);
             }
         }
-        #endregion
+
+        public IEnumerable<Message> AllMessages() {
+            return _fileDict.Values
+                .SelectMany(x => x.AllMessages())
+                .Where(x => x.IncludeInResults);
+        }
+
+        public IEnumerable<EnumDef> AllEnumDefs() {
+            return _fileDict.Values
+                .SelectMany(x => x.AllEnumDefs());
+        }
+
+        public IEnumerable<Service> AllServices() {
+            return _fileDict.Values
+                .Where(x => x.IncludeInResults)
+                .SelectMany(x => x.Services);
+        }
     }
+    #endregion
 }

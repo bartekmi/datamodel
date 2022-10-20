@@ -17,12 +17,12 @@ namespace datamodel.schema.source.protobuf {
         private List<Model> _models = new List<Model>();
         private List<Association> _associations = new List<Association>();
 
-        public const string PARAM_FILE = "file";
+        public const string PARAM_PATH = "path";
         public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
 
         public override void Initialize(Parameters parameters) {
-            string fileName = parameters.GetRawText(PARAM_FILE);
-            string fileData = parameters.GetFileContent(PARAM_FILE);
+            string fileName = parameters.GetRawText(PARAM_PATH);
+            string fileData = parameters.GetFileContent(PARAM_PATH);
 
             InitializeInternal(fileName, fileData);
         }
@@ -42,11 +42,12 @@ namespace datamodel.schema.source.protobuf {
 
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>() {
-                new Parameter() {
-                    Name = PARAM_FILE,
-                    Description = "The name of the file which contains the root protobuf file",
-                    Type = ParamType.File,
+                new ParameterFileOrDir() {
+                    Name = PARAM_PATH,
+                    Description = "The name of the file or directoery which contains the root protobuf file(s). If directory, it is scanned recursively.",
                     IsMandatory = true,
+                    IsMultiple = true,
+                    FilePattern = "*.proto",
                 },
             };
         }
@@ -67,10 +68,10 @@ namespace datamodel.schema.source.protobuf {
 
         #region Pass One - Build dictionary of all messages and enums
 
-        private void PassOne(File pbFile) {
-            foreach (Message message in pbFile.Messages)
+        private void PassOne(File file) {
+            foreach (Message message in file.Messages)
                 PassOneMessage(message);
-            foreach (EnumDef enumDef in pbFile.EnumDefs)
+            foreach (EnumDef enumDef in file.EnumDefs)
                 PassOneEnum(enumDef);
         }
 
@@ -97,10 +98,10 @@ namespace datamodel.schema.source.protobuf {
 
         #region Pass Two - Iterates messages, creates Models, fill in properties, associations
 
-        private void PassTwo(File pbFile) {
+        private void PassTwo(File file) {
             foreach (Message message in _messages.Values)
                 PassTwoMessage(message);
-            foreach (Service service in pbFile.Services)
+            foreach (Service service in file.Services)
                 PassTwoService(service);
         }
 

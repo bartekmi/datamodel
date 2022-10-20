@@ -7,6 +7,14 @@ namespace datamodel.schema.source.protobuf {
     public class Base {
         public string Comment { get; set; }
         public bool ShouldSerializeComment() { return !string.IsNullOrWhiteSpace(Comment); }
+
+        // Though not strictly part of the parse results, this is a convenience flag
+        // to indicate whether this entity should be included in the ultimate
+        // results.
+        // This is important to distinguish imported entities that are needed by
+        // Messages from Files we want vs. other redundant entities.
+        [JsonIgnore]
+        public bool IncludeInResults { get; set; }
     }
 
     public interface Owner {
@@ -52,6 +60,39 @@ namespace datamodel.schema.source.protobuf {
 
         // Owner interface
         public bool IsFile() { return true; }
+
+        public IEnumerable<Message> AllMessages() {
+            List<Message> messages = new List<Message>();
+
+            messages.AddRange(Messages);
+            foreach (Message message in Messages)
+                AddNestedMessages(messages, message);
+
+            return messages;
+        }
+
+        private void AddNestedMessages(List<Message> messages, Message message) {
+            messages.AddRange(message.Messages);
+            foreach (Message nested in message.Messages) {
+                AddNestedMessages(messages, nested);
+            }
+        }
+
+        public IEnumerable<EnumDef> AllEnumDefs() {
+            List<EnumDef> enums = new List<EnumDef>();
+
+            enums.AddRange(EnumDefs);
+            foreach (Message message in Messages)
+                AddNestedEnumDefs(enums, message);
+                
+            return enums;
+        }
+
+        private void AddNestedEnumDefs(List<EnumDef> enums, Message message) {
+            enums.AddRange(message.EnumDefs);
+            foreach (Message nested in message.Messages) 
+                AddNestedEnumDefs(enums, nested);
+        }
     }
 
     public enum ImportType {
