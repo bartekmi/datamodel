@@ -49,7 +49,7 @@ namespace datamodel {
                 Dictionary<string, SchemaSource> schemaSources = new Dictionary<string, SchemaSource>() {
                 { "json", new JsonSource() },
                 { "k8s", new K8sSwaggerSource() },
-                { "protobuf", new ProtobufSource() },
+                { "proto", new ProtobufSource() },
                 { "simple", new SimpleSource() },
                 { "swagger", new SwaggerSource() },
                 { "yaml", new YamlSource() },

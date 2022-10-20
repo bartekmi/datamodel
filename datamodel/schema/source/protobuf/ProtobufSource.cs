@@ -41,7 +41,8 @@ namespace datamodel.schema.source.protobuf {
 
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>() {
-                new ParameterFileOrDir() {
+                new Parameter() {
+                    Type = ParamType.String,
                     Name = PARAM_IMPORT_ROOT,
                     Description = "Root directory where imports are looked for",
                     IsMandatory = false,
