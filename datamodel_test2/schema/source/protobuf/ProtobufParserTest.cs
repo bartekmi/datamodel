@@ -410,6 +410,7 @@ message myMessage {
 
         #endregion
 
+        #region Utilities
         private void RunTest(string expected, string proto) {
             string actual = ReadProto(proto);
             expected = JsonFormattingUtils.DeleteFirstSpace(expected);
@@ -433,5 +434,6 @@ message myMessage {
             File file = parser.Parse();
             return JsonFormattingUtils.JsonPretty(file);
         }
+        #endregion
     }
 }

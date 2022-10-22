@@ -18,20 +18,68 @@ namespace datamodel.schema.source.protobuf {
         }
 
         [Fact]
-        public void ReadFile() {
+        public void BasicTestSingleImport() {
+            RunTest(@"
+ {
+   AllMessages: [
+     {
+       Name: msgA,
+       Fields: [
+         {
+           Type: {
+             Name: b.msgB1
+           },
+           Number: 1,
+           Name: f1
+         },
+         {
+           Type: {
+             Name: b.msgB1.nestedB
+           },
+           Number: 2,
+           Name: f2
+         }
+       ]
+     },
+     {
+       Name: msgB1,
+       Messages: [
+         {
+           Name: nestedB
+         }
+       ]
+     },
+     {
+       Name: nestedB
+     }
+   ]
+ }", "a.proto");
+        }
+
+        #region Utilities
+        private void RunTest(string expected, string protoFilePath) {
+            string actual = ReadBundle(protoFilePath);
+            expected = JsonFormattingUtils.DeleteFirstSpace(expected);
+
+            if (actual != expected) {
+                _output.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+                _output.WriteLine(actual);      // We do this to get actual in full glory
+                _output.WriteLine("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
+                Assert.Equal(expected, actual);
+            }
+        }
+
+        private string ReadBundle(string protoFilePath) {
             string basePath = "../../../schema/source/protobuf";
             ProtobufImporter importer = new ProtobufImporter(basePath);
 
-            string path = Path.Join(basePath, "a.proto");
+            string path = Path.Join(basePath, protoFilePath);
             FileBundle bundle = importer.ProcessFile(PathAndContent.Read(path));
+            bundle.RemoveComments();    // Clean up.
 
-            _output.WriteLine("Printing bundle...");
-            _output.WriteLine(JsonFormattingUtils.JsonPretty(bundle));
-
-            Assert.Equal(2, bundle.PackageDict.Count);
-
-            // Xunit only prints output on test failure
-            // Assert.Equal(false, true);
+            return JsonFormattingUtils.JsonPretty(bundle);
         }
+        #endregion
    }
 }

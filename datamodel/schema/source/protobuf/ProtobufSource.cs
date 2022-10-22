@@ -54,6 +54,10 @@ namespace datamodel.schema.source.protobuf {
                     IsMandatory = true,
                     IsMultiple = true,
                     FilePattern = "*.proto",
+                    // Since we have to read imports anyway, reading some files up-front and some on-the-go
+                    // doesn't really make sense. By having a single appraoch, this opens the possibility for a
+                    // "fake" file system for unit testing.
+                    ReadContent = false,
                 },
             };
         }
@@ -75,9 +79,9 @@ namespace datamodel.schema.source.protobuf {
         #region Pass One - Build dictionary of all messages and enums
 
         private void PassOne(FileBundle bundle) {
-            foreach (Message message in bundle.AllMessages())
+            foreach (Message message in bundle.AllMessages)
                 PassOneMessage(message);
-            foreach (EnumDef enumDef in bundle.AllEnumDefs())
+            foreach (EnumDef enumDef in bundle.AllEnumDefs)
                 PassOneEnum(enumDef);
         }
 
@@ -107,7 +111,7 @@ namespace datamodel.schema.source.protobuf {
         private void PassTwo(FileBundle bundle) {
             foreach (Message message in _messages.Values)
                 PassTwoMessage(message);
-            foreach (Service service in bundle.AllServices())
+            foreach (Service service in bundle.AllServices)
                 PassTwoService(service);
         }
 

@@ -15,15 +15,15 @@ namespace datamodel.schema.source.protobuf {
             _importBasePath = importBasePath;
         }
 
-        public FileBundle ProcessFile(PathAndContent file) {
-            return ProcessFiles(new PathAndContent[] { file });
+        public FileBundle ProcessFile(PathAndContent pac) {
+            return ProcessFiles(new PathAndContent[] { pac });
         }
 
-        public FileBundle ProcessFiles(IEnumerable<PathAndContent> files) {
+        public FileBundle ProcessFiles(IEnumerable<PathAndContent> pacs) {
             FileBundle bundle = new FileBundle();
 
-            foreach (PathAndContent file in files)
-                ReadFile(bundle, file, null, true);     // Top level file - include in results
+            foreach (PathAndContent pac in pacs)
+                ProcessFile(bundle, pac, null); 
 
             return bundle;
         }
@@ -31,20 +31,27 @@ namespace datamodel.schema.source.protobuf {
 
         // Algorithm...
         //
-        // 1. Parse the file at 'path'
-        // 2. Get the list of all external imported types
-        // 3. Prepare list of types we are interested in within the import files...
-        // 3.a  For initial file, we are interested in EVERYTHING 
-        //   b  For imported files, we are only interested in new types which are embedded in Messages
-        //      found in 'typesOfInterest'
-        // 4. If the resulting list is non-empty, parse all imports
+        // >>> ProcessFile
+        // 1. Parse the file at 'path' (only if never seen)
+        // 2.a) if top-level file...
+        //      - Mark file & all mesages as included
+        //      - add all external types to "external types of interest"
+        //   b) (else)... For all types of interest (strip package prefix)
+        //     >>> Recurse Message of Interest
+        //     3. Skip if already included
+        //     4. Mark as included
+        //     5. For all fields
+        //        a) If field internal message, recurse to #3
+        //        b) If field external, add to list of "external types of interest" for next level
+        //
+        // 6. If external types of interest non empty, process all imports
         //
         // NOTE: This could be improved in a couple of ways
         // a) Usage package name of tpye of interest to help choose imports
         // b) Rather than parsing the entire file, just get to the point where we've tokenized up to the package def
         //    and do not proceed further if that file defines a package in which we have no interest.
 
-        // Example... (Note that unit tests exist just for this)
+        // Example... (Note that unit tests exist for this)
         //
         // # File a.proto
         // import "b.proto";
@@ -58,87 +65,52 @@ namespace datamodel.schema.source.protobuf {
         // # File b.proto
         // package b;
         // import "c.proto";
-        // message msgB1 {                    // This is type 'b.msgB1'
-        //   message nestedB {}               // This is type 'b.msgB1.nesstedB'
+        // message msgB1 {        // Fully qualified: 'b.msgB1'
+        //   message nestedB {}   // Fully qualified: 'b.msgB1.nesstedB'
+        //   msgB3   f1= 1;               
         // }
         // message msgB2 {
-        //   c.msgC             f1 = 1;       // We will NOT parse the imports of B 
-        //                                    // since c.msgC is NOT in types of interest
+        //   c.msgC f1 = 1;       // We will NOT parse imports - c.msgC is NOT in type of interest
+        //   msgB4  f2 = 2;       
         // }
-        internal void ReadFile(FileBundle bundle, PathAndContent pac, HashSet<string> typesOfInterest, bool includeInResults) {
-            // TODO... This is too simplistic, because we may have different typesOfInterest
-            // if (bundle.HasFile(path))
-            //     return;
-
+        // message mdgB3 {}     // Will include (in type of interest)
+        // message mdgB4 {}     // Will NOT include  (not int type of interest)
+        internal void ProcessFile(FileBundle bundle, PathAndContent pac, HashSet<Type> typesOfInterest) {
             // Step 1: Read and parse file
-            ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
-            ProtobufParser parser = new ProtobufParser(tokenizer);
-            File file = parser.Parse();
-            file.Path = pac.Path;
-            file.IncludeInResults = includeInResults;
-            if (includeInResults)
+            File file = bundle.MaybeAddToBundle(pac);
+
+            HashSet<Type> externalTypesOfInterest = new HashSet<Type>();
+            if (typesOfInterest == null) {
+                file.IncludeInResults = true;
                 foreach (Message message in file.AllMessages())
                     message.IncludeInResults = true;
-            bundle.AddFile(file);
-
-            // Step 2
-            HashSet<Type> importedTypes = FindImportedTypes(file);
-
-            // Step 3
-            HashSet<string> importedTypesOfInterest = new HashSet<string>();
-            foreach (Type type in importedTypes) {
-                Message owner = type.OwnerField.Owner as Message;
-                if (typesOfInterest == null ||                                  // 3a above
-                    typesOfInterest.Contains(owner.FullyQualifiedName())) {     // 3b above
-                        owner.IncludeInResults = true;
-                        importedTypesOfInterest.Add(type.Name);
-                    }
+                externalTypesOfInterest = new HashSet<Type>(file.AllTypes());
+            } else {
+                foreach (Type typeOfInterest in typesOfInterest)
+                    RecursivelyMarkInclude(file, externalTypesOfInterest, typeOfInterest);
             }
 
+
             // Step 4
-            if (importedTypesOfInterest.Count > 0)
+            if (externalTypesOfInterest.Count > 0)
                 foreach (Import import in file.Imports) {
                     string importPath = Path.Join(_importBasePath, import.ImportPath);
-                    ReadFile(bundle, importPath, importedTypesOfInterest, false);   // Do not include in results indiscriminantly
+                    PathAndContent importPac = PathAndContent.Read(importPath, true);
+                    ProcessFile(bundle, importPac, externalTypesOfInterest); 
                 }
         }
 
-        internal void ReadFile(FileBundle bundle, string path, HashSet<string> typesOfInterest, bool includeInResults) {
-            PathAndContent pac = PathAndContent.Read(path);
-            ReadFile(bundle, pac, typesOfInterest, includeInResults);
-        }
-
-
-        private HashSet<Type> FindImportedTypes(File file) {
-            List<Type> types = new List<Type>();
-
-            foreach (Message message in file.Messages)
-                AddTypesForMessage(types, message);
-            foreach (Extend extend in file.Extends)
-                AddTypesForExtend(types, extend);
-
-            return new HashSet<Type>(types.Where(x => x.IsImported));
-        }
-
-        private void AddTypesForMessage(List<Type> types, Message message) {
-            foreach (Field field in message.Fields)
-                types.AddRange(field.UsedTypes());
-
-            foreach (Field field in message.Extends.SelectMany(x => x.Fields))
-                types.AddRange(field.UsedTypes());
-
-            foreach (Message nested in message.Messages)
-                AddTypesForMessage(types, nested);
-
-            foreach (Extend extend in message.Extends)
-                AddTypesForExtend(types, extend);
-        }
-
-        private void AddTypesForExtend(List<Type> types, Extend extend) {
-            foreach (Field field in extend.Fields)
-                types.AddRange(field.UsedTypes());
-
-            AddTypesForMessage(types, extend.Message);
+        private void RecursivelyMarkInclude(File file, HashSet<Type> externalTypesOfInterest, Type type) {
+            Message message = file.TryGetMessage(type.QualifiedName);    
+            if (message != null) {
+                message.IncludeInResults = true;
+                foreach (Type childType in message.Fields.Select(x => x.UsedTypes())) {
+                    if (childType.IsImported)
+                        externalTypesOfInterest.Add(childType);
+                    else
+                        RecursivelyMarkInclude(file, externalTypesOfInterest, childType);
+                }
+            }
         }
     }
 
@@ -150,6 +122,7 @@ namespace datamodel.schema.source.protobuf {
 
         [JsonIgnore]
         public ReadOnlyDictionary<string, File> FileDict { get; private set; }
+        [JsonIgnore]
         public ReadOnlyDictionary<string, List<File>> PackageDict { get; private set; }
 
         internal FileBundle() {
@@ -157,11 +130,19 @@ namespace datamodel.schema.source.protobuf {
             PackageDict = new ReadOnlyDictionary<string, List<File>>(_packageDict);
         }
 
-        public bool HasFile(string path) {
-            return _fileDict.ContainsKey(path);
+        internal File MaybeAddToBundle(PathAndContent pac) {
+            if (!_fileDict.TryGetValue(pac.Path, out File file)) {
+                ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
+                ProtobufParser parser = new ProtobufParser(tokenizer);
+                file = parser.Parse();
+                file.Path = pac.Path;
+                AddFile(file);
+            }
+
+            return file;
         }
 
-        public void AddFile(File file) {
+        private void AddFile(File file) {
             // Remember path => file
             string path = file.Path;
             if (_fileDict.ContainsKey(path))
@@ -179,22 +160,36 @@ namespace datamodel.schema.source.protobuf {
             }
         }
 
-        public IEnumerable<Message> AllMessages() {
-            return _fileDict.Values
-                .SelectMany(x => x.AllMessages())
-                .Where(x => x.IncludeInResults);
+        public IEnumerable<Message> AllMessages {
+            get {
+                return _fileDict.Values
+                    .SelectMany(x => x.AllMessages())
+                    .Where(x => x.IncludeInResults);
+            }
         }
 
-        public IEnumerable<EnumDef> AllEnumDefs() {
-            return _fileDict.Values
-                .SelectMany(x => x.AllEnumDefs());
+        internal void RemoveComments() {
+            foreach (var item in _fileDict.Values) { item.RemoveComments(); }
         }
 
-        public IEnumerable<Service> AllServices() {
-            return _fileDict.Values
-                .Where(x => x.IncludeInResults)
-                .SelectMany(x => x.Services);
+        public IEnumerable<EnumDef> AllEnumDefs {
+            get {
+                return _fileDict.Values
+                    .SelectMany(x => x.AllEnumDefs());
+            }
         }
+
+        public IEnumerable<Service> AllServices {
+            get {
+                return _fileDict.Values
+                    .Where(x => x.IncludeInResults)
+                    .SelectMany(x => x.Services);
+            }
+        }
+
+        public bool ShouldSerializeAllMessages() { return AllMessages.Count() > 0; }
+        public bool ShouldSerializeAllEnumDefs() { return AllEnumDefs.Count() > 0; }
+        public bool ShouldSerializeAllServices() { return AllServices.Count() > 0; }
     }
     #endregion
 }

@@ -272,10 +272,7 @@ service SearchService {
         private FileBundle DummyFileBundle(string protoContent) {
           // Note: no actual imports are planned
           ProtobufImporter importer = new ProtobufImporter(null);
-          return importer.ProcessFile(new PathAndContent() {
-            Path = "",
-            Content = protoContent,
-          });
+          return importer.ProcessFile(new PathAndContent("", protoContent));
         }
        #endregion
     }

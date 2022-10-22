@@ -27,12 +27,14 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public static class OwnedExtensions {
-        public static string FullyQualifiedName(this Owned owned) {
+        public static string QualifiedName(this Owned owned) {
             List<string> components = new List<string>();
             while (true) {
                 components.Add(owned.Name);
-                if (owned.Owner.IsFile())
+                if (owned.Owner.IsFile()) {
+                    components.Add(((File)owned.Owner).Package);
                     break;
+                }
                 owned = (Owned)owned.Owner;
             } 
 
@@ -41,6 +43,8 @@ namespace datamodel.schema.source.protobuf {
         }
     }
     public class File : Base, Owner {
+        private Dictionary<string,Message> _messageByQN;
+
         public string Path { get; set; }
         public string Package { get; set; }
         public string Syntax { get; set; }
@@ -78,6 +82,20 @@ namespace datamodel.schema.source.protobuf {
             }
         }
 
+        public IEnumerable<Type> AllTypes() {
+            return AllMessages()
+                .SelectMany(x => x.Fields)
+                .SelectMany(x => x.UsedTypes());
+        }
+
+        public Message TryGetMessage(string qualifiedName) {
+            if (_messageByQN == null)
+                _messageByQN = AllMessages().ToDictionary(x => x.QualifiedName());
+
+            _messageByQN.TryGetValue(qualifiedName, out Message message);
+            return message;
+        }
+
         public IEnumerable<EnumDef> AllEnumDefs() {
             List<EnumDef> enums = new List<EnumDef>();
 
@@ -93,6 +111,18 @@ namespace datamodel.schema.source.protobuf {
             foreach (Message nested in message.Messages) 
                 AddNestedEnumDefs(enums, nested);
         }
+
+        // Useful to remove clutter when converting to JSON for debugging
+        internal void RemoveComments() {
+            Comment = null;
+
+            foreach (var item in AllMessages()) item.Comment = null;
+            foreach (var item in AllMessages().SelectMany(x => x.Fields)) item.Comment = null;
+            foreach (var item in AllEnumDefs()) item.Comment = null;
+            foreach (var item in AllEnumDefs()) item.Comment = null;
+            foreach (var item in Services) item.Comment = null;
+        }
+
     }
 
     public enum ImportType {
@@ -210,6 +240,14 @@ namespace datamodel.schema.source.protobuf {
         public bool IsAtomic { get => ATOMIC_TYPES.Any(x => x == Name ); } 
         [JsonIgnore]
         public bool IsImported { get => Name.Contains('.'); }
+        [JsonIgnore]
+        public string QualifiedName {
+            get {
+                if (IsImported)
+                    return Name;
+                return (OwnerField.Owner as Message).QualifiedName();
+            }
+        }
 
         public Type(Field ownerField, string name) {
             OwnerField = ownerField;
@@ -218,6 +256,16 @@ namespace datamodel.schema.source.protobuf {
 
         public override string ToString() {
             return Name;
+        }
+
+        public override int GetHashCode() {
+            return Name.GetHashCode();
+        }
+
+        public override bool Equals(object obj) {
+            if (obj.GetType() != typeof(Type))
+                return false;
+            return ((Type)obj).Name == Name;
         }
     }
 

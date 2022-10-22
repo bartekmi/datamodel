@@ -94,6 +94,7 @@ namespace datamodel.schema.source {
     }
     public class ParameterFileOrDir : Parameter {
         public string FilePattern;
+        public bool ReadContent = true;
 
         public ParameterFileOrDir() {
             Type = ParamType.FileOrDir;
@@ -106,11 +107,11 @@ namespace datamodel.schema.source {
                 ReadRecursively(files, path);
                 return new FileOrDir(true, files);
             } else
-                return new FileOrDir(false, new List<PathAndContent>() { PathAndContent.Read(path)});
+                return new FileOrDir(false, new List<PathAndContent>() { PathAndContent.Read(path, ReadContent)});
         }
 
         private void ReadRecursively(List<PathAndContent> files, string dir) {
-            files.AddRange(Directory.GetFiles(dir).Select(x => PathAndContent.Read(x)));
+            files.AddRange(Directory.GetFiles(dir).Select(x => PathAndContent.Read(x, ReadContent)));
             foreach (string nestedDir in Directory.GetDirectories(dir, FilePattern))
                 ReadRecursively(files, nestedDir);
         }
@@ -130,13 +131,26 @@ namespace datamodel.schema.source {
         }
     }
     public class PathAndContent {
-        public string Path;
-        public string Content;
-        internal static PathAndContent Read(string path) {
-            return new PathAndContent() {
-                Path = path,
-                Content = File.ReadAllText(path),
-            };
+        public string Path { get; private set; }
+
+        private string _content;
+        public string Content {
+            get {
+                if (_content == null)
+                    _content = File.ReadAllText(Path);
+                return _content;
+            }
+            set { _content = value; }
+        }
+
+        public PathAndContent(string path, string content) {
+            Path = path;
+            Content = content;
+        }
+
+        public static PathAndContent Read(string path, bool readContent = true) {
+            string content = readContent ? File.ReadAllText(path) : null;
+            return new PathAndContent(path, content);
         }
     }
     #endregion
