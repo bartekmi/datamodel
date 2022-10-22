@@ -18,7 +18,15 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public interface Owner {
-        bool IsFile();
+        bool IsFile { get; }
+    }
+    public static class OwnerExtensions {
+        public static File OwnerFile(this Owner owner) {
+            while (!owner.IsFile)
+                owner = ((Owned)owner).Owner;
+
+            return (File)owner;
+        }
     }
 
     public interface Owned {
@@ -31,7 +39,7 @@ namespace datamodel.schema.source.protobuf {
             List<string> components = new List<string>();
             while (true) {
                 components.Add(owned.Name);
-                if (owned.Owner.IsFile()) {
+                if (owned.Owner.IsFile) {
                     components.Add(((File)owned.Owner).Package);
                     break;
                 }
@@ -63,7 +71,7 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
-        public bool IsFile() { return true; }
+        public bool IsFile => true;
 
         public IEnumerable<Message> AllMessages() {
             List<Message> messages = new List<Message>();
@@ -123,6 +131,9 @@ namespace datamodel.schema.source.protobuf {
             foreach (var item in Services) item.Comment = null;
         }
 
+        public override string ToString() {
+            return Package;
+        }
     }
 
     public enum ImportType {
@@ -133,11 +144,19 @@ namespace datamodel.schema.source.protobuf {
     public class Import {
         public string ImportPath { get; set; }
         public ImportType ImportType { get; set; }
+
+        public override string ToString() {
+            return ImportPath;
+        }
     }
 
     public class Service : Base {
         public string Name { get; set; }
         public List<Rpc> Rpcs { get; } = new List<Rpc>(); 
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     public class Rpc : Base {
@@ -147,6 +166,10 @@ namespace datamodel.schema.source.protobuf {
 
         public string OutputName { get; set; }
         public bool IsOutputStream { get; set; }
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     public class Message : Base, Owner, Owned {
@@ -163,11 +186,15 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
-        public bool IsFile() { return false; }
+        public bool IsFile => false;
 
         // Owned interface
         [JsonIgnore]
         public Owner Owner { get; set; }
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     public abstract class Field : Base {
@@ -177,10 +204,16 @@ namespace datamodel.schema.source.protobuf {
 
         // Owned interface
         [JsonIgnore]
-        public Owner Owner { get; set; }
+        public Message Owner { get; set; }
+        [JsonIgnore]
+        public File File => Owner.OwnerFile();
 
         public Field(Message owner) {
             Owner = owner;
+        }
+
+        public override string ToString() {
+            return Name;
         }
     }
 
@@ -234,6 +267,8 @@ namespace datamodel.schema.source.protobuf {
         public string Name { get; set; }
         [JsonIgnore]
         public Field OwnerField { get; private set; }
+        [JsonIgnore]
+        public File OwnerFile => OwnerField.File;
 
         // Derived
         [JsonIgnore]
@@ -243,9 +278,10 @@ namespace datamodel.schema.source.protobuf {
         [JsonIgnore]
         public string QualifiedName {
             get {
-                if (IsImported)
+                if (IsImported || IsAtomic)
                     return Name;
-                return (OwnerField.Owner as Message).QualifiedName();
+
+                return string.Format("{0}.{1}", OwnerFile.Package, Name);
             }
         }
 
@@ -275,11 +311,19 @@ namespace datamodel.schema.source.protobuf {
 
         [JsonIgnore]
         public Owner Owner { get; set; }
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     public class EnumValue : Base {
         public string Name { get; set; }
         public int Number { get; set; }
+
+        public override string ToString() {
+            return Name;
+        }
     }
 
     #region Specific to Protobuf 2

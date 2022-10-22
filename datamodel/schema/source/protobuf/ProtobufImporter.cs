@@ -50,31 +50,6 @@ namespace datamodel.schema.source.protobuf {
         // a) Usage package name of tpye of interest to help choose imports
         // b) Rather than parsing the entire file, just get to the point where we've tokenized up to the package def
         //    and do not proceed further if that file defines a package in which we have no interest.
-
-        // Example... (Note that unit tests exist for this)
-        //
-        // # File a.proto
-        // import "b.proto";
-        // message msgA {
-        //   b.msgB1            f1 = 1;
-        //   b.msgB1.nestedB    f2 = 2;
-        // }
-        //
-        // ==>   types-of-interest: [b.msgB1, b.msgB1.nestedB]
-        //
-        // # File b.proto
-        // package b;
-        // import "c.proto";
-        // message msgB1 {        // Fully qualified: 'b.msgB1'
-        //   message nestedB {}   // Fully qualified: 'b.msgB1.nesstedB'
-        //   msgB3   f1= 1;               
-        // }
-        // message msgB2 {
-        //   c.msgC f1 = 1;       // We will NOT parse imports - c.msgC is NOT in type of interest
-        //   msgB4  f2 = 2;       
-        // }
-        // message mdgB3 {}     // Will include (in type of interest)
-        // message mdgB4 {}     // Will NOT include  (not int type of interest)
         internal void ProcessFile(FileBundle bundle, PathAndContent pac, HashSet<Type> typesOfInterest) {
             // Step 1: Read and parse file
             File file = bundle.MaybeAddToBundle(pac);
@@ -85,10 +60,9 @@ namespace datamodel.schema.source.protobuf {
                 foreach (Message message in file.AllMessages())
                     message.IncludeInResults = true;
                 externalTypesOfInterest = new HashSet<Type>(file.AllTypes());
-            } else {
+            } else
                 foreach (Type typeOfInterest in typesOfInterest)
                     RecursivelyMarkInclude(file, externalTypesOfInterest, typeOfInterest);
-            }
 
 
             // Step 4
@@ -103,8 +77,12 @@ namespace datamodel.schema.source.protobuf {
         private void RecursivelyMarkInclude(File file, HashSet<Type> externalTypesOfInterest, Type type) {
             Message message = file.TryGetMessage(type.QualifiedName);    
             if (message != null) {
+                if (message.IncludeInResults)
+                    return;     // Already processed
+
                 message.IncludeInResults = true;
-                foreach (Type childType in message.Fields.Select(x => x.UsedTypes())) {
+                
+                foreach (Type childType in message.Fields.SelectMany(x => x.UsedTypes())) {
                     if (childType.IsImported)
                         externalTypesOfInterest.Add(childType);
                     else

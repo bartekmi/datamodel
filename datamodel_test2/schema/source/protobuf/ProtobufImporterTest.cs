@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
@@ -19,72 +20,37 @@ namespace datamodel.schema.source.protobuf {
 
         [Fact]
         public void BasicTestSingleImport() {
-            RunTest(@"
- {
-   AllMessages: [
-     {
-       Name: msgA,
-       Fields: [
-         {
-           Type: {
-             Name: b.msgB1
-           },
-           Number: 1,
-           Name: f1
-         },
-         {
-           Type: {
-             Name: b.msgB1.nestedB
-           },
-           Number: 2,
-           Name: f2
-         }
-       ]
-     },
-     {
-       Name: msgB1,
-       Messages: [
-         {
-           Name: nestedB
-         }
-       ]
-     },
-     {
-       Name: nestedB
-     }
-   ]
- }", "test1", "a.proto");
+            RunTest("msgA,msgB1,nestedB", "test1", "a.proto");
         }
 
         [Fact]
         public void DoubleImport() {
-            RunTest(@"
-", "test2", "a.proto");
+            RunTest("msgA,msgB1,msgB2,msgC1,msgC2", "test2", "a.proto");
         }
 
         #region Utilities
-        private void RunTest(string expected, string basePath, string protoFilePath) {
-            string actual = ReadBundle(basePath, protoFilePath);
-            expected = JsonFormattingUtils.DeleteFirstSpace(expected);
+        private void RunTest(string expectedMessages, string basePath, string protoFilePath) {
+            string actualMessages = ReadBundle(basePath, protoFilePath, out FileBundle bundle);
 
-            if (actual != expected) {
+            if (actualMessages != expectedMessages) {
+                string bundleJson = JsonFormattingUtils.JsonPretty(bundle);
+
                 _output.WriteLine(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                _output.WriteLine(actual);      // We do this to get actual in full glory
+                _output.WriteLine(bundleJson);      // We do this to get actual in full glory
                 _output.WriteLine("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
-                Assert.Equal(expected, actual);
+                Assert.Equal(expectedMessages, actualMessages);
             }
         }
 
-        private string ReadBundle(string basePath, string protoFilePath) {
+        private string ReadBundle(string basePath, string protoFilePath, out FileBundle bundle) {
             string baseBasePath = Path.Join("../../../schema/source/protobuf", basePath);
             ProtobufImporter importer = new ProtobufImporter(baseBasePath);
 
             string path = Path.Join(baseBasePath, protoFilePath);
-            FileBundle bundle = importer.ProcessFile(PathAndContent.Read(path));
-            bundle.RemoveComments();    // Clean up.
+            bundle = importer.ProcessFile(PathAndContent.Read(path));
 
-            return JsonFormattingUtils.JsonPretty(bundle);
+            return string.Join(",", bundle.AllMessages.Select(x => x.Name));
         }
         #endregion
    }
