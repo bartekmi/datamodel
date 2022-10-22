@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "simple", 
         "file=../datamodel_test2/schema/simple_schema.json"
@@ -23,7 +23,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "k8s", 
       ],
@@ -36,7 +36,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "json", 
         "files=../datamodel_test2/schema/kubernetes_swagger.json",
@@ -53,11 +53,26 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/netcoreapp3.1/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "yaml", 
         "files= ../../tmp/f1.yaml, ../../tmp/f2.yaml, ../../tmp/f3.yaml, ../../tmp/f4.yaml, ../../tmp/f5.yaml",
         "title=yaml"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Proto",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "args": [
+        "proto", 
+        "paths=/google/src/cloud/bartekm/current/google3/devtools/buildrabbit/client/rabbit_daemon.proto",
+        "import-root=/google/src/cloud/bartekm/current/google3"
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",
