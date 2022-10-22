@@ -1,0 +1,7 @@
+package a;
+
+import "b.proto";
+
+message msgA {
+  b.msgB1            f1 = 1;
+}

@@ -53,12 +53,18 @@ namespace datamodel.schema.source.protobuf {
        Name: nestedB
      }
    ]
- }", "a.proto");
+ }", "test1", "a.proto");
+        }
+
+        [Fact]
+        public void DoubleImport() {
+            RunTest(@"
+", "test2", "a.proto");
         }
 
         #region Utilities
-        private void RunTest(string expected, string protoFilePath) {
-            string actual = ReadBundle(protoFilePath);
+        private void RunTest(string expected, string basePath, string protoFilePath) {
+            string actual = ReadBundle(basePath, protoFilePath);
             expected = JsonFormattingUtils.DeleteFirstSpace(expected);
 
             if (actual != expected) {
@@ -70,11 +76,11 @@ namespace datamodel.schema.source.protobuf {
             }
         }
 
-        private string ReadBundle(string protoFilePath) {
-            string basePath = "../../../schema/source/protobuf";
-            ProtobufImporter importer = new ProtobufImporter(basePath);
+        private string ReadBundle(string basePath, string protoFilePath) {
+            string baseBasePath = Path.Join("../../../schema/source/protobuf", basePath);
+            ProtobufImporter importer = new ProtobufImporter(baseBasePath);
 
-            string path = Path.Join(basePath, protoFilePath);
+            string path = Path.Join(baseBasePath, protoFilePath);
             FileBundle bundle = importer.ProcessFile(PathAndContent.Read(path));
             bundle.RemoveComments();    // Clean up.
 

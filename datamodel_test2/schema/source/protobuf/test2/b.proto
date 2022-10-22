@@ -1,0 +1,16 @@
+package b;
+
+import "c.proto";
+
+message msgB1 {
+  c.msgC1 f1 = 1;
+  msgB2   f2 = 2;
+}
+
+message msgB2 {
+  c.msgC2 f1 = 1;
+}
+
+message msgB_NotOfInterest {
+  c.msgC_NotOfInterest             f1 = 1;
+}

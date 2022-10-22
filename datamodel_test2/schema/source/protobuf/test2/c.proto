@@ -1,0 +1,10 @@
+package c;
+
+import "d.proto";
+
+message msgC1 {}
+message msgC2 {}
+
+message msgC_NotOfInterest {
+  d.msgD_NotOfInterest f1 = 1;
+}
