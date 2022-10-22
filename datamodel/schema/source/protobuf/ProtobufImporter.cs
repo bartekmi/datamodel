@@ -5,6 +5,9 @@ using System.Linq;
 using System.Collections.ObjectModel;
 
 using Newtonsoft.Json;
+
+using datamodel.schema.source.protobuf.data;
+
 // This class takes care of imports in protobuf.
 
 namespace datamodel.schema.source.protobuf {
@@ -50,18 +53,18 @@ namespace datamodel.schema.source.protobuf {
         // a) Usage package name of tpye of interest to help choose imports
         // b) Rather than parsing the entire file, just get to the point where we've tokenized up to the package def
         //    and do not proceed further if that file defines a package in which we have no interest.
-        internal void ProcessFile(FileBundle bundle, PathAndContent pac, HashSet<Type> typesOfInterest) {
+        internal void ProcessFile(FileBundle bundle, PathAndContent pac, HashSet<PbType> typesOfInterest) {
             // Step 1: Read and parse file
-            File file = bundle.MaybeAddToBundle(pac);
+            PbFile file = bundle.MaybeAddToBundle(pac);
 
-            HashSet<Type> externalTypesOfInterest = new HashSet<Type>();
+            HashSet<PbType> externalTypesOfInterest = new HashSet<PbType>();
             if (typesOfInterest == null) {
                 file.IncludeInResults = true;
                 foreach (Message message in file.AllMessages())
                     message.IncludeInResults = true;
-                externalTypesOfInterest = new HashSet<Type>(file.AllTypes());
+                externalTypesOfInterest = new HashSet<PbType>(file.AllTypes());
             } else
-                foreach (Type typeOfInterest in typesOfInterest)
+                foreach (PbType typeOfInterest in typesOfInterest)
                     RecursivelyMarkInclude(file, externalTypesOfInterest, typeOfInterest);
 
 
@@ -74,15 +77,15 @@ namespace datamodel.schema.source.protobuf {
                 }
         }
 
-        private void RecursivelyMarkInclude(File file, HashSet<Type> externalTypesOfInterest, Type type) {
-            Message message = file.TryGetMessage(type.QualifiedName);    
+        private void RecursivelyMarkInclude(PbFile file, HashSet<PbType> externalTypesOfInterest, PbType type) {
+            Message message = type.ResolveInternalMessage();    
             if (message != null) {
                 if (message.IncludeInResults)
                     return;     // Already processed
 
                 message.IncludeInResults = true;
                 
-                foreach (Type childType in message.Fields.SelectMany(x => x.UsedTypes())) {
+                foreach (PbType childType in message.Fields.SelectMany(x => x.UsedTypes())) {
                     if (childType.IsImported)
                         externalTypesOfInterest.Add(childType);
                     else
@@ -94,22 +97,22 @@ namespace datamodel.schema.source.protobuf {
 
     #region Helper Classes
     public class FileBundle {
-        // Key: path, Value: parsed File
-        private Dictionary<string, File> _fileDict = new Dictionary<string, File>();
-        private Dictionary<string, List<File>> _packageDict = new Dictionary<string, List<File>>();
+        // Key: path, Value: parsed PbFile
+        private Dictionary<string, PbFile> _fileDict = new Dictionary<string, PbFile>();
+        private Dictionary<string, List<PbFile>> _packageDict = new Dictionary<string, List<PbFile>>();
 
         [JsonIgnore]
-        public ReadOnlyDictionary<string, File> FileDict { get; private set; }
+        public ReadOnlyDictionary<string, PbFile> FileDict { get; private set; }
         [JsonIgnore]
-        public ReadOnlyDictionary<string, List<File>> PackageDict { get; private set; }
+        public ReadOnlyDictionary<string, List<PbFile>> PackageDict { get; private set; }
 
         internal FileBundle() {
-            FileDict = new ReadOnlyDictionary<string, File>(_fileDict);
-            PackageDict = new ReadOnlyDictionary<string, List<File>>(_packageDict);
+            FileDict = new ReadOnlyDictionary<string, PbFile>(_fileDict);
+            PackageDict = new ReadOnlyDictionary<string, List<PbFile>>(_packageDict);
         }
 
-        internal File MaybeAddToBundle(PathAndContent pac) {
-            if (!_fileDict.TryGetValue(pac.Path, out File file)) {
+        internal PbFile MaybeAddToBundle(PathAndContent pac) {
+            if (!_fileDict.TryGetValue(pac.Path, out PbFile file)) {
                 ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
                 ProtobufParser parser = new ProtobufParser(tokenizer);
                 file = parser.Parse();
@@ -120,7 +123,7 @@ namespace datamodel.schema.source.protobuf {
             return file;
         }
 
-        private void AddFile(File file) {
+        private void AddFile(PbFile file) {
             // Remember path => file
             string path = file.Path;
             if (_fileDict.ContainsKey(path))
@@ -130,8 +133,8 @@ namespace datamodel.schema.source.protobuf {
             // Remember package => list of files
             string package = file.Package;
             if (!string.IsNullOrWhiteSpace(package)) {
-                if (!_packageDict.TryGetValue(package, out List<File> files)) {
-                    files = new List<File>();
+                if (!_packageDict.TryGetValue(package, out List<PbFile> files)) {
+                    files = new List<PbFile>();
                     _packageDict[package] = files;
                 }
                 files.Add(file);

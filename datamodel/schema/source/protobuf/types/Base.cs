@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public class Base {
         public string Comment { get; set; }
         public bool ShouldSerializeComment() { return !string.IsNullOrWhiteSpace(Comment); }
@@ -17,15 +17,21 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public interface Owner {
-        [JsonIgnore]
-        bool IsFile { get; }
+        bool IsFile();
+        List<Message> Messages { get; }
     }
     public static class OwnerExtensions {
-        public static File OwnerFile(this Owner owner) {
-            while (!owner.IsFile)
+        public static PbFile OwnerFile(this Owner owner) {
+            while (!owner.IsFile())
                 owner = ((Owned)owner).Owner;
 
-            return (File)owner;
+            return (PbFile)owner;
+        }
+        public static bool IsMessage(this Owner owner) {
+            return !owner.IsFile();
+        }
+        public static Message AsMessage(this Owner owner) {
+            return owner as Message;
         }
     }
 
@@ -39,8 +45,8 @@ namespace datamodel.schema.source.protobuf {
             List<string> components = new List<string>();
             while (true) {
                 components.Add(owned.Name);
-                if (owned.Owner.IsFile) {
-                    components.Add(((File)owned.Owner).Package);
+                if (owned.Owner.IsFile()) {
+                    components.Add(((PbFile)owned.Owner).Package);
                     break;
                 }
                 owned = (Owned)owned.Owner;

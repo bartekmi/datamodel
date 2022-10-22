@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public class Message : Base, Owner, Owned {
         public string Name { get; set; }
         public List<Field> Fields { get; } = new List<Field>();
@@ -17,7 +17,7 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
-        public bool IsFile => false;
+        public bool IsFile() { return false; }
 
         // Owned interface
         [JsonIgnore]

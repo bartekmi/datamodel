@@ -2,17 +2,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public abstract class Field : Base {
         // Return list of all types used by this field
-        public abstract IEnumerable<Type> UsedTypes();
+        public abstract IEnumerable<PbType> UsedTypes();
         public string Name { get; set; }
 
         // Owned interface
         [JsonIgnore]
         public Message Owner { get; set; }
         [JsonIgnore]
-        public File File => Owner.OwnerFile();
+        public PbFile File => Owner.OwnerFile();
 
         public Field(Message owner) {
             Owner = owner;
@@ -31,13 +31,13 @@ namespace datamodel.schema.source.protobuf {
     }
     public class FieldNormal : Field {
         public FieldModifier Modifier { get; set; }
-        public Type Type { get; set; }
+        public PbType Type { get; set; }
         public int Number { get; set; }
 
         public FieldNormal(Message owner) : base(owner){}
 
-        public override IEnumerable<Type> UsedTypes() {
-            return new Type[] { Type };
+        public override IEnumerable<PbType> UsedTypes() {
+            return new PbType[] { Type };
         }
     }
 
@@ -46,20 +46,20 @@ namespace datamodel.schema.source.protobuf {
 
         public FieldOneOf(Message owner) : base(owner){}
 
-        public override IEnumerable<Type> UsedTypes() {
+        public override IEnumerable<PbType> UsedTypes() {
             return Fields.Select(x => x.Type);
         }
     }
 
     public class FieldMap : Field {
-        public Type KeyType { get; set; }
-        public Type ValueType { get; set; }
+        public PbType KeyType { get; set; }
+        public PbType ValueType { get; set; }
         public int Number { get; set; }
 
         public FieldMap(Message owner) : base(owner){}
 
-        public override IEnumerable<Type> UsedTypes() {
-            return new Type[] { KeyType, ValueType };
+        public override IEnumerable<PbType> UsedTypes() {
+            return new PbType[] { KeyType, ValueType };
         }
     }
 }

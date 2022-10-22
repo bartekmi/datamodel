@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public class Service : Base {
         public string Name { get; set; }
         public List<Rpc> Rpcs { get; } = new List<Rpc>(); 

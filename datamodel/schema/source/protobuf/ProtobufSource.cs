@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using datamodel.schema.source.protobuf.data;
+
 namespace datamodel.schema.source.protobuf {
 
     public class ProtobufSource : SchemaSource {
@@ -176,7 +178,7 @@ namespace datamodel.schema.source.protobuf {
             AddFieldNormalOrMap(model, field, field.Type, isRepeated, null);
         }
 
-        private void AddFieldNormalOrMap(Model model, Field field, Type type, bool isRepeated, Type mapKeyType) {
+        private void AddFieldNormalOrMap(Model model, Field field, PbType type, bool isRepeated, PbType mapKeyType) {
             _enums.TryGetValue(type.Name, out Enum theEnum);
             _messages.TryGetValue(type.Name, out Message message);
 
@@ -195,7 +197,7 @@ namespace datamodel.schema.source.protobuf {
 
             else {
                 // Could collect these and spit out some warnings
-                // if (!_messages.TryGetValue(field.Type.Name, out Message message))
+                // if (!_messages.TryGetValue(field.PbType.Name, out Message message))
                 //     throw new Exception("Unknown type for Field " + field);
                 
                 Association assoc = new Association() {
@@ -213,7 +215,7 @@ namespace datamodel.schema.source.protobuf {
 
         }
 
-        private string ComputeType(Type type, bool isRepeated, Type mapKeyType) {
+        private string ComputeType(PbType type, bool isRepeated, PbType mapKeyType) {
             if (mapKeyType == null)
                 return string.Format("{0}{1}",
                     isRepeated ? "[]" : "",

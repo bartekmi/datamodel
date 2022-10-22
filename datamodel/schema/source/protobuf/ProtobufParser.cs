@@ -7,9 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using datamodel.schema.source.protobuf.data;
+
 namespace datamodel.schema.source.protobuf {
     internal class ParseContext {
-        internal Dictionary<string, File> AllFiles = new Dictionary<string, File>();
+        internal Dictionary<string, PbFile> AllFiles = new Dictionary<string, PbFile>();
     }
 
     internal class ProtobufParser {
@@ -21,8 +23,8 @@ namespace datamodel.schema.source.protobuf {
         }
 
         #region Main Parse
-        internal File Parse() {
-            File file = new File();
+        internal PbFile Parse() {
+            PbFile file = new PbFile();
 
             try {
                 while (_tokenizer.HasNext()) {
@@ -61,18 +63,18 @@ namespace datamodel.schema.source.protobuf {
         #endregion
 
         #region Various Parse Methods
-        private void ParseSyntax(File file) {
+        private void ParseSyntax(PbFile file) {
             Expect("=");
             file.Syntax = Next();
             Expect(";");
         }
 
-        private void ParsePackage(File file) {
+        private void ParsePackage(PbFile file) {
             file.Package = Next();
             Expect(";");
         }
 
-        private void ParseImport(File file) {
+        private void ParseImport(PbFile file) {
             string path = Next();
             
             ImportType importType = ImportType.None;
@@ -188,9 +190,9 @@ namespace datamodel.schema.source.protobuf {
                 Comment = CurrentComment(),
             };
             Expect("<");
-            map.KeyType = new Type(map, Next());
+            map.KeyType = new PbType(map, Next());
             Expect(",");
-            map.ValueType = new Type(map, Next());
+            map.ValueType = new PbType(map, Next());
             Expect(">");
             map.Name = Next();
             Expect("=");
@@ -235,7 +237,7 @@ namespace datamodel.schema.source.protobuf {
                 Modifier = modifier,
                 Comment = CurrentComment(),
             };
-            field.Type = new Type(field, type);
+            field.Type = new PbType(field, type);
             field.Name = Next();
 
             Expect("=");

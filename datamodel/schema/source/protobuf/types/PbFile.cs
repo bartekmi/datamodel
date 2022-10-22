@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
 
-    public class File : Base, Owner {
+    public class PbFile : Base, Owner {
         private Dictionary<string,Message> _messageByQN;
 
         public string Path { get; set; }
@@ -25,7 +25,7 @@ namespace datamodel.schema.source.protobuf {
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
-        public bool IsFile => true;
+        public bool IsFile() { return true; }
 
         public IEnumerable<Message> AllMessages() {
             List<Message> messages = new List<Message>();
@@ -44,7 +44,7 @@ namespace datamodel.schema.source.protobuf {
             }
         }
 
-        public IEnumerable<Type> AllTypes() {
+        public IEnumerable<PbType> AllTypes() {
             return AllMessages()
                 .SelectMany(x => x.Fields)
                 .SelectMany(x => x.UsedTypes());

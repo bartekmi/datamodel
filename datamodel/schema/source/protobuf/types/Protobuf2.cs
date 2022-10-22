@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public class FieldGroup : Field {
         public FieldModifier Modifier { get; set; }
         public List<Field> Fields { get; } = new List<Field>();
@@ -10,7 +10,7 @@ namespace datamodel.schema.source.protobuf {
 
         public FieldGroup(Message owner) : base(owner){}
 
-        public override IEnumerable<Type> UsedTypes() {
+        public override IEnumerable<PbType> UsedTypes() {
             return Fields.SelectMany(x => UsedTypes());
         }
     }

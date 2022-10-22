@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace datamodel.schema.source.protobuf {
+namespace datamodel.schema.source.protobuf.data {
     public class EnumDef : Base, Owned {
         public string Name { get; set; }
         public List<EnumValue> Values { get; } = new List<EnumValue>();

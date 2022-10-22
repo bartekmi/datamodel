@@ -8,6 +8,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 using datamodel.utils;
+using datamodel.schema.source.protobuf.data;
 namespace datamodel.schema.source.protobuf {
     public class ProtobufPerserTest {
         private const bool DUMP_TOKENS = false;
@@ -431,7 +432,7 @@ message myMessage {
                 _output.WriteLine(tokenizer.ToString());
 
             ProtobufParser parser = new ProtobufParser(tokenizer);
-            File file = parser.Parse();
+            PbFile file = parser.Parse();
             return JsonFormattingUtils.JsonPretty(file);
         }
         #endregion
