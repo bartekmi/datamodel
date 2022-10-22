@@ -62,14 +62,14 @@ namespace datamodel.schema.source.protobuf.data {
 
             do {
                 // Check self
-                if (owner.IsMessage() && owner.AsMessage().Name == Name) {
+                if (owner.IsMessage() && owner.AsMessage().Name == first) {
                     baseMessage = owner.AsMessage();
                     break;
                 }
 
                 // Check children at this level
                 foreach (Message message in owner.Messages)
-                    if (message.Name == Name) {
+                    if (message.Name == first) {
                         baseMessage = message;
                         break;
                     }

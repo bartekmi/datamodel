@@ -24,21 +24,21 @@ namespace datamodel.schema.source.protobuf.data {
 package p;
 
 message a {
-  a af = 1;         // p.a
-  aa aaf = 2;       // p.a.aa
-  aa.aaa aaaf = 3;  // p.a.aa.aaa
+  a f1 = 1;         // p.a
+  aa f2 = 2;        // p.a.aa
+  aa.aaa f3 = 3;    // p.a.aa.aaa
 
   a.aa f4 = 4;      // p.a.aa
-  a.aa.aaa f5 = 5;  // p.aa.aaa
+  a.aa.aaa f5 = 5;  // p.a.aa.aaa
 
   message aa {
-    a af = 1;
-    aa aaf = 2;
-    aaa aaaf = 3;
+    a f6 = 1;       // p.a
+    aa f7 = 2;      // p.a.aa
+    aaa f8 = 3;     // p.a.aa.aaa
     message aaa {
-      a af = 1;
-      aa aaf = 2;
-      aaa aaaf = 3;
+      a f9 = 1;     // p.a
+      aa f10 = 2;   // p.a.aa
+      aaa f11 = 3;  // p.a.aa.aaa
     }
   }
 }");
@@ -51,12 +51,14 @@ message a {
                 _output.WriteLine(string.Format("Processing field {0} with comment {1}", field.Name, field.Comment));
 
                 if (!string.IsNullOrEmpty(field.Comment)) {
-                    Assert.Equal(field.Comment.Trim(), field.Type.ResolveInternalMessage().QualifiedName());
-                    cases++;
+                  Message resolved = field.Type.ResolveInternalMessage();
+                  Assert.NotNull(resolved);
+                  Assert.Equal(field.Comment.Trim(), resolved.QualifiedName());
+                  cases++;
                 }
             }
 
-            Assert.Equal(5, cases);
+            Assert.Equal(11, cases);
         }
 
         private PbFile ReadProto(string proto) {
