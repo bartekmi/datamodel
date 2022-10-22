@@ -18,6 +18,7 @@ namespace datamodel.schema.source.protobuf {
     }
 
     public interface Owner {
+        [JsonIgnore]
         bool IsFile { get; }
     }
     public static class OwnerExtensions {
