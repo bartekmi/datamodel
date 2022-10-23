@@ -78,7 +78,7 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void RecursivelyMarkInclude(PbFile file, HashSet<PbType> externalTypesOfInterest, PbType type) {
-            Message message = type.ResolveInternalMessage();    
+            Message message = type.ResolveMessage(file);
             if (message != null) {
                 if (message.IncludeInResults)
                     return;     // Already processed

@@ -26,6 +26,8 @@ namespace datamodel.schema.source.protobuf.data {
 
         // Owner interface
         public bool IsFile() { return true; }
+        [JsonIgnore]
+        public string Name { get => Package; }
 
         public IEnumerable<Message> AllMessages() {
             List<Message> messages = new List<Message>();

@@ -58,37 +58,61 @@ namespace datamodel.schema.source.protobuf.data {
             // match of first piece either in name of current message or in 
             // immediate children (of Message or PbFile).
             Owner owner = OwnerMessage;
-            Message baseMessage = null;
+            Owner baseOwner = null;
 
-            do {
+            while (true) {
                 // Check self
-                if (owner.IsMessage() && owner.AsMessage().Name == first) {
-                    baseMessage = owner.AsMessage();
+                if (owner.Name == first) {
+                    baseOwner = owner;
                     break;
                 }
 
                 // Check children at this level
                 foreach (Message message in owner.Messages)
                     if (message.Name == first) {
-                        baseMessage = message;
+                        baseOwner = message;
                         break;
                     }
 
                 // Did not succeed at this level - move up
+                if (owner.IsFile())
+                    break;
                 owner = ((Owned)owner).Owner;
-            } while (!owner.IsFile());
+            }
 
             // Phase 2: If base message found, and other pieces exist, travel *DOWN*
             // nested messages
-            if (baseMessage != null) {
+            if (baseOwner != null) {
                 foreach (string piece in pieces.Skip(1))
-                    baseMessage = baseMessage.Messages.Single(x => x.Name == piece);
+                    baseOwner = baseOwner.Messages.Single(x => x.Name == piece);
             }
 
-            _message = baseMessage;
+            _message = baseOwner.AsMessage();
             _messageChecked = true;
 
             return _message;
+        }
+
+        public Message ResolveExternalMessage(PbFile file) {
+            string[] pieces = Name.Split('.');
+            string first = pieces.First();
+            if (file.Package != first)
+                return null;
+
+            Owner owner = file;
+            foreach (string piece in pieces.Skip(1)) {
+                owner = owner.Messages.SingleOrDefault(x => x.Name == piece);
+                if (owner == null)
+                    break;
+            }
+            
+            return owner.AsMessage();
+        }
+
+        public Message ResolveMessage(PbFile file) {
+            if (OwnerFile == file)
+                return ResolveInternalMessage();
+            return ResolveExternalMessage(file);
         }
     }
 }

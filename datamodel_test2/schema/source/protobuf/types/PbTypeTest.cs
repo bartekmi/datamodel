@@ -30,15 +30,25 @@ message a {
 
   a.aa f4 = 4;      // p.a.aa
   a.aa.aaa f5 = 5;  // p.a.aa.aaa
+  p.a.aa.aaa f6 = 6;  // p.a.aa.aaa
 
   message aa {
-    a f6 = 1;       // p.a
-    aa f7 = 2;      // p.a.aa
-    aaa f8 = 3;     // p.a.aa.aaa
+    a f101 = 1;       // p.a
+    aa f102 = 2;      // p.a.aa
+    aaa f103 = 3;     // p.a.aa.aaa
+
+    a.aa f104 = 4;          // p.a.aa
+    p.a.aa f105 = 5;        // p.a.aa
+
+    aa.aaa f110 = 110         // p.a.aa.aaa
+    a.aa.aaa f111 = 111;      // p.a.aa.aaa
+    p.a.aa.aaa f117 = 117;    // p.a.aa.aaa
+
+
     message aaa {
-      a f9 = 1;     // p.a
-      aa f10 = 2;   // p.a.aa
-      aaa f11 = 3;  // p.a.aa.aaa
+      a f201 = 1;     // p.a
+      aa f202 = 2;   // p.a.aa
+      aaa f203 = 3;  // p.a.aa.aaa
     }
   }
 }");
@@ -48,7 +58,8 @@ message a {
 
             int cases = 0;
             foreach (FieldNormal field in file.AllMessages().SelectMany(x => x.Fields).Cast<FieldNormal>()) {
-                _output.WriteLine(string.Format("Processing field {0} with comment {1}", field.Name, field.Comment));
+                _output.WriteLine(string.Format("Processing field {0} of type {1} with comment {2}", 
+                  field.Name, field.Type, field.Comment));
 
                 if (!string.IsNullOrEmpty(field.Comment)) {
                   Message resolved = field.Type.ResolveInternalMessage();
@@ -58,7 +69,8 @@ message a {
                 }
             }
 
-            Assert.Equal(11, cases);
+            _output.WriteLine("Number of test cases: " + cases);
+            Assert.Equal(17, cases);
         }
 
         private PbFile ReadProto(string proto) {
