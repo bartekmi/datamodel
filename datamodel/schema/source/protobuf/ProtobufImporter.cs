@@ -24,6 +24,8 @@ namespace datamodel.schema.source.protobuf {
 
         public FileBundle ProcessFiles(IEnumerable<PathAndContent> pacs) {
             FileBundle bundle = new FileBundle();
+            foreach (PathAndContent pac in pacs)
+                bundle.MaybeAddToBundle(pac);
 
             foreach (PathAndContent pac in pacs)
                 ProcessFile(bundle, pac, null); 
@@ -72,7 +74,7 @@ namespace datamodel.schema.source.protobuf {
             if (externalTypesOfInterest.Count > 0)
                 foreach (Import import in file.Imports) {
                     string importPath = Path.Join(_importBasePath, import.ImportPath);
-                    PathAndContent importPac = PathAndContent.Read(importPath, true);
+                    PathAndContent importPac = PathAndContent.Read(importPath, false);
                     ProcessFile(bundle, importPac, externalTypesOfInterest); 
                 }
         }

@@ -24,7 +24,7 @@ namespace datamodel.schema.source.protobuf.data {
     public static class OwnerExtensions {
         public static PbFile OwnerFile(this Owner owner) {
             while (!owner.IsFile())
-                owner = ((Owned)owner).Owner;
+                owner = owner.Owner();
 
             return (PbFile)owner;
         }
@@ -33,6 +33,11 @@ namespace datamodel.schema.source.protobuf.data {
         }
         public static Message AsMessage(this Owner owner) {
             return owner as Message;
+        }
+        public static Owner Owner(this Owner owner) {
+            if (owner.IsFile())
+                return null;
+            return ((Owned)owner).Owner;
         }
     }
 
@@ -44,17 +49,19 @@ namespace datamodel.schema.source.protobuf.data {
     public static class OwnedExtensions {
         public static string QualifiedName(this Owned owned) {
             List<string> components = new List<string>();
-            while (true) {
-                components.Add(owned.Name);
-                if (owned.Owner.IsFile()) {
-                    components.Add(((PbFile)owned.Owner).Package);
-                    break;
-                }
-                owned = (Owned)owned.Owner;
+            components.Add(owned.Name);
+            Owner owner = owned.Owner;
+
+            while (owner != null) {
+                components.Add(owner.Name);
+                owner = owner.Owner();
             } 
 
-            components.Reverse();
-            return string.Join(".", components);
+            IEnumerable<string> reversed = components
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Reverse();
+                
+            return string.Join(".", reversed);
         }
     }
 }

@@ -188,9 +188,9 @@ message myMessage {
        Name: myMessage,
        QualifiedName: myMessage
      },
-     myNested: {
+     myMessage.myNested: {
        Name: myNested,
-       QualifiedName: myNested,
+       QualifiedName: myMessage.myNested,
        AllProperties: [
          {
            DataType: string,
@@ -203,7 +203,7 @@ message myMessage {
      {
        OwnerSide: myMessage,
        OwnerMultiplicity: Aggregation,
-       OtherSide: myNested,
+       OtherSide: myMessage.myNested,
        OtherRole: f1,
        OtherMultiplicity: One,
        Description:  Association description
@@ -211,7 +211,7 @@ message myMessage {
      {
        OwnerSide: myMessage,
        OwnerMultiplicity: Aggregation,
-       OtherSide: myNested,
+       OtherSide: myMessage.myNested,
        OtherRole: f2,
        OtherMultiplicity: Many
      }
@@ -250,9 +250,71 @@ service SearchService {
  }");
         }
 
+        [Fact]
+        public void AssociationToImportedProto() {
+            string proto1 = @"
+package a;
+import 'b.proto';
+
+message msgA {
+  b.msgB f1 = 1;
+  msgA2 f2 = 2;
+  message msgA2 {}
+}
+";
+
+            string proto2 = @"
+package b;
+message msgB {}
+";
+
+            string expected = @"
+ {
+   Models: {
+     a.msgA: {
+       Name: msgA,
+       QualifiedName: a.msgA
+     },
+     a.msgA.msgA2: {
+       Name: msgA2,
+       QualifiedName: a.msgA.msgA2
+     },
+     b.msgB: {
+       Name: msgB,
+       QualifiedName: b.msgB
+     }
+   },
+   Associations: [
+     {
+       OwnerSide: a.msgA,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: b.msgB,
+       OtherRole: f1,
+       OtherMultiplicity: One
+     },
+     {
+       OwnerSide: a.msgA,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: a.msgA.msgA2,
+       OtherRole: f2,
+       OtherMultiplicity: One
+     }
+   ]
+ }";
+
+            RunMultiFileTest(expected, 
+              new PathAndContent("a.proto", proto1),
+              new PathAndContent("b.proto", proto2));
+        }
+
         #region Utilities
         private void RunTest(string protoContent, string expected) {
-            FileBundle bundle = DummyFileBundle(protoContent);
+          RunMultiFileTest(expected, new PathAndContent("", protoContent));
+        }
+
+        private void RunMultiFileTest(string expected, params PathAndContent[] pacs) {
+            ProtobufImporter importer = new ProtobufImporter(null);
+            FileBundle bundle = importer.ProcessFiles(pacs);
             ProtobufSource source = new ProtobufSource();
             source.InitializeInternal(bundle);
 
@@ -268,12 +330,6 @@ service SearchService {
                 Assert.Equal(expected, actual);
             }
         }
-
-        private FileBundle DummyFileBundle(string protoContent) {
-          // Note: no actual imports are planned
-          ProtobufImporter importer = new ProtobufImporter(null);
-          return importer.ProcessFile(new PathAndContent("", protoContent));
-        }
-       #endregion
+        #endregion
     }
 }

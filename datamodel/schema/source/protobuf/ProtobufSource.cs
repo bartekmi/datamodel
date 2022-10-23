@@ -88,7 +88,7 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void PassOneMessage(Message message) {
-            _messages[message.Name] = message;
+            _messages[message.QualifiedName()] = message;
             foreach (Message child in message.Messages)
                 PassOneMessage(child);
             foreach (EnumDef enumDef in message.EnumDefs)
@@ -153,7 +153,7 @@ namespace datamodel.schema.source.protobuf {
         private void PassTwoMessage(Message message) {
             Model model = new Model() {
                 Name = message.Name,
-                QualifiedName = message.Name,
+                QualifiedName = message.QualifiedName(),
                 Description = message.Comment,
                 // TODO: Try to derive Deprecated
             };
@@ -180,7 +180,9 @@ namespace datamodel.schema.source.protobuf {
 
         private void AddFieldNormalOrMap(Model model, Field field, PbType type, bool isRepeated, PbType mapKeyType) {
             _enums.TryGetValue(type.Name, out Enum theEnum);
-            _messages.TryGetValue(type.Name, out Message message);
+            Message message = type.ResolveInternalMessage();
+            if (message == null)
+                _messages.TryGetValue(type.Name, out message);
 
             if (type.IsAtomic ||        // Atomic types obviously to be represented as Properties
                 theEnum != null ||      // Same for enum types
@@ -204,7 +206,7 @@ namespace datamodel.schema.source.protobuf {
                     OwnerSide = model.QualifiedName,
                     OwnerMultiplicity = Multiplicity.Aggregation,
 
-                    OtherSide = type.Name,
+                    OtherSide = message.QualifiedName(),
                     OtherMultiplicity = ComputeMultiplicity(isRepeated),
                     OtherRole = field.Name,
 
