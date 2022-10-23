@@ -117,11 +117,18 @@ namespace datamodel.schema.source.protobuf {
                 PassTwoService(service);
         }
 
+        private string[] ComputeLevels(PbFile file) {
+            if (file.Package == null)
+                return null;
+            return file.Package.Split('.');
+        }
+
         private void PassTwoService(Service service) {
             Model model = new Model() {
                 Name = service.Name,
                 QualifiedName = service.Name,
                 Description = service.Comment,
+                Levels = ComputeLevels(service.Owner),
                 // TODO: Try to derive Deprecated
             };
 
@@ -155,6 +162,8 @@ namespace datamodel.schema.source.protobuf {
                 Name = message.Name,
                 QualifiedName = message.QualifiedName(),
                 Description = message.Comment,
+                Levels = ComputeLevels(message.OwnerFile()),
+
                 // TODO: Try to derive Deprecated
             };
 
@@ -214,7 +223,6 @@ namespace datamodel.schema.source.protobuf {
                 };
                 _associations.Add(assoc);
             }
-
         }
 
         private string ComputeType(PbType type, bool isRepeated, PbType mapKeyType) {

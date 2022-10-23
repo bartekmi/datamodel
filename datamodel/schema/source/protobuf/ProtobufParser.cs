@@ -46,7 +46,7 @@ namespace datamodel.schema.source.protobuf {
                         Extend extend = ParseExtend();
                         file.Extends.Add(extend);
                     } else if (PeekAndDiscard("service")) {
-                        Service service = ParseService();
+                        Service service = ParseService(file);
                         file.Services.Add(service);
                     } else if (PeekAndDiscard(";")) {
                         // Do nothing - emptyStatement
@@ -282,8 +282,8 @@ namespace datamodel.schema.source.protobuf {
             return theEnum;
         }
 
-        private Service ParseService() {
-            Service service = new Service() {
+        private Service ParseService(PbFile file) {
+            Service service = new Service(file) {
                 Comment = CurrentComment(),
                 Name = Next()
             };

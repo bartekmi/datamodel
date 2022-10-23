@@ -273,15 +273,24 @@ message msgB {}
    Models: {
      a.msgA: {
        Name: msgA,
-       QualifiedName: a.msgA
+       QualifiedName: a.msgA,
+       Levels: [
+         a
+       ]
      },
      a.msgA.msgA2: {
        Name: msgA2,
-       QualifiedName: a.msgA.msgA2
+       QualifiedName: a.msgA.msgA2,
+       Levels: [
+         a
+       ]
      },
      b.msgB: {
        Name: msgB,
-       QualifiedName: b.msgB
+       QualifiedName: b.msgB,
+       Levels: [
+         b
+       ]
      }
    },
    Associations: [

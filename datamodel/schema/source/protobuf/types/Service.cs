@@ -6,6 +6,12 @@ namespace datamodel.schema.source.protobuf.data {
     public class Service : Base {
         public string Name { get; set; }
         public List<Rpc> Rpcs { get; } = new List<Rpc>(); 
+        [JsonIgnore]
+        public PbFile Owner { get; private set; }
+
+        public Service(PbFile owner) {
+            Owner = owner;
+        }
 
         public override string ToString() {
             return Name;
