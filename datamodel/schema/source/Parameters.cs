@@ -111,8 +111,8 @@ namespace datamodel.schema.source {
         }
 
         private void ReadRecursively(List<PathAndContent> files, string dir) {
-            files.AddRange(Directory.GetFiles(dir).Select(x => PathAndContent.Read(x, ReadContent)));
-            foreach (string nestedDir in Directory.GetDirectories(dir, FilePattern))
+            files.AddRange(Directory.GetFiles(dir, FilePattern).Select(x => PathAndContent.Read(x, ReadContent)));
+            foreach (string nestedDir in Directory.GetDirectories(dir))
                 ReadRecursively(files, nestedDir);
         }
     }

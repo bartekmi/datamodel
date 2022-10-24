@@ -115,11 +115,16 @@ namespace datamodel.schema.source.protobuf {
 
         internal PbFile MaybeAddToBundle(PathAndContent pac) {
             if (!_fileDict.TryGetValue(pac.Path, out PbFile file)) {
+                try {
                 ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
                 ProtobufParser parser = new ProtobufParser(tokenizer);
                 file = parser.Parse();
                 file.Path = pac.Path;
                 AddFile(file);
+                } catch (Exception e) {
+                    string message = "Error reading protobuf file: " + pac.Path;
+                    throw new Exception(message, e);
+                }
             }
 
             return file;

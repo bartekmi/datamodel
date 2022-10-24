@@ -265,6 +265,8 @@ namespace datamodel.schema.source.protobuf {
             while (!PeekAndDiscard("}")) {
                 if (PeekAndDiscard("option"))
                     ParseOption();
+                if (PeekAndDiscard("reserved"))     // Not part of official spec, but seen in the wild
+                    ParseReserved();
                 else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else {     // Assume it's "item = n;"
