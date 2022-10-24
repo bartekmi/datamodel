@@ -44,7 +44,8 @@ namespace datamodel.toplevel {
                 Schema schema = Schema.Singleton;
 
                 switch (Level) {
-                    case 0: return "All Models";
+                    case 0: 
+                        return "All Models";
                     case 1:
                         return Name == null ?
                             string.Format("Orphans (No {0})", schema.GetLevelName(Level - 1)) :
@@ -53,9 +54,8 @@ namespace datamodel.toplevel {
                         return Name == null ?
                             string.Format("{0} (No {1})", Parent.Name, schema.GetLevelName(Level - 1)) :
                             Name;
-                    case 3: return Name;    // If this had no name, it wouldn't exist
-                    default:
-                        throw new Exception("Unexpected Level: " + Level);
+                    default: 
+                        return Name;
                 }
             }
         }
