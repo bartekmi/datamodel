@@ -128,41 +128,100 @@ message myMessage {
         [Fact]
         public void ParseEnumField() {
             string proto = @"
-message myMessage {
-    // Enum description
-    enum myEnum {
-        one = 1;    // First
-        two = 2;    // Second
-    }
-    myEnum field1 = 1;
+package p;
+// Enum description
+enum e { 
+  z = 0;        // Item description
+}
+message m1 {
+  enum ee { z1 = 0; }
+
+  e f1            = 1;
+  ee f2           = 2;
+  p.m1.n1.eee f3  = 3;
+  m2.ee f4        = 4;
+
+  message n1 {
+    enum eee {}
+  }
+}
+message m2 {
+  enum ee { z2 = 0; }
 }
 ";
 
             RunTest(proto, @"
  {
    Models: {
-     myMessage: {
-       Name: myMessage,
-       QualifiedName: myMessage,
+     p.m1: {
+       Name: m1,
+       QualifiedName: p.m1,
+       Levels: [
+         p
+       ],
        AllProperties: [
          {
-           DataType: myEnum,
+           DataType: e,
            Enum: {
-             Name: myEnum,
+             Name: e,
              Description:  Enum description,
              Values: [
                {
-                 Key: one,
-                 Value:  First
-               },
-               {
-                 Key: two,
-                 Value:  Second
+                 Key: z,
+                 Value:  Item description
                }
              ]
            },
-           Name: field1
+           Name: f1
+         },
+         {
+           DataType: ee,
+           Enum: {
+             Name: ee,
+             Values: [
+               {
+                 Key: z1,
+                 Value: 
+               }
+             ]
+           },
+           Name: f2
+         },
+         {
+           DataType: p.m1.n1.eee,
+           Enum: {
+             Name: eee,
+             Values: []
+           },
+           Name: f3
+         },
+         {
+           DataType: m2.ee,
+           Enum: {
+             Name: ee,
+             Values: [
+               {
+                 Key: z2,
+                 Value: 
+               }
+             ]
+           },
+           Name: f4
          }
+       ]
+     },
+     p.m1.n1: {
+       Name: n1,
+       QualifiedName: p.m1.n1,
+       Levels: [
+         p
+       ]
+     },
+     p.m2: {
+       Name: m2,
+       QualifiedName: p.m2,
+       Levels: [
+         p
        ]
      }
    }
