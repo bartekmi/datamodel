@@ -419,7 +419,7 @@ message myMessage {
         public void ParseProto2_Extend() {
             string proto = @"
 syntax = 'proto2';
-extend Foo {
+extend . a . Foo {
   optional int32 bar = 126;
 }";
 
@@ -428,7 +428,7 @@ extend Foo {
    Syntax: proto2,
    Extends: [
      {
-       MessageType: Foo,
+       MessageType: .a.Foo,
        Fields: [
          {
            Modifier: Optional,

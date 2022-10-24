@@ -386,7 +386,7 @@ namespace datamodel.schema.source.protobuf {
             // Order of populating fields is important
             Extend extend = new Extend() {
                 Comment = CurrentComment(),
-                MessageType = Next(),
+                MessageType = ParseNameWithDots(true),
             };
             Expect("{");
 
