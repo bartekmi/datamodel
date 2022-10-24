@@ -238,8 +238,10 @@ namespace datamodel.datadict {
                     .Add(new HtmlTd());
 
                 enumValuesTd.Add(new HtmlTable(
-                        new HtmlTr(new HtmlTh("Enum Values"),
-                            new HtmlTh("Enum Descriptions")).Class("enum-header"),
+                        new HtmlTr(
+                            new HtmlTh("Enum Values"),
+                            new HtmlTh("Enum Descriptions"))
+                            .Class("enum-header"),
                         property.Enum.Values.Select(x =>
                             new HtmlTr(x.Key.ToString(), x.Value).Class("enum-data"))
                     ).Class("enum-table")
