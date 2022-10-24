@@ -17,11 +17,6 @@ namespace datamodel.schema.source.protobuf {
 
         #region Single Tokens
         [Fact]
-        public void TokenizeIdentifier() {
-            TokenizeSingle("abc.def1");
-        }
-
-        [Fact]
         public void TokenizeInt() {
             TokenizeSingle("1234");
         }
@@ -31,7 +26,7 @@ namespace datamodel.schema.source.protobuf {
             TokenizeSingle("=");
         }
 
-        [Fact]
+        [Fact (Skip = "We don't need this until we care about options")]
         public void TokenizeFloat() {
             TokenizeSingle("1234.567e10");
         }
@@ -47,11 +42,6 @@ namespace datamodel.schema.source.protobuf {
         [Fact]
         public void TokenizeSyntax() {
             Tokenize("syntax = 'proto3';", "syntax", "=", "proto3", ";");
-        }
-
-        [Fact]
-        public void TokenizePackage() {
-            Tokenize("package my.pkg;", "package", "my.pkg", ";");
         }
 
         [Fact]

@@ -70,7 +70,7 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void ParsePackage(PbFile file) {
-            file.Package = Next();
+            file.Package = ParseNameWithDots(false);
             Expect(";");
         }
 
@@ -206,11 +206,11 @@ namespace datamodel.schema.source.protobuf {
         // Template: 
         //  [repeated] type name = n [ [...options...] ];
         private Field ParseNormalOrGroupField(Message message) {
-            string groupOrType = Next();
+            string maybeModifier = Peek();
             FieldModifier modifier = FieldModifier.None;
 
             // Parse optional modifier
-            switch (groupOrType) {
+            switch (maybeModifier) {
                 case "required":
                     modifier = FieldModifier.Required;
                     break;
@@ -221,8 +221,11 @@ namespace datamodel.schema.source.protobuf {
                     modifier = FieldModifier.Repeated;
                     break;
             }
+
             if (modifier != FieldModifier.None)
-                groupOrType = Next();
+                Next();
+
+            string groupOrType = ParseNameWithDots(true);
 
             // Parse either a normal or gropu field
             if (groupOrType == "group")     // Proto2. Could explicitly check syntax first.
@@ -321,7 +324,7 @@ namespace datamodel.schema.source.protobuf {
             Expect("(");
             if (PeekAndDiscard("stream"))
                 rpc.IsInputStream = true;
-            rpc.InputName = Next();
+            rpc.InputName = ParseNameWithDots(true);
             Expect(")");
 
             // Output
@@ -329,7 +332,7 @@ namespace datamodel.schema.source.protobuf {
             Expect("(");
             if (PeekAndDiscard("stream"))
                 rpc.IsOutputStream = true;
-            rpc.OutputName = Next();
+            rpc.OutputName = ParseNameWithDots(true);
             Expect(")");
 
             // Note the two alternate endings
@@ -417,6 +420,31 @@ namespace datamodel.schema.source.protobuf {
                 value = -value;
 
             return value;
+        }
+
+        // [ "." ] { ident "." } messageName
+        // [ "." ] { ident "." } enumName
+        private string ParseNameWithDots(bool allowLeadingDot) {
+            StringBuilder builder = new StringBuilder();
+            
+            // Optional leading "."
+            if (allowLeadingDot)
+                if (PeekAndDiscard("."))
+                    builder.Append(".");
+
+            while (true) {
+                builder.Append(Next());
+                if (PeekAndDiscard("."))
+                    builder.Append(".");
+                else
+                    break;
+            }
+
+            return builder.ToString();
+        }
+
+        private string Peek() {
+            return _tokenizer.Peek().ToLower();
         }
 
         private bool PeekAndDiscard(string possiblyExpected) {

@@ -96,6 +96,42 @@ enum MyEnum {
         }
 
         [Fact]
+        public void ParseBrokenIdentifier() {
+            string proto = @"
+message m {
+    one . two
+        .three f1 = 1;
+    repeated . one . two f2 = 2;
+}
+";
+            RunTest(@"
+ {
+   Messages: [
+     {
+       Name: m,
+       Fields: [
+         {
+           Type: {
+             Name: one.two.three
+           },
+           Number: 1,
+           Name: f1
+         },
+         {
+           Modifier: Repeated,
+           Type: {
+             Name: .one.two
+           },
+           Number: 2,
+           Name: f2
+         }
+       ]
+     }
+   ]
+ }", proto);
+        }
+
+        [Fact]
         public void ParseMessage() {
             string proto = @"
 //Message Comment
@@ -232,7 +268,7 @@ message myMessage {
 service SearchService {
   option ignoreMe = 'will be ignored';
   //Rpc Comment
-  rpc Search (SearchRequest) returns (SearchResponse);
+  rpc Search (a . SearchRequest) returns (. b . SearchResponse);
   rpc SearchStream (stream SearchRequest) returns (stream SearchResponse) { option a=1; option b=2; }
   ;
 }";
@@ -245,8 +281,8 @@ service SearchService {
       Rpcs: [
         {
           Name: Search,
-          InputName: SearchRequest,
-          OutputName: SearchResponse,
+          InputName: a.SearchRequest,
+          OutputName: .b.SearchResponse,
           Comment: Rpc Comment
         },
         {

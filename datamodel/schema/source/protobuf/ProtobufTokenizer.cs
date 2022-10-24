@@ -68,7 +68,7 @@ namespace datamodel.schema.source.protobuf {
             InSlashStarStar,
         }
 
-        private const string SINGLE_CHAR_TOKENS = "(){}<>[]=+-,;";
+        private const string SINGLE_CHAR_TOKENS = "(){}<>[]=+-,.;";
 
         #region Main Parse Code
         public ProtobufTokenizer(TextReader reader) {
