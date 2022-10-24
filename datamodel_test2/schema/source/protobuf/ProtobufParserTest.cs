@@ -176,7 +176,39 @@ message myMessage {
      }
    ]
  }", proto);
+        }
 
+        [Fact]
+        public void ParseMapField() {
+            string proto = @"
+message myMessage {
+  //Map Comment
+  map<string, . a . Project> myMap = 5;
+  ;
+}
+";
+
+            RunTest(@"
+ {
+   Messages: [
+     {
+       Name: myMessage,
+       Fields: [
+         {
+           KeyType: {
+             Name: string
+           },
+           ValueType: {
+             Name: .a.Project
+           },
+           Number: 5,
+           Name: myMap,
+           Comment: Map Comment
+         }
+       ]
+     }
+   ]
+ }", proto);
         }
 
         [Fact]
@@ -190,9 +222,6 @@ message myMessage {
   optional string myOptional = 3;
   option ignoreMe = 'will be ignored';
   reserved 2, 15, 9 to 11;
-
-  //Map Comment
-  map<string, Project> myMap = 5;
   ;
 }
 ";
@@ -227,17 +256,6 @@ message myMessage {
           },
           Number: 3,
           Name: myOptional
-        },
-        {
-          KeyType: {
-            Name: string
-          },
-          ValueType: {
-            Name: Project
-          },
-          Number: 5,
-          Name: myMap,
-          Comment: Map Comment
         }
       ],
       Comment: Message Comment

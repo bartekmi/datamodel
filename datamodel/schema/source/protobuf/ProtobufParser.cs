@@ -192,7 +192,7 @@ namespace datamodel.schema.source.protobuf {
             Expect("<");
             map.KeyType = new PbType(map, Next());
             Expect(",");
-            map.ValueType = new PbType(map, Next());
+            map.ValueType = new PbType(map, ParseNameWithDots(true));
             Expect(">");
             map.Name = Next();
             Expect("=");
