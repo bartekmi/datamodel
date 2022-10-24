@@ -14,6 +14,10 @@ namespace datamodel.graphviz {
     public class GraphvizGenerator {
 
         #region Top-Level
+        // E.g. see https://github.com/jrfonseca/gprof2dot/issues/30
+        // Graphviz imposes a maximum string length of 16384. Giving a bit of breathing room.
+        const int MAX_STRING_LENGTH = 15000;
+
         public void GenerateGraph(
             GraphDefinition graphDef,
             IEnumerable<Model> models,
@@ -293,11 +297,12 @@ namespace datamodel.graphviz {
 
             if (theEnum != null) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                foreach (var value in theEnum.Values)
+                foreach (var value in theEnum.Values) {
                     builder.AppendLine(string.Format("{0}{1}: {2}",
                         HtmlUtils.LINE_BREAK,
                         value.Key,
                         value.Value));
+                }
             }
 
             if (property.Labels.Count() > 0) {
@@ -309,7 +314,13 @@ namespace datamodel.graphviz {
                         label.Value));
             }
 
-            return builder.ToString();
+            string toolTip = builder.ToString();
+            if (toolTip.Length > MAX_STRING_LENGTH) {
+                toolTip = toolTip.Substring(0, MAX_STRING_LENGTH);
+                toolTip += "... (Truncated)";
+            }
+
+            return toolTip;
         }
 
         private string CreateModelToolTip(Model model) {
