@@ -16,7 +16,8 @@ namespace datamodel.graphviz {
         #region Top-Level
         // E.g. see https://github.com/jrfonseca/gprof2dot/issues/30
         // Graphviz imposes a maximum string length of 16384. Giving a bit of breathing room.
-        const int MAX_STRING_LENGTH = 15000;
+        const int MAX_ENUM_ITEMS = 30;
+        const int MAX_TOOLTIP_LENGTH = 5000;
 
         public void GenerateGraph(
             GraphDefinition graphDef,
@@ -223,6 +224,8 @@ namespace datamodel.graphviz {
         }
 
         private void CreateLabelProperties(IEnumerable<Model> models, Model model, HtmlTable table) {
+            HashSet<datamodel.schema.Enum> usedEnums = new HashSet<datamodel.schema.Enum>();
+
             foreach (Property property in model.AllProperties) {
                 if (Schema.Singleton.IsInteresting(property) &&
                     !property.Deprecated &&
@@ -279,10 +282,14 @@ namespace datamodel.graphviz {
                     }
 
                     // Attributes for the property name Html-like element
+                    datamodel.schema.Enum theEnum = property.Enum;
                     propertyNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", CreateMemberToolTip(property, property.Enum))
+                        .SetAttrHtml("tooltip", CreateMemberToolTip(property, 
+                            usedEnums.Contains(theEnum) ? null : theEnum))
                         .SetAttrHtml("href", property.DocUrl);
+
+                    usedEnums.Add(theEnum);
 
                     table.AddTr(row);
                 }
@@ -297,12 +304,15 @@ namespace datamodel.graphviz {
 
             if (theEnum != null) {
                 builder.AppendLine(HtmlUtils.LINE_BREAK);
-                foreach (var value in theEnum.Values) {
+                foreach (var value in theEnum.Values.Take(MAX_ENUM_ITEMS)) {
                     builder.AppendLine(string.Format("{0}{1}: {2}",
                         HtmlUtils.LINE_BREAK,
                         value.Key,
                         value.Value));
                 }
+                
+                if (theEnum.Values.Count() > MAX_ENUM_ITEMS)
+                    builder.AppendLine(HtmlUtils.LINE_BREAK + "... (Truncated)");
             }
 
             if (property.Labels.Count() > 0) {
@@ -315,8 +325,8 @@ namespace datamodel.graphviz {
             }
 
             string toolTip = builder.ToString();
-            if (toolTip.Length > MAX_STRING_LENGTH) {
-                toolTip = toolTip.Substring(0, MAX_STRING_LENGTH);
+            if (toolTip.Length > MAX_TOOLTIP_LENGTH) {
+                toolTip = toolTip.Substring(0, MAX_TOOLTIP_LENGTH);
                 toolTip += "... (Truncated)";
             }
 
