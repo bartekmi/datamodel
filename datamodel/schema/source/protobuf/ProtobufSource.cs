@@ -33,6 +33,13 @@ namespace datamodel.schema.source.protobuf {
 
             ProtobufImporter importer = new ProtobufImporter(importRoot);
             FileBundle bundle = importer.ProcessFiles(files);
+
+            // Some debug info...
+            Console.WriteLine("Protobuf Schema Source...");
+            Console.WriteLine("{0} files scanned.", bundle.FileDict.Count());
+            Console.WriteLine("{0} messages discovered.", bundle.AllMessages.Count());
+            Console.WriteLine("{0} services discovered.", bundle.AllServices.Count());
+
             InitializeInternal(bundle);
         }
 
