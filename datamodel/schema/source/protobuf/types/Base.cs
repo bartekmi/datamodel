@@ -17,7 +17,6 @@ namespace datamodel.schema.source.protobuf.data {
     }
 
     public interface Owner {
-        bool IsFile();
         List<Message> Messages { get; }
         List<EnumDef> EnumDefs { get; }
         string Name { get; }
@@ -34,6 +33,12 @@ namespace datamodel.schema.source.protobuf.data {
         }
         public static Message AsMessage(this Owner owner) {
             return owner as Message;
+        }
+        public static bool IsFile(this Owner owner) {
+            return owner is PbFile;
+        }
+        public static PbFile AsFile(this Owner owner) {
+            return owner as PbFile;
         }
         public static Owner Owner(this Owner owner) {
             if (owner.IsFile())

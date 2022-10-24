@@ -16,9 +16,6 @@ namespace datamodel.schema.source.protobuf.data {
         public bool ShouldSerializeEnumDefs() { return EnumDefs.Count > 0; }
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
-        // Owner interface
-        public bool IsFile() { return false; }
-
         // Owned interface
         [JsonIgnore]
         public Owner Owner { get; set; }

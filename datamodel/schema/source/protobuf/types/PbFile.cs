@@ -25,7 +25,6 @@ namespace datamodel.schema.source.protobuf.data {
         public bool ShouldSerializeExtends() { return Extends.Count > 0; }
 
         // Owner interface
-        public bool IsFile() { return true; }
         [JsonIgnore]
         public string Name { get => Package; }
 

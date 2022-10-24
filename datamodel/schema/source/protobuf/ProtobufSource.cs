@@ -16,7 +16,7 @@ namespace datamodel.schema.source.protobuf {
         private Dictionary<string, Enum> _enums = new Dictionary<string, Enum>();
 
         // 2nd (and final) stage of conversion
-        private List<Model> _models = new List<Model>();
+        private Dictionary<string,Model> _models = new Dictionary<string, Model>();
         private List<Association> _associations = new List<Association>();
 
         public const string PARAM_PATHS = "paths";
@@ -76,7 +76,7 @@ namespace datamodel.schema.source.protobuf {
         }
 
         public override IEnumerable<Model> GetModels() {
-            return _models;
+            return _models.Values;
         }
 
         public override IEnumerable<Association> GetAssociations() {
@@ -131,9 +131,12 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void PassTwoService(Service service) {
+            string suffix = service.Name.ToLower().EndsWith("service") ?
+                "" : "Service";
+
             Model model = new Model() {
-                Name = service.Name,
-                QualifiedName = service.Name,
+                Name = service.Name + suffix,
+                QualifiedName = service.QualifiedName + suffix,
                 Description = service.Comment,
                 Levels = ComputeLevels(service.Owner),
                 // TODO: Try to derive Deprecated
@@ -153,7 +156,7 @@ namespace datamodel.schema.source.protobuf {
                 });
             }
 
-            _models.Add(model);
+            SafelyAddModel(model, service.Owner.AsFile(), "Service " + service.Name);
         }
 
         private DataType CreateDataType(string name) {
@@ -186,7 +189,7 @@ namespace datamodel.schema.source.protobuf {
                     throw new NotImplementedException("Unexpected field type: " + field.GetType().Name);
             }
 
-            _models.Add(model);
+            SafelyAddModel(model, message.OwnerFile(), "Message " + message.Name);
         }
 
 
@@ -271,6 +274,24 @@ namespace datamodel.schema.source.protobuf {
 
         private void AddFieldMap(Model model, FieldMap field) {
             AddFieldNormalOrMap(model, field, field.ValueType, true, field.KeyType);
+        }
+
+        private void SafelyAddModel(Model model, PbFile file, string extraInfo) {
+            if (_models.ContainsKey(model.QualifiedName)) {
+                throw new Exception(string.Format(@"
+
+Duplicate model qualified name: {0}
+File: {1}
+Package: {2}
+Extra Info: {3}
+
+",
+                    model.QualifiedName,
+                    file.Path,
+                    file.Package,
+                    extraInfo));
+            }
+            _models[model.QualifiedName] = model;
         }
         #endregion
     }

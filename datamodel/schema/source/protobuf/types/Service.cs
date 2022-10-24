@@ -9,6 +9,12 @@ namespace datamodel.schema.source.protobuf.data {
         [JsonIgnore]
         public PbFile Owner { get; private set; }
 
+        // Derived
+        public string QualifiedName 
+            => string.IsNullOrEmpty(Owner.Package) ? 
+                Name : 
+                string.Format("{0}.{1}", Owner.Package, Name);
+
         public Service(PbFile owner) {
             Owner = owner;
         }
