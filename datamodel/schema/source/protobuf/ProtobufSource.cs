@@ -104,7 +104,7 @@ namespace datamodel.schema.source.protobuf {
             foreach (EnumValue value in enumDef.Values)
                 theEnum.Add(value.Name, value.Comment);
 
-            _enums[enumDef.Name] = theEnum;
+            _enums[enumDef.QualifiedName()] = theEnum;
         }
         #endregion
 
@@ -150,10 +150,11 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private DataType CreateDataType(string name) {
-            _enums.TryGetValue(name, out Enum theEnum);
+            // TODO... In the future, we should be more clever about resolving enum and reference
+            // _enums.TryGetValue(name, out Enum theEnum);
             return new DataType() {
                 Name = name,
-                Enum = theEnum,
+                // Enum = theEnum,
             };
         }
 
@@ -188,10 +189,12 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private void AddFieldNormalOrMap(Model model, Field field, PbType type, bool isRepeated, PbType mapKeyType) {
-            _enums.TryGetValue(type.Name, out Enum theEnum);
-            Message message = type.ResolveInternalMessage();
+            type.ResolveInternal(out Message message, out EnumDef enumDef);
             if (message == null)
                 _messages.TryGetValue(type.Name, out message);
+
+            string enumName = enumDef == null ? type.Name : enumDef.QualifiedName();
+            _enums.TryGetValue(enumName, out Enum theEnum);
 
             if (type.IsAtomic ||        // Atomic types obviously to be represented as Properties
                 theEnum != null ||      // Same for enum types

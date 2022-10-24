@@ -19,6 +19,7 @@ namespace datamodel.schema.source.protobuf.data {
     public interface Owner {
         bool IsFile();
         List<Message> Messages { get; }
+        List<EnumDef> EnumDefs { get; }
         string Name { get; }
     }
     public static class OwnerExtensions {

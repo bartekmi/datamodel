@@ -20,7 +20,7 @@ namespace datamodel.schema.source.protobuf.data {
 
         [Fact]
         public void ResolveInternalMessage() {
-            PbFile file = ReadProto(@"
+            string proto = @"
 package p;
 
 message a {
@@ -51,8 +51,60 @@ message a {
       aaa f203 = 3;  // p.a.aa.aaa
     }
   }
-}");
+}";
 
+            RunTest(proto, 17, TestType.Message);
+        }
+
+        [Fact]
+        public void ResolveInternalEnumDef() {
+            string proto = @"
+package p;
+
+enum e { one = 0; }
+
+message a {
+  e f1 = 1;                     // p.e
+  ee f2 = 2;                    // p.a.ee
+  aa.eee f3 = 3;                // p.a.aa.eee
+  a.ee f4 = 4;                  // p.a.ee
+  a.aa.eee f5 = 5;              // p.a.aa.eee
+  p.a.aa.eee f6 = 6;            // p.a.aa.eee
+
+  enum ee { one = 0; }
+
+  message aa {
+    e f1 = 1;                   // p.e
+    ee f2 = 2;                  // p.a.ee
+    eee f3 = 3;                 // p.a.aa.eee
+    aa.aaa.eeee f35 = 35;       // p.a.aa.aaa.eeee
+    a.aa.aaa.eeee f4 = 4;       // p.a.aa.aaa.eeee
+    p.a.aa.aaa.eeee f5 = 5;     // p.a.aa.aaa.eeee
+    aaa.eeee f6= 6;             // p.a.aa.aaa.eeee
+
+    enum eee { one = 0; }
+
+    message aaa {
+      e f1 = 1;                 // p.e
+      ee f2 = 2;                // p.a.ee
+      eee f3 = 3;               // p.a.aa.eee
+      eeee f4 = 4;              // p.a.aa.aaa.eeee
+
+      enum eeee { one = 0; }
+    }
+  }
+}";
+
+            RunTest(proto, 17, TestType.EnumDef);
+        }
+
+        enum TestType {
+            Message,
+            EnumDef,
+        }
+
+        private void RunTest(string proto, int expectedTestCases, TestType testType) {
+            PbFile file = ReadProto(proto);
             _output.WriteLine(JsonFormattingUtils.JsonPretty(file));
             Assert.Equal(3, file.AllMessages().Count());
 
@@ -62,15 +114,16 @@ message a {
                   field.Name, field.Type, field.Comment));
 
                 if (!string.IsNullOrEmpty(field.Comment)) {
-                  Message resolved = field.Type.ResolveInternalMessage();
-                  Assert.NotNull(resolved);
-                  Assert.Equal(field.Comment.Trim(), resolved.QualifiedName());
+                  field.Type.ResolveInternal(out Message message, out EnumDef enumDef);
+                  Owned owned = testType == TestType.Message ? message : enumDef;
+                  Assert.NotNull(owned);
+                  Assert.Equal(field.Comment.Trim(), owned.QualifiedName());
                   cases++;
                 }
             }
 
             _output.WriteLine("Number of test cases: " + cases);
-            Assert.Equal(17, cases);
+            Assert.Equal(expectedTestCases, cases);
         }
 
         private PbFile ReadProto(string proto) {
