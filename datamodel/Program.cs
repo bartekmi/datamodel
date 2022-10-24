@@ -72,7 +72,8 @@ namespace datamodel {
 
                 GenerateGraphsAndDataDictionary();
             } catch (Exception e) {
-                Console.WriteLine(BuildMessage(e));
+                Console.WriteLine(e);
+                // Console.WriteLine(BuildMessage(e));
                 Environment.Exit(1);
             }
         }
