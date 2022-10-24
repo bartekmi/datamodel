@@ -98,6 +98,25 @@ message a {
             RunTest(proto, 17, TestType.EnumDef);
         }
 
+
+        [Fact]
+        public void ResolveInternalMessageLeadingDot() {
+            string proto = @"
+package p;
+
+message a {
+  message b {}
+  b f1 = 1;         // p.a.b
+  .b f2 = 2;        // p.b
+}
+message b {}
+";
+
+            RunTest(proto, 2, TestType.Message);
+        }
+
+
+        #region Utilities
         enum TestType {
             Message,
             EnumDef,
@@ -130,6 +149,7 @@ message a {
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(proto));
             ProtobufParser parser = new ProtobufParser(tokenizer);
             return parser.Parse();
-        }        
+        }    
+        #endregion    
    }
 }

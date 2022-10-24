@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
@@ -58,16 +59,38 @@ namespace datamodel.schema.source.protobuf.data {
                 return;
             }
 
-            string[] pieces = Name.Split('.');
-            string first = pieces[0];
+            string[] pieces = Name.Split('.', StringSplitOptions.RemoveEmptyEntries);
 
-            // Phase 1: Travel *UP* the chain of owners, trying to find a name
-            // match of first piece either in name of current message or in 
-            // immediate children (of Message or PbFile).
-            Owner owner = OwnerMessage;
-            Owner baseOwner = null;
             messageOut = null;
             enumDefOut = null;
+
+            Owner baseOwner;
+            string[] remainingPieces;
+
+            if (Name.StartsWith(".")) {
+                remainingPieces = pieces;
+                baseOwner = OwnerFile;
+            } else {
+                string first = pieces[0];
+                remainingPieces = pieces.Skip(1).ToArray();
+                baseOwner = ResolveInternalPhaseOne(first, out enumDefOut);
+            }
+
+            if (baseOwner != null)
+                ResolveInternalPhaseTwo(baseOwner, remainingPieces, out messageOut, out enumDefOut);
+
+            _resolvedMessage = messageOut;
+            _resolvedEnumDef = enumDefOut;
+            _resolvedChecked = true;
+        }
+
+        // Phase 1: Travel *UP* the chain of owners, trying to find a name
+        // match of first piece either in name of current message or in 
+        // immediate children (of Message or PbFile).
+        private Owner ResolveInternalPhaseOne(string first, out EnumDef enumDefOut) {
+            enumDefOut = null;
+            Owner owner = OwnerMessage;
+            Owner baseOwner = null;
 
             while (true) {
                 // Check self
@@ -84,10 +107,9 @@ namespace datamodel.schema.source.protobuf.data {
                 }
                 enumDefOut = owner.EnumDefs.FirstOrDefault(x => x.Name == first);
                 if (enumDefOut != null) {
-                    // There is a pathological case where we've found an enuml, but there are other "pieces";
+                    // There is a pathological case where we've found an enum, but there are other "pieces";
                     // ignoring this.
-                    CacheResolved(null, enumDefOut);
-                    return;
+                    return null;
                 }
 
                 // If we've reached the File without success, we give up
@@ -98,40 +120,40 @@ namespace datamodel.schema.source.protobuf.data {
                 owner = ((Owned)owner).Owner;
             }
 
-            // Phase 2: If base message found, and other pieces exist, travel *DOWN*
-            // (to the leafs of the tree nested messages).
-            if (baseOwner != null) {
-                foreach (string piece in pieces.Skip(1)) {
-                    Owner child = baseOwner.Messages.FirstOrDefault(x => x.Name == piece);
-                    if (child == null) {
-                        enumDefOut = baseOwner.EnumDefs.FirstOrDefault(x => x.Name == piece);
-                        if (enumDefOut != null) {
-                            // There is a pathological case where we've found an enuml, but there are other "pieces";
-                            // ignoring this.
-                            CacheResolved(null, enumDefOut);
-                            return;
-                        }
-                    }
+            return baseOwner;
+        }
 
-                    // This should never happen in a correctly formed proto. This means that we found a base owner,
-                    // but the pieces did not match going back DOWN the chain.
-                    if (child == null) {
-                        CacheResolved(null, null);
+        // Phase 2: If base message found, and other pieces exist, travel *DOWN*
+        // (to the leafs of the tree nested messages).
+        private void ResolveInternalPhaseTwo(
+            Owner baseOwner, 
+            IEnumerable<string> remainingPieces, 
+            out Message messageOut,
+            out EnumDef enumDefOut) {
+
+            messageOut = null;
+            enumDefOut = null;
+
+            foreach (string piece in remainingPieces) {
+                Owner child = baseOwner.Messages.FirstOrDefault(x => x.Name == piece);
+                if (child == null) {
+                    enumDefOut = baseOwner.EnumDefs.FirstOrDefault(x => x.Name == piece);
+                    if (enumDefOut != null) {
+                        // There is a pathological case where we've found an enuml, but there are other "pieces";
+                        // ignoring this.
                         return;
                     }
-
-                    baseOwner = child;
                 }
+
+                // This should never happen in a correctly formed proto. This means that we found a base owner,
+                // but the pieces did not match going back DOWN the chain.
+                if (child == null)
+                    return;
+
+                baseOwner = child;
             }
 
             messageOut = baseOwner.AsMessage();
-            CacheResolved(baseOwner.AsMessage(), null);
-        }
-
-        private void CacheResolved(Message message, EnumDef enumDef) {
-            _resolvedMessage = message;
-            _resolvedEnumDef = enumDef;
-            _resolvedChecked = true;
         }
 
         public Message ResolveExternalMessage(PbFile file) {
