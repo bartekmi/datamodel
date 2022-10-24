@@ -174,7 +174,7 @@ namespace datamodel.schema.source.protobuf {
                 else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
                 } else {
-                    string type = Next();
+                    string type = ParseNameWithDots(true);
                     FieldNormal normal = ParseNormalField(owner, FieldModifier.None, type);
                     field.Fields.Add(normal);
                 }

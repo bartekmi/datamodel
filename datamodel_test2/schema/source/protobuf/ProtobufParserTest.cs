@@ -132,6 +132,54 @@ message m {
         }
 
         [Fact]
+        public void ParseOneOf() {
+            string proto = @"
+message myMessage {
+  //OneOf Comment
+  oneof myOneOf {
+    option ignoreMe = 'will be ignored';
+    string either           = 3;         //Field 3 Comment
+    . a . b . msgType or    = 4;
+    ;
+  }
+}
+";
+
+            RunTest(@"
+ {
+   Messages: [
+     {
+       Name: myMessage,
+       Fields: [
+         {
+           Fields: [
+             {
+               Type: {
+                 Name: string
+               },
+               Number: 3,
+               Name: either,
+               Comment: Field 3 Comment
+             },
+             {
+               Type: {
+                 Name: .a.b.msgType
+               },
+               Number: 4,
+               Name: or
+             }
+           ],
+           Name: myOneOf,
+           Comment: OneOf Comment
+         }
+       ]
+     }
+   ]
+ }", proto);
+
+        }
+
+        [Fact]
         public void ParseMessage() {
             string proto = @"
 //Message Comment
@@ -142,14 +190,6 @@ message myMessage {
   optional string myOptional = 3;
   option ignoreMe = 'will be ignored';
   reserved 2, 15, 9 to 11;
-
-  //OneOf Comment
-  oneof myOneOf {
-    option ignoreMe = 'will be ignored';
-    string either = 3;                          //Field 3 Comment
-    string or = 4;
-    ;
-  }
 
   //Map Comment
   map<string, Project> myMap = 5;
@@ -187,27 +227,6 @@ message myMessage {
           },
           Number: 3,
           Name: myOptional
-        },
-        {
-          Fields: [
-            {
-              Type: {
-                Name: string
-              },
-              Number: 3,
-              Name: either,
-              Comment: Field 3 Comment
-            },
-            {
-              Type: {
-                Name: string
-              },
-              Number: 4,
-              Name: or
-            }
-          ],
-          Name: myOneOf,
-          Comment: OneOf Comment
         },
         {
           KeyType: {
