@@ -301,7 +301,8 @@ message myMessage {
         [Fact]
         public void ParseService() {
             string proto = @"
-//Service Comment            
+package p;
+//Service Comment
 service SearchService {
   option ignoreMe = 'will be ignored';
   //Rpc Comment
@@ -311,29 +312,31 @@ service SearchService {
 }";
 
             RunTest(@"
-{
-  Services: [
-    {
-      Name: SearchService,
-      Rpcs: [
-        {
-          Name: Search,
-          InputName: a.SearchRequest,
-          OutputName: .b.SearchResponse,
-          Comment: Rpc Comment
-        },
-        {
-          Name: SearchStream,
-          InputName: SearchRequest,
-          IsInputStream: true,
-          OutputName: SearchResponse,
-          IsOutputStream: true
-        }
-      ],
-      Comment: Service Comment
-    }
-  ]
-}", proto);
+ {
+   Package: p,
+   Services: [
+     {
+       Name: SearchService,
+       Rpcs: [
+         {
+           Name: Search,
+           InputName: a.SearchRequest,
+           OutputName: .b.SearchResponse,
+           Comment: Rpc Comment
+         },
+         {
+           Name: SearchStream,
+           InputName: SearchRequest,
+           IsInputStream: true,
+           OutputName: SearchResponse,
+           IsOutputStream: true
+         }
+       ],
+       QualifiedName: p.SearchService,
+       Comment: Service Comment
+     }
+   ]
+ }", proto);
         }        
         #endregion
 

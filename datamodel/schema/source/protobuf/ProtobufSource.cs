@@ -149,22 +149,21 @@ namespace datamodel.schema.source.protobuf {
                 model.Methods.Add(new Method() {
                     Name = rpc.Name,
                     Description = rpc.Comment,
-                    ParameterTypes = new List<DataType>() {
-                        CreateDataType(rpc.InputName),
-                    },
-                    ReturnType = CreateDataType(rpc.OutputName),
+                    Inputs = NamedTypeList(rpc.InputName),
+                    Outputs = NamedTypeList(rpc.OutputName),
                 });
             }
 
             SafelyAddModel(model, service.Owner.AsFile(), "Service " + service.Name);
         }
 
-        private DataType CreateDataType(string name) {
-            // TODO... In the future, we should be more clever about resolving enum and reference
-            // _enums.TryGetValue(name, out Enum theEnum);
-            return new DataType() {
-                Name = name,
-                // Enum = theEnum,
+        private List<NamedType> NamedTypeList(string name) {
+            return new List<NamedType>() {
+                new NamedType() {
+                    Type = new DataType() {
+                        Name = name,
+                    }
+                }
             };
         }
 

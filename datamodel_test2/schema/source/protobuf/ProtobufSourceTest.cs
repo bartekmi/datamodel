@@ -293,14 +293,20 @@ service SearchService {
        QualifiedName: SearchService,
        Methods: [
          {
-           ParameterTypes: [
+           Inputs: [
              {
-               Name: SearchRequest
+               Type: {
+                 Name: SearchRequest
+               }
              }
            ],
-           ReturnType: {
-             Name: SearchResponse
-           },
+           Outputs: [
+             {
+               Type: {
+                 Name: SearchResponse
+               }
+             }
+           ],
            Name: Search
          }
        ]

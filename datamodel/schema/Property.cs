@@ -10,6 +10,8 @@ namespace datamodel.schema {
     public class Property : Member {
         public bool CanBeEmpty { get; set; }
         private DataType _dataType = new DataType();
+        [JsonIgnore]
+        public DataType DataTypeObj => _dataType;
         
 
         // Derived 

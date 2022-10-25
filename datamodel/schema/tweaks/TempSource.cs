@@ -96,6 +96,10 @@ namespace datamodel.schema.tweaks {
             Models[model.QualifiedName] = model;
         }
 
+        public void RemoveModel(Model model) {
+            Models.Remove(model.QualifiedName);
+        }
+
         public void RemoveAssociation(Association assoc) {
             Associations.Remove(assoc);
         }
