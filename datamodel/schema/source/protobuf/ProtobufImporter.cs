@@ -74,8 +74,15 @@ namespace datamodel.schema.source.protobuf {
             if (externalTypesOfInterest.Count > 0)
                 foreach (Import import in file.Imports) {
                     string importPath = Path.Join(_importBasePath, import.ImportPath);
-                    PathAndContent importPac = PathAndContent.Read(importPath, false);
-                    ProcessFile(bundle, importPac, externalTypesOfInterest); 
+                    try {
+                        PathAndContent importPac = PathAndContent.Read(importPath);
+                        ProcessFile(bundle, importPac, externalTypesOfInterest); 
+                    } catch (Exception e) {
+                        Console.WriteLine("WARNING: Error reading {0} imported from file {1}: {2}",
+                            importPath,
+                            file.Path,
+                            e.Message);
+                    }
                 }
         }
 
@@ -116,11 +123,11 @@ namespace datamodel.schema.source.protobuf {
         internal PbFile MaybeAddToBundle(PathAndContent pac) {
             if (!_fileDict.TryGetValue(pac.Path, out PbFile file)) {
                 try {
-                ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
-                ProtobufParser parser = new ProtobufParser(tokenizer);
-                file = parser.Parse();
-                file.Path = pac.Path;
-                AddFile(file);
+                    ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
+                    ProtobufParser parser = new ProtobufParser(tokenizer);
+                    file = parser.Parse();
+                    file.Path = pac.Path;
+                    AddFile(file);
                 } catch (Exception e) {
                     string message = "Error reading protobuf file: " + pac.Path;
                     throw new Exception(message, e);
