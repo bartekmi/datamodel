@@ -106,6 +106,27 @@ Line 2
 Line 3");
         }
 
+        [Fact]
+        public void TokenizeCommentsStarInSlashStar() {
+            TokenizeComments(
+@"
+/*A*B*/
+one two three
+", 3, 
+@"A*B");
+        }
+
+        [Fact]
+        public void TokenizeCommentsSlashInSlashSlash() {
+            TokenizeComments(
+@"
+// A/B
+one two three
+", 3, 
+@" A/B");
+        }
+
+        #region Common Execution Code
         private void TokenizeComments(string proto, int tokenCount, string expectedComments) {
             ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(proto));
             Assert.Equal(tokenCount, tokenizer.AllTokens().Length);
@@ -136,5 +157,6 @@ Line 3");
                 string.Join("|", expected), 
                 string.Join("|", tokens.ToArray()));
         }
+        #endregion
     }
 }

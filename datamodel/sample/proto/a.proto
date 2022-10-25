@@ -1,0 +1,63 @@
+syntax = "proto3";
+package a;
+
+// This message is very important.
+// Please don't ever forget about it.
+message m1 {
+    // This is the very first field.
+    // I did not use much imagination when coming up
+    // with the name.
+    string f1 = 1;
+    n1 myNestedMessage = 2;                 // Should produce a role
+    repeated n1 myNestedRepeated = 3;       // Should also produce a role
+    n1 n1 = 4;                              // Should NOT produce a role
+    // This is a nested message. Other
+    // messages can still access it by
+    // specifying the full path (i.e. a.m1.n1)
+    message n1 {
+        string f1 = 1;      // Comments can be at the end of a line, too.
+        // Or on top.
+        int64 f2 = 2;
+        // We are "borrowing" this enum from our parent's peer message.
+        m2.m2enum borrowedEnum = 3;
+
+        // Just for the heck of it, let's try recursion
+    }
+}
+
+// Just to add some veriety, I've added another
+// message
+message m2 {
+    string f1 = 1;
+    string f2 = 2;
+    // This is the first enum field.
+    m2enum enum1 = 10;
+    // This second enum field should not show
+    // the entire table, as that would seem
+    // redundant
+    m2enum enum2 = 11;
+
+    // This is a nested enum. I wonder if this
+    // enum header will show up anywhere in the diagrams.
+    enum m2enum {
+        // The first value of an enum must have value zero
+        zero = 0;
+        // One is when you only have a single value
+        // of something.
+        one = 1;
+        // Two is usually better than one, as long
+        // as the two can agree, which can be a 
+        // problem in itself.
+        two = 2;
+    }
+}
+
+// This is the classic "Search" Service example. Again, did not
+// use too much imagination to come up with this.
+service myService {
+    // This particular Remote Procedure Call (RPC) is the main workhorse
+    // of this service.
+    rpc Search(SearchRequest) returns(SearchResponse);
+    // But don't forget about this one, too.
+    rpc SuggestResult(SuggestResultRequest) returns(SuggestResultResponse);
+}

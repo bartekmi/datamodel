@@ -195,6 +195,7 @@ namespace datamodel.schema.source.protobuf {
             }
 
             _commentBuilder.Append('*');    // Write the '*' character into comments - it was not part of */
+            _commentBuilder.Append(c);
             return State.InSlashStar;
         }
         #endregion
