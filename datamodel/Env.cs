@@ -41,7 +41,7 @@ namespace datamodel {
         #region Ubuntu
         private static void ConfigureUbuntu() {
             OUTPUT_ROOT_DIR = @"/tmp/datamodel";
-            REPO_ROOT = @"/usr/local/google/home/bartekm/bargit/datamodel";
+            REPO_ROOT = @"..";
             MODEL_DIRS = new string[] { };      // TODO: Is this even used?
             GRAPHVIZ_BIN_DIR = @"/usr/bin";
             HTTP_ROOT = "";
