@@ -45,7 +45,7 @@ namespace datamodel.schema {
         // ...for Model parameters, the Name of the model is more significant
         public string ToStringCompact() {
             if (Type.ReferencedModel == null)
-                return Name;
+                return string.IsNullOrEmpty(Name) ? Type.Name : Name;
             return Type.ReferencedModel.Name;
         }
 
