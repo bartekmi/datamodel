@@ -26,6 +26,8 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "k8s", 
+        "dumpschema=k8s_schema.json",
+        "nographviz=true",
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",

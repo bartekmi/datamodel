@@ -72,11 +72,17 @@ namespace datamodel {
                 if (tweakJsons.Length > 0)
                     TweakLoader.Load(source, tweakJsons);
 
+                // Create Schame
                 Schema schema = Schema.CreateSchema(source);
+                string dumpSchemaFile = _parameters.GetString(Parameters.GLOBAL_PARAM_DUMP_SCHEMA);
+                if (dumpSchemaFile != null)
+                    File.WriteAllText(dumpSchemaFile, JsonUtils.JsonPretty(schema));
 
+                // Graph Graphviz output
                 if (!_parameters.GetBool(Parameters.GLOBAL_PARAM_NO_GRAPHVIZ))
                     GenerateGraphs();
 
+                // Data Dictionary
                 DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
             } catch (Exception e) {
                 // The stack trace still provides invaluable debug info, so let's print it.

@@ -45,27 +45,8 @@ namespace datamodel.schema {
         public static Schema CreateSchema(SchemaSource rawSource) {
             SchemaSource source = rawSource.ApplyPreHydrationTweaks();
 
-            // TODO: As best as I can tell, this code converts: object<>----List----<Item into object<>--->Items
-            // if used at all, it belongs in Tweaks
             HashSet<Model> models = new HashSet<Model>(source.GetModels());
-            var assocs = source.GetAssociations()
-                .GroupBy(x => x.OtherSide)
-                .ToDictionary(x => x.Key, x => (IEnumerable<Association>)x);
-
-            foreach (Model model in models.Where(x => x.ListSemanticsForType != null).ToList()) {
-                if (assocs.TryGetValue(model.QualifiedName, out IEnumerable<Association> incoming)) {
-                    foreach (Association association in incoming) {
-                        if (association.OtherMultiplicity == Multiplicity.Many) {
-                            throw new NotImplementedException("Encountered many-association to a List");
-                        }
-                        association.OtherMultiplicity = Multiplicity.Many;
-                        association.OtherSide = model.ListSemanticsForType;
-                        // TODO... to be perfect, we should also discard list to item associtation
-                    }
-                }
-
-                models.Remove(model);
-            }
+            DiscardListSemanticModels(source, models);
 
             schema = new Schema() {
                 Title = source.GetTitle(),
@@ -75,11 +56,35 @@ namespace datamodel.schema {
 
             schema._byQualifiedName = schema.Models.ToDictionary(x => x.QualifiedName);
             schema.CreateRefProperties();
-
             schema.Rehydrate();
+            
             rawSource.ApplyPostHydrationTweaks();
 
             return schema;
+        }
+
+        // Convert: object<>----List----<Item  into  object<>---<Items
+        // The models which merely represent a list just pollute the diagrams.
+        // TODO: This should be a "Tweak"
+        private static void DiscardListSemanticModels(SchemaSource source, HashSet<Model> models) {
+            var assocs = source.GetAssociations()
+                .GroupBy(x => x.OtherSide)
+                .ToDictionary(x => x.Key, x => (IEnumerable<Association>)x);
+
+            foreach (Model listModel in models.Where(x => x.ListSemanticsForType != null).ToList()) {
+                if (assocs.TryGetValue(listModel.QualifiedName, out IEnumerable<Association> incoming)) {
+                    foreach (Association association in incoming) {
+                        if (association.OtherMultiplicity == Multiplicity.Many) {
+                            throw new NotImplementedException("Encountered many-association to a List");
+                        }
+                        association.OtherMultiplicity = Multiplicity.Many;
+                        association.OtherSide = listModel.ListSemanticsForType;
+                        // TODO... to be perfect, we should also discard list to item associtation
+                    }
+                }
+
+                models.Remove(listModel);
+            }
         }
 
         private void CreateRefProperties() {

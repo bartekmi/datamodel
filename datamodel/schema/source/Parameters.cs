@@ -160,6 +160,7 @@ namespace datamodel.schema.source {
 
         public const string GLOBAL_PARAM_TWEAKS = "tweaks";
         public const string GLOBAL_PARAM_NO_GRAPHVIZ = "nographviz";
+        public const string GLOBAL_PARAM_DUMP_SCHEMA = "dumpschema";
 
         public Parameters(SchemaSource source, IEnumerable<string> commandLine) {
             _params = source.GetParameters().ToDictionary(x => x.Name);
@@ -180,6 +181,11 @@ namespace datamodel.schema.source {
                     Name = GLOBAL_PARAM_NO_GRAPHVIZ,
                     Description = "Skip Graphviz generation. Useful for debugging, especially on systems where Graphiz is not installed.",
                     Type = ParamType.Bool,
+                },
+                new Parameter() {
+                    Name = GLOBAL_PARAM_DUMP_SCHEMA,
+                    Description = "Dump the schema to this file in internal JSON format.",
+                    Type = ParamType.String,
                 },
                 // Add other global parameters here
             };
