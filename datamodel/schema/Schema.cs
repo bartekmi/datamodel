@@ -32,12 +32,12 @@ namespace datamodel.schema {
         #endregion
 
         #region Creation
-        private static Schema _schema;
+        private static Schema schema;
         public static Schema Singleton {
             get {
-                if (_schema == null)
+                if (schema == null)
                     throw new Exception("Call CreateSchema() first");
-                return _schema;
+                return schema;
             }
         }
 
@@ -67,19 +67,19 @@ namespace datamodel.schema {
                 models.Remove(model);
             }
 
-            _schema = new Schema() {
+            schema = new Schema() {
                 Title = source.GetTitle(),
                 Models = models,
                 Associations = source.GetAssociations().ToList(),
             };
 
-            _schema._byQualifiedName = _schema.Models.ToDictionary(x => x.QualifiedName);
-            _schema.CreateRefProperties();
+            schema._byQualifiedName = schema.Models.ToDictionary(x => x.QualifiedName);
+            schema.CreateRefProperties();
 
-            _schema.Rehydrate();
+            schema.Rehydrate();
             rawSource.ApplyPostHydrationTweaks();
 
-            return _schema;
+            return schema;
         }
 
         private void CreateRefProperties() {
