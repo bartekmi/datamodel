@@ -14,7 +14,13 @@ namespace datamodel.schema {
 
         public IEnumerable<KeyValuePair<string, string>> Values {
             get {
-                return _values.OrderBy(x => x.Key);
+                // We specifically don't want to sort this in any way because the original
+                // ordering of the enum values may be significant.
+                // If this becomes an issue in the future, this could be made a per-SchemaSource
+                // property. 
+                // In particular, for the protobuf schema source, original ordering must
+                // be preserved.
+                return _values;
             }
         }
 

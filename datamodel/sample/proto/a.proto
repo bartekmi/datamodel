@@ -22,6 +22,9 @@ message m1 {
         m2.m2enum borrowedEnum = 3;
 
         // Just for the heck of it, let's try recursion
+        repeated n1 recursive = 4;
+
+        m2 included = 5;
     }
 }
 
@@ -51,6 +54,24 @@ message m2 {
         two = 2;
     }
 }
+
+message SearchRequest {
+    m1 m1 = 1;
+}
+
+message SearchResponse {
+    string response = 1;
+}
+
+message SuggestResultRequest {
+    string s1 = 1;
+    string s2 = 2;
+    string s3 = 3;
+    string s4 = 4;
+    string s5 = 5;
+}
+
+message SuggestResultResponse {}
 
 // This is the classic "Search" Service example. Again, did not
 // use too much imagination to come up with this.
