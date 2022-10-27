@@ -159,6 +159,7 @@ namespace datamodel.schema.source {
         private Dictionary<string, Parameter> _params;
 
         public const string GLOBAL_PARAM_TWEAKS = "tweaks";
+        public const string GLOBAL_PARAM_NO_GRAPHVIZ = "nographviz";
 
         public Parameters(SchemaSource source, IEnumerable<string> commandLine) {
             _params = source.GetParameters().ToDictionary(x => x.Name);
@@ -168,14 +169,23 @@ namespace datamodel.schema.source {
 
         #region Global Parameters
         private void AddGlobalParameters() {
-            _params["tweaks"] = new Parameter() {
-                Name = GLOBAL_PARAM_TWEAKS,
-                Description = "Filename of JSON file which contains 'Tweaks' to the schema",
-                Type = ParamType.File,
-                IsMultiple = true
+            Parameter[] globalParams = new Parameter[] {
+                new Parameter() {
+                    Name = GLOBAL_PARAM_TWEAKS,
+                    Description = "Filename of JSON file which contains 'Tweaks' to the schema",
+                    Type = ParamType.File,
+                    IsMultiple = true
+                },
+                new Parameter() {
+                    Name = GLOBAL_PARAM_NO_GRAPHVIZ,
+                    Description = "Skip Graphviz generation. Useful for debugging, especially on systems where Graphiz is not installed.",
+                    Type = ParamType.Bool,
+                },
+                // Add other global parameters here
             };
 
-            // Add other global parameters here
+            foreach (Parameter param in globalParams)
+                _params[param.Name] = param;
         }
         #endregion
 

@@ -71,8 +71,9 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
       "args": [
         "proto", 
+        "nographviz=true",
         "paths=sample/proto/a.proto",
-        "import-root=sample/proto"
+        "import-root=sample/proto",
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",

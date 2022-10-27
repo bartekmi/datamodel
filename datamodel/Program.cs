@@ -21,6 +21,7 @@ using datamodel.graphviz;
 namespace datamodel {
 
     class Program {
+        private static Parameters _parameters;
 
         //********************************************************************************
         // Once files are generated, use this command to start local web server:
@@ -64,21 +65,28 @@ namespace datamodel {
                     PrintUsageAndQuit(schemaSources);
                 }
 
-                Parameters parameters = new Parameters(source, args.Skip(1));
-                source.Initialize(parameters);
-                ApplyGlobalParameters(source, parameters);
+                _parameters = new Parameters(source, args.Skip(1));
+                source.Initialize(_parameters);
+         
+                string[] tweakJsons = _parameters.GetFileContents(Parameters.GLOBAL_PARAM_TWEAKS);
+                if (tweakJsons.Length > 0)
+                    TweakLoader.Load(source, tweakJsons);
 
                 Schema schema = Schema.CreateSchema(source);
 
-                GenerateGraphsAndDataDictionary();
+                if (!_parameters.GetBool(Parameters.GLOBAL_PARAM_NO_GRAPHVIZ))
+                    GenerateGraphs();
+
+                DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
             } catch (Exception e) {
+                // The stack trace still provides invaluable debug info, so let's print it.
                 Console.WriteLine(e);
-                // Console.WriteLine(BuildMessage(e));
+                // Console.WriteLine(BuildErrorMessage(e));
                 Environment.Exit(1);
             }
         }
 
-        private static string BuildMessage(Exception e) {
+        private static string BuildErrorMessage(Exception e) {
             StringBuilder builder = new StringBuilder();
 
             bool first = true;
@@ -96,13 +104,7 @@ namespace datamodel {
             return builder.ToString();
         }
 
-        private static void ApplyGlobalParameters(SchemaSource source, Parameters parameters) {
-            string[] tweakJsons = parameters.GetFileContents(Parameters.GLOBAL_PARAM_TWEAKS);
-            if (tweakJsons.Length > 0)
-                TweakLoader.Load(source, tweakJsons);
-        }
-
-        private static void GenerateGraphsAndDataDictionary() {
+        private static void GenerateGraphs() {
             // Parse "visualizations.yaml" files
             List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
 
@@ -126,8 +128,6 @@ namespace datamodel {
             // it must be generated first
             GraphvizIndexGenerator.GenerateIndex(topLevel);
             HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
-
-            DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
         }
     }
 }
