@@ -165,12 +165,9 @@ message m2 {
            Enum: {
              Name: e,
              Description:  Enum description,
-             Values: [
-               {
-                 Key: z,
-                 Value:  Item description
-               }
-             ]
+             Values: {
+               z:  Item description
+             }
            },
            Name: f1
          },
@@ -178,12 +175,9 @@ message m2 {
            DataType: ee,
            Enum: {
              Name: ee,
-             Values: [
-               {
-                 Key: z1,
-                 Value: 
-               }
-             ]
+             Values: {
+               z1: 
+             }
            },
            Name: f2
          },
@@ -191,7 +185,7 @@ message m2 {
            DataType: p.m1.n1.eee,
            Enum: {
              Name: eee,
-             Values: []
+             Values: {}
            },
            Name: f3
          },
@@ -199,12 +193,9 @@ message m2 {
            DataType: m2.ee,
            Enum: {
              Name: ee,
-             Values: [
-               {
-                 Key: z2,
-                 Value: 
-               }
-             ]
+             Values: {
+               z2: 
+             }
            },
            Name: f4
          }

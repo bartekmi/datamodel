@@ -17,7 +17,7 @@ namespace datamodel.schema.tweaks {
 
         internal static void Load(SchemaSource source, string[] jsons) {
             foreach (string json in jsons)
-                source.Tweaks = source.Tweaks.Concat(Load(json));
+                source.Tweaks = source.Tweaks.Concat(Load(json)).ToList();
         }
 
         private static List<Tweak> Load(string json) {

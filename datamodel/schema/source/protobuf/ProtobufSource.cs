@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 using datamodel.schema.source.protobuf.data;
+using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.protobuf {
 
@@ -22,6 +23,10 @@ namespace datamodel.schema.source.protobuf {
         public const string PARAM_PATHS = "paths";
         public const string PARAM_IMPORT_ROOT = "import-root";
         public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
+
+        public ProtobufSource() {
+            Tweaks.Add(new SimplifyMethodsTweak());
+        }
 
         public override void Initialize(Parameters parameters) {
             FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);

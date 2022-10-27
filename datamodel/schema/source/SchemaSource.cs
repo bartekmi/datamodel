@@ -19,11 +19,7 @@ namespace datamodel.schema.source {
 
         // Tweaks to apply to the schema just after receiving the data from SchemaSource
         [JsonIgnore]
-        public IEnumerable<Tweak> Tweaks { get; set; }
-
-        protected SchemaSource() {
-            Tweaks = new List<Tweak>();
-        }
+        public List<Tweak> Tweaks { get; set; } = new List<Tweak>();
 
         internal SchemaSource ApplyPreHydrationTweaks() {
             if (_tempSource != null)
