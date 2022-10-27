@@ -13,7 +13,9 @@ namespace datamodel.schema.source.protobuf.data {
 
         public string Name { get; set; }
         [JsonIgnore]
-        public Field OwnerField { get; private set; }
+        public Message OwnerMessage { get; private set; }
+        [JsonIgnore]
+        public PbFile OwnerFile { get; private set; }
 
         // Derived
         [JsonIgnore]
@@ -25,13 +27,16 @@ namespace datamodel.schema.source.protobuf.data {
                 return Name.Contains('.') && message == null; 
             } 
         }
-        [JsonIgnore]
-        public PbFile OwnerFile => OwnerField.File;
-        [JsonIgnore]
-        public Message OwnerMessage => OwnerField.Owner;
 
         public PbType(Field ownerField, string name) {
-            OwnerField = ownerField;
+            OwnerMessage = ownerField.Owner;
+            OwnerFile = OwnerMessage.OwnerFile();
+            
+            Name = name;
+        }
+
+        public PbType(PbFile ownerFile, string name) {
+            OwnerFile = ownerFile;
             Name = name;
         }
 
@@ -89,7 +94,7 @@ namespace datamodel.schema.source.protobuf.data {
         // immediate children (of Message or PbFile).
         private Owner ResolveInternalPhaseOne(string first, out EnumDef enumDefOut) {
             enumDefOut = null;
-            Owner owner = OwnerMessage;
+            Owner owner = OwnerMessage == null ? OwnerFile : OwnerMessage;
             Owner baseOwner = null;
 
             while (true) {

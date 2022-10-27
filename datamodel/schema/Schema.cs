@@ -114,6 +114,7 @@ namespace datamodel.schema {
             RehydrateSuperAndDerivedClasses();
             RemoveDuplicatePolymorphicInterfaces();
 
+            RehydrateModelsOnMethods();
             RehydrateModelsOnAssociations();
             RehydrateIncomingAssociations();
             RehydrateInterfacesForModels();
@@ -229,6 +230,20 @@ namespace datamodel.schema {
                                 model.AllProperties.Remove(duplicate);
                         }
                     }
+            }
+        }
+
+        private void RehydrateModelsOnMethods() {
+            foreach (Method method in Models.SelectMany(x => x.Methods)) {
+                RehydrateModelsOnDataTypes(method.Inputs.Select(x => x.Type));
+                RehydrateModelsOnDataTypes(method.Outputs.Select(x => x.Type));
+            }
+        }
+
+        private void RehydrateModelsOnDataTypes(IEnumerable<DataType> types) {
+            foreach (DataType type in types) {
+                _byQualifiedName.TryGetValue(type.Name, out Model model);
+                type.ReferencedModel = model;
             }
         }
 

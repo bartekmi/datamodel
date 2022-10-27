@@ -43,7 +43,7 @@ namespace datamodel.schema.source.protobuf {
                         EnumDef theEnum = ParseEnumDefinition(file);
                         file.EnumDefs.Add(theEnum);
                     } else if (PeekAndDiscard("extend")) {
-                        Extend extend = ParseExtend();
+                        Extend extend = ParseExtend(file);
                         file.Extends.Add(extend);
                     } else if (PeekAndDiscard("service")) {
                         Service service = ParseService(file);
@@ -137,7 +137,7 @@ namespace datamodel.schema.source.protobuf {
                     EnumDef theEnum = ParseEnumDefinition(message);
                     message.EnumDefs.Add(theEnum);
                 } else if (PeekAndDiscard("extend")) {
-                    Extend extend = ParseExtend();
+                    Extend extend = ParseExtend(message);
                     message.Extends.Add(extend);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
@@ -299,7 +299,7 @@ namespace datamodel.schema.source.protobuf {
                 if (PeekAndDiscard("option"))
                     ParseOption();
                 else if (PeekAndDiscard("rpc")) {
-                    Rpc rpc = ParseRpc();
+                    Rpc rpc = ParseRpc(file);
                     service.Rpcs.Add(rpc);
                 } else if (PeekAndDiscard(";")) {
                     // Do nothing - emptyStatement
@@ -314,7 +314,7 @@ namespace datamodel.schema.source.protobuf {
         //   rpc Search (SearchRequest) returns (SearchResponse);           // Alternative #1
         //   rpc Search2 (MyRequest) returns (MyResponse) {...options...}   // Alternative #2
         // }
-        private Rpc ParseRpc() {
+        private Rpc ParseRpc(PbFile file) {
             Rpc rpc = new Rpc() {
                 Comment = CurrentComment(),
                 Name = Next()
@@ -324,7 +324,7 @@ namespace datamodel.schema.source.protobuf {
             Expect("(");
             if (PeekAndDiscard("stream"))
                 rpc.IsInputStream = true;
-            rpc.InputName = ParseNameWithDots(true);
+            rpc.InputType = new PbType(file, ParseNameWithDots(true));
             Expect(")");
 
             // Output
@@ -332,7 +332,7 @@ namespace datamodel.schema.source.protobuf {
             Expect("(");
             if (PeekAndDiscard("stream"))
                 rpc.IsOutputStream = true;
-            rpc.OutputName = ParseNameWithDots(true);
+            rpc.OutputType = new PbType(file, ParseNameWithDots(true));
             Expect(")");
 
             // Note the two alternate endings
@@ -382,9 +382,9 @@ namespace datamodel.schema.source.protobuf {
             return field;
         }
 
-        private Extend ParseExtend() {
+        private Extend ParseExtend(Owner owner) {
             // Order of populating fields is important
-            Extend extend = new Extend() {
+            Extend extend = new Extend(owner) {
                 Comment = CurrentComment(),
                 MessageType = ParseNameWithDots(true),
             };

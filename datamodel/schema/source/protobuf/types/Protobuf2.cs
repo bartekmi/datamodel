@@ -30,6 +30,12 @@ namespace datamodel.schema.source.protobuf.data {
         // Since we may need to accumulate properties of a Message such
         // as nested message or enum definitions, we need this dummy
         // Message. Later, it could be merged with the "parent" message
-        public Message Message { get; } = new Message();
+        public Message Message { get; private set; }
+
+        public Extend(Owner owner) {
+            Message = new Message() {
+                Owner = owner,
+            };
+        }
     }
 }

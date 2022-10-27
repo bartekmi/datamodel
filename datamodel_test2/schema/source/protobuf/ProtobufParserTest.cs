@@ -320,15 +320,23 @@ service SearchService {
        Rpcs: [
          {
            Name: Search,
-           InputName: a.SearchRequest,
-           OutputName: .b.SearchResponse,
+           InputType: {
+             Name: a.SearchRequest
+           },
+           OutputType: {
+             Name: .b.SearchResponse
+           },
            Comment: Rpc Comment
          },
          {
            Name: SearchStream,
-           InputName: SearchRequest,
+           InputType: {
+             Name: SearchRequest
+           },
            IsInputStream: true,
-           OutputName: SearchResponse,
+           OutputType: {
+             Name: SearchResponse
+           },
            IsOutputStream: true
          }
        ],

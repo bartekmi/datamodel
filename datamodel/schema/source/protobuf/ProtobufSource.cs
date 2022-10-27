@@ -147,26 +147,26 @@ namespace datamodel.schema.source.protobuf {
                 // TODO: Try to derive Deprecated
             };
 
-            // For now, we take the easy way and simply reference the models for input and output type.
-            // This will no-doubt pollute the diagram, but let's get a sense of it first before
-            // trying to make improvements.
             foreach (Rpc rpc in service.Rpcs) {
                 model.Methods.Add(new Method() {
                     Name = rpc.Name,
                     Description = rpc.Comment,
-                    Inputs = NamedTypeList(rpc.InputName),
-                    Outputs = NamedTypeList(rpc.OutputName),
+                    Inputs = NamedTypeList(rpc.InputType),
+                    Outputs = NamedTypeList(rpc.OutputType),
                 });
             }
 
             SafelyAddModel(model, service.Owner.AsFile(), "Service " + service.Name);
         }
 
-        private List<NamedType> NamedTypeList(string name) {
+        private List<NamedType> NamedTypeList(PbType type) {
+            type.ResolveInternal(out Message message, out _);
+            string typeName = message == null ? type.Name : message.QualifiedName();
+
             return new List<NamedType>() {
                 new NamedType() {
                     Type = new DataType() {
-                        Name = name,
+                        Name = typeName,
                     }
                 }
             };

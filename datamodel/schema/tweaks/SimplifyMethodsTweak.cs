@@ -27,7 +27,7 @@ namespace datamodel.schema.tweaks {
     public class SimplifyMethodsTweak : Tweak {
         public int MaxNumberOfProperties = 4;
 
-        public SimplifyMethodsTweak() : base(TweakApplyStep.PreHydrate) {}
+        public SimplifyMethodsTweak() : base(TweakApplyStep.PostHydrate) {}
 
         private List<NamedType> MaybeDoTweak(TempSource source, List<NamedType> existing) {
             // "Single"?
@@ -75,7 +75,7 @@ namespace datamodel.schema.tweaks {
                         method.Inputs = newInputs;
 
                     // Possibly tweak the outputs
-                    List<NamedType> newOutputs = MaybeDoTweak(source, method.Inputs);
+                    List<NamedType> newOutputs = MaybeDoTweak(source, method.Outputs);
                     if (newOutputs != null)
                         method.Outputs = newOutputs;
                 }

@@ -26,10 +26,10 @@ namespace datamodel.schema.source.protobuf.data {
 
     public class Rpc : Base {
         public string Name { get; set; }
-        public string InputName { get; set; }
+        public PbType InputType { get; set; }
         public bool IsInputStream { get; set; }
 
-        public string OutputName { get; set; }
+        public PbType OutputType { get; set; }
         public bool IsOutputStream { get; set; }
 
         public override string ToString() {
