@@ -27,7 +27,7 @@ namespace datamodel.schema.tweaks {
     public class SimplifyMethodsTweak : Tweak {
         public int MaxNumberOfProperties = 4;
 
-        public SimplifyMethodsTweak() : base(TweakApplyStep.PostHydrate) {}
+        public SimplifyMethodsTweak() : base(TweakApplyStep.PreHydrate) {}
 
         private List<NamedType> MaybeDoTweak(TempSource source, List<NamedType> existing) {
             // "Single"?
@@ -35,7 +35,8 @@ namespace datamodel.schema.tweaks {
                 return null;
 
             // "Model"?
-            Model model = existing.Single().Type.ReferencedModel;
+            string qualifiedName = existing.Single().Type.Name;
+            Model model = source.FindModel(qualifiedName);
             if (model == null)
                 return null;
 
