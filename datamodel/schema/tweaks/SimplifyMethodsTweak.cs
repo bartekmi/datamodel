@@ -29,7 +29,30 @@ namespace datamodel.schema.tweaks {
 
         public SimplifyMethodsTweak() : base(TweakApplyStep.PreHydrate) {}
 
-        private List<NamedType> MaybeDoTweak(TempSource source, List<NamedType> existing) {
+        public override void Apply(TempSource source) {
+            HashSet<string> modelsWithOutgoing = 
+                new HashSet<string>(source.Associations.Select(x => x.OwnerSide));
+
+            foreach (Model model in source.GetModels()) {
+                foreach (Method method in model.Methods) {
+                    // Possibly tweak the inputs
+                    List<NamedType> newInputs = MaybeDoTweak(source, modelsWithOutgoing, method.Inputs);
+                    if (newInputs != null)
+                        method.Inputs = newInputs;
+
+                    // Possibly tweak the outputs
+                    List<NamedType> newOutputs = MaybeDoTweak(source, modelsWithOutgoing, method.Outputs);
+                    if (newOutputs != null)
+                        method.Outputs = newOutputs;
+                }
+            }
+        }
+
+        private List<NamedType> MaybeDoTweak(
+            TempSource source, 
+            HashSet<string> modelsWithOutgoing, 
+            List<NamedType> existing) {
+
             // "Single"?
             if (existing.Count != 1)
                 return null;
@@ -40,7 +63,8 @@ namespace datamodel.schema.tweaks {
             if (model == null)
                 return null;
 
-            if (!ModelHasOnlyScalarProperties(model))
+            // No outgoing associations?
+            if (modelsWithOutgoing.Contains(model.QualifiedName))
                 return null;
 
             if (model.AllProperties.Count > MaxNumberOfProperties)
@@ -58,29 +82,6 @@ namespace datamodel.schema.tweaks {
                 });
 
             return newTypes;
-        }
-
-        private bool ModelHasOnlyScalarProperties(Model model) {
-            foreach (Property prop in model.AllProperties)
-                if (prop.ReferencedModel != null)
-                    return false;
-            return true;
-        }
-
-        public override void Apply(TempSource source) {
-            foreach (Model model in source.GetModels()) {
-                foreach (Method method in model.Methods) {
-                    // Possibly tweak the inputs
-                    List<NamedType> newInputs = MaybeDoTweak(source, method.Inputs);
-                    if (newInputs != null)
-                        method.Inputs = newInputs;
-
-                    // Possibly tweak the outputs
-                    List<NamedType> newOutputs = MaybeDoTweak(source, method.Outputs);
-                    if (newOutputs != null)
-                        method.Outputs = newOutputs;
-                }
-            }
         }
     }
 }
