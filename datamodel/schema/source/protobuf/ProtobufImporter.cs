@@ -11,8 +11,10 @@ using datamodel.schema.source.protobuf.data;
 // This class takes care of imports in protobuf.
 
 namespace datamodel.schema.source.protobuf {
+
     public class ProtobufImporter {
         private string _importBasePath;
+        private ProgressReporter _progressReporter = new ProgressReporter();
 
         public ProtobufImporter(string importBasePath) {
             _importBasePath = importBasePath;
@@ -23,9 +25,9 @@ namespace datamodel.schema.source.protobuf {
         }
 
         public FileBundle ProcessFiles(IEnumerable<PathAndContent> pacs) {
-            FileBundle bundle = new FileBundle();
+            FileBundle bundle = new FileBundle(_progressReporter);
             foreach (PathAndContent pac in pacs)
-                bundle.MaybeAddToBundle(pac);
+                bundle.MaybeAddToBundle(pac, true);
 
             foreach (PathAndContent pac in pacs)
                 ProcessFile(bundle, pac, null); 
@@ -57,7 +59,7 @@ namespace datamodel.schema.source.protobuf {
         //    and do not proceed further if that file defines a package in which we have no interest.
         internal void ProcessFile(FileBundle bundle, PathAndContent pac, HashSet<PbType> typesOfInterest) {
             // Step 1: Read and parse file
-            PbFile file = bundle.MaybeAddToBundle(pac);
+            PbFile file = bundle.MaybeAddToBundle(pac, false);
 
             HashSet<PbType> externalTypesOfInterest = new HashSet<PbType>();
             if (typesOfInterest == null) {
@@ -105,22 +107,38 @@ namespace datamodel.schema.source.protobuf {
     }
 
     #region Helper Classes
+
+    internal class ProgressReporter {
+        private int _initialCount;
+        private int _importedCount;
+
+        internal void Report(bool isInitial) {
+            if (isInitial)
+                _initialCount++;
+            else    
+                _importedCount++;
+
+            Console.Write("\rInitial: {0}\t\tImported: {1}", _initialCount, _importedCount);
+        }
+    }
     public class FileBundle {
         // Key: path, Value: parsed PbFile
         private Dictionary<string, PbFile> _fileDict = new Dictionary<string, PbFile>();
         private Dictionary<string, List<PbFile>> _packageDict = new Dictionary<string, List<PbFile>>();
+        private ProgressReporter _progressReporter;
 
         [JsonIgnore]
         public ReadOnlyDictionary<string, PbFile> FileDict { get; private set; }
         [JsonIgnore]
         public ReadOnlyDictionary<string, List<PbFile>> PackageDict { get; private set; }
 
-        internal FileBundle() {
+        internal FileBundle(ProgressReporter progress) {
             FileDict = new ReadOnlyDictionary<string, PbFile>(_fileDict);
             PackageDict = new ReadOnlyDictionary<string, List<PbFile>>(_packageDict);
+            _progressReporter = progress;
         }
 
-        internal PbFile MaybeAddToBundle(PathAndContent pac) {
+        internal PbFile MaybeAddToBundle(PathAndContent pac, bool isInitial) {
             if (!_fileDict.TryGetValue(pac.Path, out PbFile file)) {
                 try {
                     ProtobufTokenizer tokenizer = new ProtobufTokenizer(new StringReader(pac.Content));
@@ -132,6 +150,7 @@ namespace datamodel.schema.source.protobuf {
                     string message = "Error reading protobuf file: " + pac.Path;
                     throw new Exception(message, e);
                 }
+                _progressReporter.Report(isInitial);
             }
 
             return file;
