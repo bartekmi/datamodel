@@ -82,6 +82,21 @@
       "stopAtEntry": false
     },
     {
+      "name": "Proto - Adhoc",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "args": [
+        "proto", 
+        "nographviz=true",
+        "paths=/Users/bartekm/tmp/proto",
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach",
