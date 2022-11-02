@@ -76,6 +76,7 @@
         "nographviz=true",
         "paths=sample/proto/a.proto",
         "import-root=sample/proto",
+        "url-pattern=github.com/bartekmi/datamodel/tree/master/datamodel/sample/proto/$FILE#L$LINE",
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",

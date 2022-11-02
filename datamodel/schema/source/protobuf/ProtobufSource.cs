@@ -149,7 +149,6 @@ placeholder - e.g. 'http://my-source-repo/$FILE;l=$LINE",
             if (_urlPattern == null)
                 return;
 
-
             PbFile file = null;
             if (pbBase is Owner owner)
                 file = owner.OwnerFile();
@@ -219,6 +218,7 @@ placeholder - e.g. 'http://my-source-repo/$FILE;l=$LINE",
 
                 // TODO: Try to derive Deprecated
             };
+            MaybeAddUrlLabel(model, message);
 
             foreach (Field field in message.Fields) {
                 if (field is FieldNormal normal)
