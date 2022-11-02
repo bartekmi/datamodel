@@ -444,12 +444,12 @@ namespace datamodel.schema.source.protobuf {
         }
 
         private string Peek() {
-            return _tokenizer.Peek().ToLower();
+            return _tokenizer.Peek();
         }
 
         private bool PeekAndDiscard(string possiblyExpected) {
-            string token = _tokenizer.Peek().ToLower();
-            if (token == possiblyExpected.ToLower()) {
+            string token = _tokenizer.Peek();
+            if (token == possiblyExpected) {
                 Next();
                 return true;
             }
@@ -459,7 +459,7 @@ namespace datamodel.schema.source.protobuf {
 
         private void Expect(string expected) {
             string token = Next();
-            if (token != expected.ToLower())
+            if (token != expected)
                 throw new Exception(string.Format("Expected '{0}' but got '{1}' on line {2}", 
                     expected, token, _tokenizer.LineNumber));
         }
