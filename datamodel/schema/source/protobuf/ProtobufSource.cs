@@ -36,6 +36,7 @@ namespace datamodel.schema.source.protobuf {
 
             string importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
 
+            Console.WriteLine("{0} files found", files.Count());
             ProtobufImporter importer = new ProtobufImporter(importRoot);
             FileBundle bundle = importer.ProcessFiles(files);
 
