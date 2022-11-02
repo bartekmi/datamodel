@@ -200,15 +200,15 @@ namespace datamodel.schema.source {
             StringBuilder builder = new StringBuilder();
 
             foreach (string paramAndValue in commandLine) {
-                string[] pieces = paramAndValue.Split('=');
+                int indexOfEqual = paramAndValue.IndexOf('=');
 
-                if (pieces.Length != 2) {
+                if (indexOfEqual <= 0) {
                     builder.AppendLine("Expecting param=value, but got: " + paramAndValue);
                     continue;
                 }
 
-                string name = pieces[0];
-                string value = pieces[1];
+                string name = paramAndValue.Substring(0, indexOfEqual);
+                string value = paramAndValue.Substring(indexOfEqual + 1);
 
                 if (!_params.TryGetValue(name, out Parameter parameter)) {
                     builder.AppendLine(string.Format("Parameter '{0}' is unexpected", name));

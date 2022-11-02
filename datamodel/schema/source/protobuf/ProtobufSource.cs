@@ -11,6 +11,8 @@ namespace datamodel.schema.source.protobuf {
     public class ProtobufSource : SchemaSource {
         #region Members / Abstract implementations
         private string _title;
+        private string _urlPattern;
+        private string _importRoot;
 
         // 1st stage of conversion
         private Dictionary<string, Message> _messages = new Dictionary<string, Message>();
@@ -22,7 +24,7 @@ namespace datamodel.schema.source.protobuf {
 
         public const string PARAM_PATHS = "paths";
         public const string PARAM_IMPORT_ROOT = "import-root";
-        public const string PARAM_BORING_NAME_COMPONENTS = "boring-name-components";
+        public const string PARAM_URL_PATTERN = "url-pattern";
 
         public ProtobufSource() {
             Tweaks.Add(new SimplifyMethodsTweak());
@@ -33,11 +35,11 @@ namespace datamodel.schema.source.protobuf {
             IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
             string firstPath = files.FirstOrDefault()?.Path;
             _title = Path.GetFileName(firstPath);
-
-            string importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
+            _urlPattern = parameters.GetString(PARAM_URL_PATTERN);
+            _importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
 
             Console.WriteLine("{0} files found", files.Count());
-            ProtobufImporter importer = new ProtobufImporter(importRoot);
+            ProtobufImporter importer = new ProtobufImporter(_importRoot);
             FileBundle bundle = importer.ProcessFiles(files);
 
             // Some debug info...
@@ -60,7 +62,6 @@ namespace datamodel.schema.source.protobuf {
                     Type = ParamType.String,
                     Name = PARAM_IMPORT_ROOT,
                     Description = "Root directory where imports are looked for",
-                    IsMandatory = false,
                     Default = ".",
                 },
                 new ParameterFileOrDir() {
@@ -73,6 +74,14 @@ namespace datamodel.schema.source.protobuf {
                     // doesn't really make sense. By having a single appraoch, this opens the possibility for a
                     // "fake" file system for unit testing.
                     ReadContent = false,
+                },
+                new Parameter() {
+                    Type = ParamType.String,
+                    Name = PARAM_URL_PATTERN,
+                    Description = @"If specified, must provide a pattern that will evaluate to the URL of the source
+code with substitutions for the relative path of the proto file and the line number.
+Use '$FILE' for the file replacement placeholder and $LINE for the line replacement
+placeholder - e.g. 'http://my-source-repo/$FILE;l=$LINE",
                 },
             };
         }
@@ -136,6 +145,33 @@ namespace datamodel.schema.source.protobuf {
             return file.Package.Split('.');
         }
 
+        private void MaybeAddUrlLabel(Model model, Base pbBase) {
+            if (_urlPattern == null)
+                return;
+
+
+            PbFile file = null;
+            if (pbBase is Owner owner)
+                file = owner.OwnerFile();
+            else if (pbBase is Service service)
+                file = service.Owner;
+            else
+                throw new NotImplementedException("Fill in the other possibility");
+
+            if (!file.Path.StartsWith(_importRoot))
+                return;
+
+            string relativePath = file.Path.Substring(_importRoot.Length);
+            if (relativePath.StartsWith('/') || relativePath.StartsWith('\\'))
+                relativePath = relativePath.Substring(1);
+
+            string url = _urlPattern
+                .Replace("$FILE", relativePath)
+                .Replace("$LINE", pbBase.LineNumber.ToString());
+
+            model.AddUrl("Source Location", url);
+        }
+
         private void PassTwoService(Service service) {
             string suffix = service.Name.ToLower().EndsWith("service") ?
                 "" : "Service";
@@ -147,6 +183,7 @@ namespace datamodel.schema.source.protobuf {
                 Levels = ComputeLevels(service.Owner),
                 // TODO: Try to derive Deprecated
             };
+            MaybeAddUrlLabel(model, service);
 
             foreach (Rpc rpc in service.Rpcs) {
                 model.Methods.Add(new Method() {

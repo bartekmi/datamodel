@@ -7,6 +7,9 @@ namespace datamodel.schema.source.protobuf.data {
         public string Comment { get; set; }
         public bool ShouldSerializeComment() { return !string.IsNullOrWhiteSpace(Comment); }
 
+        public int LineNumber {get; set; }
+        public bool ShouldSerializeLineNumber() { return false; }
+        
         // Though not strictly part of the parse results, this is a convenience flag
         // to indicate whether this entity should be included in the ultimate
         // results.

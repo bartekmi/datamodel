@@ -109,6 +109,7 @@ namespace datamodel.schema.source.protobuf {
         private Message ParseMessage(Owner owner) {
             Message message = new Message() {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next(),
                 Owner = owner,
             };
@@ -164,6 +165,7 @@ namespace datamodel.schema.source.protobuf {
         private FieldOneOf ParseOneOfField(Message owner) {
             FieldOneOf field = new FieldOneOf(owner) {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next(),
             };
             Expect("{");
@@ -188,6 +190,7 @@ namespace datamodel.schema.source.protobuf {
         private FieldMap ParseMapField(Message owner) {
             FieldMap map = new FieldMap(owner) {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
             };
             Expect("<");
             map.KeyType = new PbType(map, Next());
@@ -239,6 +242,7 @@ namespace datamodel.schema.source.protobuf {
             FieldNormal field = new FieldNormal(owner) {
                 Modifier = modifier,
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
             };
             field.Type = new PbType(field, type);
             field.Name = Next();
@@ -259,6 +263,7 @@ namespace datamodel.schema.source.protobuf {
         private EnumDef ParseEnumDefinition(Owner owner) {
             EnumDef theEnum = new EnumDef() {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next(),
                 Owner = owner,
             };
@@ -275,6 +280,7 @@ namespace datamodel.schema.source.protobuf {
                 } else {     // Assume it's "item = n;"
                     EnumValue value = new EnumValue() {
                         Comment = CurrentComment(),
+                        LineNumber = CurrentLineNumber(),
                         Name = Next(),
                     };
                     Expect("=");
@@ -290,6 +296,7 @@ namespace datamodel.schema.source.protobuf {
         private Service ParseService(PbFile file) {
             Service service = new Service(file) {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next()
             };
 
@@ -317,6 +324,7 @@ namespace datamodel.schema.source.protobuf {
         private Rpc ParseRpc(PbFile file) {
             Rpc rpc = new Rpc() {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next()
             };
 
@@ -371,6 +379,7 @@ namespace datamodel.schema.source.protobuf {
             // Order of populating fields is important
             FieldGroup field = new FieldGroup(message) {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 Name = Next(),
             };
 
@@ -386,6 +395,7 @@ namespace datamodel.schema.source.protobuf {
             // Order of populating fields is important
             Extend extend = new Extend(owner) {
                 Comment = CurrentComment(),
+                LineNumber = CurrentLineNumber(),
                 MessageType = ParseNameWithDots(true),
             };
             Expect("{");
@@ -466,6 +476,10 @@ namespace datamodel.schema.source.protobuf {
 
         private string CurrentComment() {
             return _tokenizer.Comment;
+        }
+
+        private int CurrentLineNumber() {
+            return _tokenizer.LineNumber;
         }
         #endregion
     }
