@@ -170,9 +170,11 @@ namespace datamodel.datadict {
         private static string TypeToHtml(NamedType type) {
             StringBuilder builder = new StringBuilder();
 
-            if (type.Type.ReferencedModel != null)
-                builder.Append(type.Type.ReferencedModel.Name);
-            else if (type.Type.Enum != null)
+            Model referenced = type.Type.ReferencedModel;
+            if (referenced != null) {
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                builder.Append(link);
+            } else if (type.Type.Enum != null)
                 builder.Append(type.Type.Enum.Name);
             else
                 builder.Append(type.Type.Name);
