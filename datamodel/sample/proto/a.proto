@@ -55,30 +55,12 @@ message m2 {
     }
 }
 
-message SearchRequest {
-    m1 m1 = 1;
-}
-
-message SearchResponse {
-    string response = 1;
-}
-
-message SuggestResultRequest {
-    string s1 = 1;
-    string s2 = 2;
-    string s3 = 3;
-    string s4 = 4;
-    string s5 = 5;
-}
-
-message SuggestResultResponse {}
-
 // This is the classic "Search" Service example. Again, did not
 // use too much imagination to come up with this.
 service myService {
     // This particular Remote Procedure Call (RPC) is the main workhorse
     // of this service.
-    rpc Search(SearchRequest) returns(SearchResponse);
+    rpc Search(b.SearchRequest) returns(b.SearchResponse);
     // But don't forget about this one, too.
-    rpc SuggestResult(SuggestResultRequest) returns(SuggestResultResponse);
+    rpc SuggestResult(b.SuggestResultRequest) returns(b.SuggestResultResponse);
 }

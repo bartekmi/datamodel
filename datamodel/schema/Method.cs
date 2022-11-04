@@ -16,23 +16,27 @@ namespace datamodel.schema {
         [JsonIgnore]
         public override string HumanName { get { return NameUtils.ToHuman(Name, true); } }
         [JsonIgnore]
-        public string HumanFullRepresentation {
+        public string HumanShortRepresentation {
             get {
-                string inputs = string.Join(", ", Inputs.Select(x => x.ToStringCompact()));
-                
-                string outputs;
-                switch (Outputs.Count) {
-                    case 0: outputs = ""; break;
-                    case 1: outputs = Outputs.Single().ToStringCompact(); break;
-                    default: {
-                        outputs = string.Join(", ", Outputs.Select(x => x.ToStringCompact()));
-                        outputs = string.Format("({0})", outputs);
-                        break;
-                    }
-                }
-               
-                return string.Format("{0}({1}) {2}", HumanName, inputs, outputs);
+                return HumanRepresentation(x => x.ToStringCompact());
             }
+        }
+
+        public string HumanRepresentation(Func<NamedType,string> convert) {
+            string inputs = string.Join(", ", Inputs.Select(x => convert(x)));
+            
+            string outputs;
+            switch (Outputs.Count) {
+                case 0: outputs = ""; break;
+                case 1: outputs = convert(Outputs.Single()); break;
+                default: {
+                    outputs = string.Join(", ", Outputs.Select(x => convert(x)));
+                    outputs = string.Format("({0})", outputs);
+                    break;
+                }
+            }
+            
+            return string.Format("{0}({1}) {2}", HumanName, inputs, outputs);
         }
     }
 

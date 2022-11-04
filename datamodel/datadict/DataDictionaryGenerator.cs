@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using datamodel.schema;
 using datamodel.datadict.html;
@@ -151,7 +152,7 @@ namespace datamodel.datadict {
                 // Method Header
                 table.AddTr(new HtmlTr(
                     new HtmlTd(
-                        new HtmlElement("span", method.HumanFullRepresentation).Class("heading3"),
+                        new HtmlElement("span", method.HumanRepresentation(TypeToHtml)).Class("heading3"),
                         DeprecatedSpan(method)
                     )
                     ).Attr("id", method.Name)
@@ -164,6 +165,23 @@ namespace datamodel.datadict {
                 foreach (Label label in method.Labels)
                     AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
             }
+        }
+
+        private static string TypeToHtml(NamedType type) {
+            StringBuilder builder = new StringBuilder();
+
+            if (type.Type.ReferencedModel != null)
+                builder.Append(type.Type.ReferencedModel.Name);
+            else if (type.Type.Enum != null)
+                builder.Append(type.Type.Enum.Name);
+            else
+                builder.Append(type.Type.Name);
+
+            if (!string.IsNullOrWhiteSpace(type.Name)) {
+                builder.Append(" ");
+                builder.Append(type.Name);
+            }
+            return builder.ToString();
         }
 
         private static void GenerateModelOutgoingAssociations(HtmlElement body, Model dbModel) {

@@ -209,7 +209,7 @@ namespace datamodel.graphviz {
 
                 string propertyName = HtmlUtils.BULLET + method.HumanName;
                 HtmlTd propertyNameTd = new HtmlTd() {
-                    Text = method.HumanFullRepresentation,
+                    Text = method.HumanShortRepresentation,
                 };
                 row.AddTd(propertyNameTd);
 
