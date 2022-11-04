@@ -185,25 +185,45 @@ placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
             MaybeAddUrlLabel(model, service);
 
             foreach (Rpc rpc in service.Rpcs) {
+                string inputQN = QualifiedName(rpc.InputType);
+                string outputQN = QualifiedName(rpc.OutputType);
+
                 model.Methods.Add(new Method() {
                     Name = rpc.Name,
                     Description = rpc.Comment,
-                    Inputs = NamedTypeList(rpc.InputType),
-                    Outputs = NamedTypeList(rpc.OutputType),
+                    Inputs = NamedTypeList(inputQN),
+                    Outputs = NamedTypeList(outputQN),
                 });
+
+                // Experimental
+                AddAssociationForService(model, inputQN);
+                AddAssociationForService(model, outputQN);
             }
 
             SafelyAddModel(model, service.Owner.AsFile(), "Service " + service.Name);
         }
 
-        private List<NamedType> NamedTypeList(PbType type) {
+        private void AddAssociationForService(Model serviceModel, string otherSideQN) {
+                Association assoc = new Association() {
+                    OwnerSide = serviceModel.QualifiedName,
+                    OwnerMultiplicity = Multiplicity.Aggregation,
+                    OtherSide = otherSideQN,
+                };
+                _associations.Add(assoc);
+        }
+
+        private string QualifiedName(PbType type) {
             type.ResolveInternal(out Message message, out _);
             string typeName = message == null ? type.Name : message.QualifiedName();
+            return typeName;
+        }
+
+        private List<NamedType> NamedTypeList(string qualifiedName) {
 
             return new List<NamedType>() {
                 new NamedType() {
                     Type = new DataType() {
-                        Name = typeName,
+                        Name = qualifiedName,
                     }
                 }
             };
