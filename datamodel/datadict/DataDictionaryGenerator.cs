@@ -152,7 +152,7 @@ namespace datamodel.datadict {
                 // Method Header
                 table.AddTr(new HtmlTr(
                     new HtmlTd(
-                        new HtmlElement("span", method.HumanRepresentation(TypeToHtml)).Class("heading3"),
+                        new HtmlElement("span", method.HumanRepresentation(TypeToHtml), true).Class("heading3"),
                         DeprecatedSpan(method)
                     )
                     ).Attr("id", method.Name)
