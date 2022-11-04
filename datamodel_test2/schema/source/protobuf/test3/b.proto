@@ -1,0 +1,11 @@
+package b;
+
+import "c.proto";
+
+// types-of-interest from a.proto: b.request, b.response
+
+message request {
+}
+
+message response {
+}

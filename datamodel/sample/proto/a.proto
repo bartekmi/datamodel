@@ -1,6 +1,8 @@
 syntax = "proto3";
 package a;
 
+import "b.proto";
+
 // This message is very important.
 // Please don't ever forget about it.
 message m1 {

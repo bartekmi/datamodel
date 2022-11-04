@@ -46,9 +46,19 @@ namespace datamodel.schema.source.protobuf.data {
         }
 
         public IEnumerable<PbType> AllTypes() {
-            return AllMessages()
+            IEnumerable<PbType> typesFromMessage = AllMessages()
                 .SelectMany(x => x.Fields)
                 .SelectMany(x => x.UsedTypes());
+
+            List<PbType> typesFromServices = new List<PbType>();
+            foreach (Rpc rpc in Services.SelectMany(x => x.Rpcs)) {
+                typesFromServices.Add(rpc.InputType);
+                typesFromServices.Add(rpc.OutputType);
+            }
+
+            return typesFromMessage
+                .Concat(typesFromServices)
+                .Distinct();
         }
 
         public Message TryGetMessage(string qualifiedName) {

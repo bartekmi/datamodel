@@ -28,6 +28,11 @@ namespace datamodel.schema.source.protobuf {
             RunTest("msgA,msgB1,msgB2,msgC1,msgC2", "test2", "a.proto");
         }
 
+        [Fact]
+        public void ServiceImport() {
+            RunTest("request,response", "test3", "a.proto");
+        }
+
         #region Utilities
         private void RunTest(string expectedMessages, string basePath, string protoFilePath) {
             string actualMessages = ReadBundle(basePath, protoFilePath, out FileBundle bundle);

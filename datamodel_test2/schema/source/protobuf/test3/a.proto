@@ -1,0 +1,9 @@
+package a;
+
+import "b.proto";
+
+// types-of-interest: b.request, b.response
+
+service serviceA {
+  rpc rpc1(b.request) returns (b.response);
+}
