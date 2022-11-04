@@ -118,7 +118,7 @@ namespace datamodel.schema.source {
     }
     public class FileOrDir {
         public bool IsDir { get; private set; }
-        // Guaranteed to be only one if this IsDir is false
+        // Guaranteed to be only one if IsDir is false
         public List<PathAndContent> Files { get; private set; }
 
         internal FileOrDir(bool isDir, List<PathAndContent> files) {

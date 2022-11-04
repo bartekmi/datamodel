@@ -34,7 +34,7 @@ namespace datamodel.schema.source.protobuf {
             FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);
             IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
             string firstPath = files.FirstOrDefault()?.Path;
-            _title = Path.GetFileName(firstPath);
+            _title = parameters.GetRawText(PARAM_PATHS);
             _urlPattern = parameters.GetString(PARAM_URL_PATTERN);
             _importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
 
