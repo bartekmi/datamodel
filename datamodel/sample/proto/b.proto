@@ -2,7 +2,11 @@ syntax = "proto3";
 package b;
 
 message SearchRequest {
-    m1 m1 = 1;
+    nested n1 = 1;
+}
+
+message nested {
+    string n1 = 1;
 }
 
 message SearchResponse {
