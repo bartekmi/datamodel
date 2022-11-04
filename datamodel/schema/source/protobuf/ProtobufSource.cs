@@ -80,8 +80,8 @@ namespace datamodel.schema.source.protobuf {
                     Name = PARAM_URL_PATTERN,
                     Description = @"If specified, must provide a pattern that will evaluate to the URL of the source
 code with substitutions for the relative path of the proto file and the line number.
-Use '$FILE' for the file replacement placeholder and $LINE for the line replacement
-placeholder - e.g. 'http://my-source-repo/$FILE;l=$LINE",
+Use '_FILE_' for the file replacement placeholder and _LINE_ for the line replacement
+placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
                 },
             };
         }
@@ -165,8 +165,8 @@ placeholder - e.g. 'http://my-source-repo/$FILE;l=$LINE",
                 relativePath = relativePath.Substring(1);
 
             string url = _urlPattern
-                .Replace("$FILE", relativePath)
-                .Replace("$LINE", pbBase.LineNumber.ToString());
+                .Replace("_FILE_", relativePath)
+                .Replace("_LINE_", pbBase.LineNumber.ToString());
 
             model.AddUrl("Source Location", url);
         }
