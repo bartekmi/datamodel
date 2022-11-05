@@ -208,6 +208,7 @@ placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
                     OwnerSide = serviceModel.QualifiedName,
                     OwnerMultiplicity = Multiplicity.Aggregation,
                     OtherSide = otherSideQN,
+                    OtherMultiplicity = Multiplicity.One,
                 };
                 _associations.Add(assoc);
         }
