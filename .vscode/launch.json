@@ -106,7 +106,7 @@
       "args": [
         "xsd", 
         "url=https://www.netchb.com/xml/entry/entry.xsd",
-        "dumpschema=../tmp/xsd.out",
+        "dumpschema=../../tmp/xsd.out",
         "dropsuffix=Type"
       ],
       "cwd": "${workspaceFolder}/datamodel",

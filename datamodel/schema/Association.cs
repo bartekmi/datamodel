@@ -99,9 +99,9 @@ namespace datamodel.schema {
         }
 
         private string Depluralize(string word) {
-            if (word.EndsWith("ses"))
-                return word[0..^2];
-            if (word.EndsWith("s"))
+            if (word.EndsWith("ies"))   // Countries => Country
+                return word[0..^3] + "y";
+            if (word.EndsWith("s"))     // Cats => Cat
                 return word[0..^1];
             return word;
         }

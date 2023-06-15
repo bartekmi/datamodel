@@ -146,6 +146,9 @@ namespace datamodel.schema.source {
         }
 
         private static void AddProperty(Model model, XmlSchemaElement element, string dataType) {
+            if (element.MaxOccursString == "unbounded")
+                dataType = string.Format("[]{0}", dataType);
+
             model.AllProperties.Add(new Property() {
                 Name = element.Name,
                 DataType = string.IsNullOrEmpty(dataType) ? "string" : dataType,
