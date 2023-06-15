@@ -104,6 +104,23 @@ namespace datamodel.schema.tweaks {
             Models[model.QualifiedName] = model;
         }
 
+        public void RenameModel(Model model, string newQualifiedName, string newName) {
+            foreach (Association assoc in Associations) {
+                if (assoc.OwnerSide == model.QualifiedName)
+                    assoc.OwnerSide = newQualifiedName;
+                    
+                if (assoc.OtherSide == model.QualifiedName)
+                    assoc.OtherSide = newQualifiedName;
+            }
+
+            model.QualifiedName = newQualifiedName;
+            model.Name = newName;
+
+            Models.Remove(model.QualifiedName);
+            AddModel(model);
+
+        }
+
         public void RemoveModel(Model model) {
             Models.Remove(model.QualifiedName);
         }

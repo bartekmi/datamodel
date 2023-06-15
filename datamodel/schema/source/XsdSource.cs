@@ -5,10 +5,14 @@ using System.Xml;
 using System.Xml.Schema;
 using System.Linq;
 
+using datamodel.schema.tweaks;
+
 namespace datamodel.schema.source {
     public class XsdSource : SchemaSource {
 
         private const string PARAM_URL = "url";
+        private const string PARAM_DROP_MODEL_SUFFIX = "dropsuffix";
+
         private XmlSchema _schema;
         private Dictionary<string, XmlSchemaType> _types;
         private List<Model> _models = new List<Model>();
@@ -29,6 +33,13 @@ namespace datamodel.schema.source {
                 ParseComplexType(null, null, cplxType);
 
             ParseElement(null, rootElement);    
+
+            // If required rename models to drop a particular suffix
+            string dropModelSuffix = parameters.GetString(PARAM_DROP_MODEL_SUFFIX);
+            if  (dropModelSuffix != null)
+                Tweaks.Add(new RenameModelTweak() {
+                    SuffixToRemove = dropModelSuffix,
+                });
         }
 
         private void ParseElement(Model parentModel, XmlSchemaElement element) {
@@ -37,32 +48,37 @@ namespace datamodel.schema.source {
                 // should not trigger the creation of a model - basically List<T>, since this contributes 
                 // nothing to visualization. All we want is to create a 1:n association.
                 if (cplxType.Particle is XmlSchemaSequence seq && seq.Items.Count == 1 && seq.Items[0] is XmlSchemaElement seqElement)
-                    AddPropertyOrAssociation(parentModel, seqElement);
+                    AddPropertyOrAssociation(parentModel, seqElement, element.Name);
                 else
                     ParseComplexType(parentModel, element, cplxType);
             else if (element.SchemaType is XmlSchemaSimpleType simpleType)
                 AddProperty(parentModel, element, null);
             else if (element.SchemaType == null)
-                AddPropertyOrAssociation(parentModel, element);
+                AddPropertyOrAssociation(parentModel, element, element.Name);
             else
-                throw new NotImplementedException();
+                throw new NotImplementedException("Not sure when we'd ever land here");
         }
 
-        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement element) {
+        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement element, string roleName) {
                 string otherSideType = element.SchemaTypeName.Name;
                 bool isAssoc = _types.TryGetValue(otherSideType, out XmlSchemaType type)
                     && type is XmlSchemaComplexType;
 
                 // Nested object referenced by type name - Add Association.
                 if (isAssoc)
-                    _associations.Add(new Association() {
-                        OwnerSide = parentModel.QualifiedName,
-                        OwnerMultiplicity = Multiplicity.Aggregation,
-                        OtherSide = otherSideType,
-                        OtherMultiplicity = GetOtherMultiplicity(element),
-                    });
+                    AddAssociation(parentModel, element, otherSideType, roleName);
                 else
                     AddProperty(parentModel, element, otherSideType);
+        }
+
+        private void AddAssociation(Model ownerModel, XmlSchemaElement element, string otherSide, string otherRole) {
+            _associations.Add(new Association() {
+                OwnerSide = ownerModel.QualifiedName,
+                OwnerMultiplicity = Multiplicity.Aggregation,
+                OtherSide = otherSide,
+                OtherMultiplicity = GetOtherMultiplicity(element),
+                OtherRole = otherRole,
+            });
         }
 
         private static Multiplicity GetOtherMultiplicity(XmlSchemaParticle particle) {
@@ -89,12 +105,7 @@ namespace datamodel.schema.source {
 
             // Nested object specified inline - Add Association.
             if (ownerModel != null)
-                _associations.Add(new Association() {
-                    OwnerSide = ownerModel.QualifiedName,
-                    OwnerMultiplicity = Multiplicity.Aggregation,
-                    OtherSide = model.QualifiedName,
-                    OtherMultiplicity = GetOtherMultiplicity(parent),
-                });
+                AddAssociation(ownerModel, parent, model.QualifiedName, parent.Name);
 
             // Add Properties
             XmlSchemaGroupBase group = cplxType.Particle as XmlSchemaGroupBase;
@@ -150,6 +161,11 @@ namespace datamodel.schema.source {
                     Description = "The URL from which the XSD file can be downloaded",
                     Type = ParamType.Url,
                     IsMandatory = true,
+                },
+                new Parameter() {
+                    Name = PARAM_DROP_MODEL_SUFFIX,
+                    Description = "If specified, this suffix will be dropped from model names",
+                    Type = ParamType.String,
                 }
             };
         }

@@ -23,9 +23,14 @@ namespace datamodel.utils {
         public static string ToHuman(string nonHuman, bool dropSpaces = false) {
             if (nonHuman == null)
                 return null;
-            string human = nonHuman.Contains('_') ?
-                SnakeCaseToHuman(nonHuman) :
-                MixedCaseToHuman(nonHuman);
+                
+            string human = null;
+            if (nonHuman.Contains('_'))
+                human = SnakeCaseToHuman(nonHuman);
+            else if (nonHuman.Contains('-'))
+                human = SnakeCaseToHuman(nonHuman, '-');
+            else
+                human = MixedCaseToHuman(nonHuman);
 
             return dropSpaces ? human.Replace(" ", "") : human;
         }
@@ -38,8 +43,8 @@ namespace datamodel.utils {
                 .Select(x => x.ToLower());
         }
 
-        private static string SnakeCaseToHuman(string snake_case) {
-            string[] pieces = snake_case.Split('_');
+        private static string SnakeCaseToHuman(string snake_case, char splitChar = '_') {
+            string[] pieces = snake_case.Split(splitChar);
             return string.Join(" ", pieces.Select(x => Capitalize(x)));
         }
 
