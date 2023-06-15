@@ -48,13 +48,14 @@ namespace datamodel {
                 Error.Clear();
 
                 Dictionary<string, SchemaSource> schemaSources = new Dictionary<string, SchemaSource>() {
-                { "json", new JsonSource() },
-                { "k8s", new K8sSwaggerSource() },
-                { "proto", new ProtobufSource() },
-                { "simple", new SimpleSource() },
-                { "swagger", new SwaggerSource() },
-                { "yaml", new YamlSource() },
-            };
+                    { "json", new JsonSource() },
+                    { "k8s", new K8sSwaggerSource() },
+                    { "proto", new ProtobufSource() },
+                    { "simple", new SimpleSource() },
+                    { "swagger", new SwaggerSource() },
+                    { "yaml", new YamlSource() },
+                    { "xsd", new XsdSource() },
+                };
 
                 if (args.Length < 1)
                     PrintUsageAndQuit(schemaSources);
@@ -75,8 +76,13 @@ namespace datamodel {
                 // Create Schame
                 Schema schema = Schema.CreateSchema(source);
                 string dumpSchemaFile = _parameters.GetString(Parameters.GLOBAL_PARAM_DUMP_SCHEMA);
-                if (dumpSchemaFile != null)
-                    File.WriteAllText(dumpSchemaFile, JsonUtils.JsonPretty(schema));
+                if (dumpSchemaFile != null) {
+                    string schemaDump = JsonUtils.JsonPretty(schema);
+                    if (dumpSchemaFile.ToLower() == "true")
+                        Console.WriteLine(schemaDump);
+                    else
+                        File.WriteAllText(dumpSchemaFile, schemaDump);
+                }
 
                 // Graph Graphviz output
                 if (!_parameters.GetBool(Parameters.GLOBAL_PARAM_NO_GRAPHVIZ))

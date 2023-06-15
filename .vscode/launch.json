@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "simple", 
         "file=../datamodel_test2/schema/simple_schema.json"
@@ -23,7 +23,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "k8s", 
         "dumpschema=k8s_schema.json",
@@ -38,7 +38,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "json", 
         "files=../datamodel_test2/schema/kubernetes_swagger.json",
@@ -55,7 +55,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "yaml", 
         "files= ../../tmp/f1.yaml, ../../tmp/f2.yaml, ../../tmp/f3.yaml, ../../tmp/f4.yaml, ../../tmp/f5.yaml",
@@ -70,7 +70,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "proto", 
         "nographviz=true",
@@ -87,7 +87,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net6.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "proto", 
         "nographviz=true",
@@ -98,10 +98,19 @@
       "stopAtEntry": false
     },
     {
-      "name": ".NET Core Attach",
+      "name": "XSD",
       "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:pickProcess}"
-    }
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "args": [
+        "xsd", 
+        "url=https://www.netchb.com/xml/entry/entry.xsd",
+        "dumpschema=xsd.out",
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
   ]
 }

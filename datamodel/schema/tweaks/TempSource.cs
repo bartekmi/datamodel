@@ -87,6 +87,14 @@ namespace datamodel.schema.tweaks {
         }
 
         public void SetModels(IEnumerable<Model> models) {
+             IEnumerable<string> duplicateNames = models.Select(x => x.QualifiedName)
+                .GroupBy(x => x)
+                .Where(x => x.Count() > 1)
+                .Select(x => x.Key);
+
+            if (duplicateNames.Count() > 0)
+                throw new Exception("Duplicate Model qualified names: " + string.Join(", ", duplicateNames));
+            
             Models = models.ToDictionary(x => x.QualifiedName);
         }
 
