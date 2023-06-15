@@ -302,7 +302,21 @@ service SearchService {
          }
        ]
      }
-   }
+   },
+   Associations: [
+     {
+       OwnerSide: SearchService,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: SearchRequest,
+       OtherMultiplicity: One
+     },
+     {
+       OwnerSide: SearchService,
+       OwnerMultiplicity: Aggregation,
+       OtherSide: SearchResponse,
+       OtherMultiplicity: One
+     }
+   ]
  }");
         }
 
