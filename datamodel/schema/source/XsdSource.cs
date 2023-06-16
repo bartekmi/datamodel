@@ -44,9 +44,9 @@ namespace datamodel.schema.source {
 
         private void ParseElement(Model parentModel, XmlSchemaElement element) {
             if (element.SchemaType is XmlSchemaComplexType cplxType)
-                // Complex Types which contain <xsd:sequence> which contains a single (repeating) element
-                // should not trigger the creation of a model - basically List<T>, since this contributes 
-                // nothing to visualization. All we want is to create a 1:n association.
+                // Complex Types which contain <xsd:sequence> which contains a single repeating element
+                // should not trigger the creation of a model - They basically represent List<T>.
+                // Creating models for these contributes nothing to visualization. All we want is to create a 1:n association.
                 if (cplxType.Particle is XmlSchemaSequence seq && seq.Items.Count == 1 && seq.Items[0] is XmlSchemaElement seqElement)
                     AddPropertyOrAssociation(parentModel, seqElement, element.Name);
                 else
@@ -102,6 +102,13 @@ namespace datamodel.schema.source {
                 IsAbstract = cplxType.IsAbstract,
                 // Levels = ???,
             };
+
+            // If the nestsed Particle is a Choice - tag the model to state that at most ONE of the child properties or associations
+            // can be present
+            if (cplxType.Particle is XmlSchemaChoice) {
+                model.AddLabel("NOTE", "This element is an xsd:choice node, meaning that at most ONE of the child properties or child associations may be present.");
+                model.ColorStringOverride = "greenyellow";
+            }
 
             // Nested object specified inline - Add Association.
             if (ownerModel != null)

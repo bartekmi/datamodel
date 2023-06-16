@@ -91,8 +91,19 @@ namespace datamodel.schema {
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         [JsonIgnore]
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
+        
+        // Color String is assigned based on hierarchy
+        private string _colorString;
         [JsonIgnore]
-        public string ColorString { get; internal set; }
+        public string ColorString { 
+            get { return ColorStringOverride ?? _colorString; }
+            internal set { _colorString = value; } 
+        }
+        
+        // ColorStringOverride can be set at any point, including by schema sources. This will override any color assignment due to
+        // hierarchy grouping.
+        [JsonIgnore]
+        public string ColorStringOverride { get; set; }
 
         public Model() {
             AllProperties = new List<Property>();
