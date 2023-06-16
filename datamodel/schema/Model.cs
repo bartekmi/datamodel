@@ -95,9 +95,9 @@ namespace datamodel.schema {
         // Color String is assigned based on hierarchy
         private string _colorString;
         [JsonIgnore]
-        public string ColorString { 
+        public string ColorString {
             get { return ColorStringOverride ?? _colorString; }
-            internal set { _colorString = value; } 
+            internal set { _colorString = value; }
         }
         
         // ColorStringOverride can be set at any point, including by schema sources. This will override any color assignment due to

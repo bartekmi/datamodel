@@ -51,12 +51,26 @@ namespace datamodel.schema.source {
                     AddPropertyOrAssociation(parentModel, seqElement, element.Name);
                 else
                     ParseComplexType(parentModel, element, cplxType);
-            else if (element.SchemaType is XmlSchemaSimpleType simpleType)
-                AddProperty(parentModel, element, null);
-            else if (element.SchemaType == null)
+            else if (element.SchemaType is XmlSchemaSimpleType simpleType) {
+                Property property = AddProperty(parentModel, element, null);
+                MaybeAddEnum(property, simpleType);
+            } else if (element.SchemaType == null)
                 AddPropertyOrAssociation(parentModel, element, element.Name);
             else
                 throw new NotImplementedException("Not sure when we'd ever land here");
+        }
+
+        private void MaybeAddEnum(Property property, XmlSchemaSimpleType  simpleType) {
+            if (simpleType.Content is XmlSchemaSimpleTypeRestriction restr) {
+                Enum enumeration = new Enum();
+                foreach (var item in restr.Facets.OfType<XmlSchemaEnumerationFacet>()) 
+                    enumeration.Add(item.Value, null);
+
+                if (enumeration.Values.Count() > 0) {
+                    property.Enum = enumeration;
+                    property.DataType = "enum";
+                }
+            }
         }
 
         private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement element, string roleName) {
@@ -152,16 +166,19 @@ namespace datamodel.schema.source {
             return doc == null ? null : doc.Markup?.SingleOrDefault()?.InnerText;
         }
 
-        private static void AddProperty(Model model, XmlSchemaElement element, string dataType) {
+        private static Property AddProperty(Model model, XmlSchemaElement element, string dataType) {
             if (element.MaxOccursString == "unbounded")
                 dataType = string.Format("[]{0}", dataType);
 
-            model.AllProperties.Add(new Property() {
+            Property property = new Property() {
                 Name = element.Name,
                 DataType = string.IsNullOrEmpty(dataType) ? "string" : dataType,
                 CanBeEmpty = element.MinOccurs == 0,
                 Description = ExtractDescription(element),
-            });
+            };
+
+            model.AllProperties.Add(property);
+            return property;
         }
 
         public override IEnumerable<Parameter> GetParameters() {
