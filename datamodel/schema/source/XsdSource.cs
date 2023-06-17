@@ -180,6 +180,7 @@ namespace datamodel.schema.source {
                 OtherSide = otherSide,
                 OtherMultiplicity = GetOtherMultiplicity(element),
                 OtherRole = otherRole,
+                Description = ExtractDescription(element),
             });
         }
 
