@@ -51,54 +51,24 @@ namespace datamodel.schema.source {
                     AddPropertyOrAssociation(parentModel, seqElement, element.Name);
                 else
                     ParseComplexType(parentModel, element, cplxType);
-            else if (element.SchemaType is XmlSchemaSimpleType simpleType) {
-                Property property = AddProperty(parentModel, element, null);
-                MaybeAddEnum(property, simpleType);
-            } else if (element.SchemaType == null)
+            else if (element.SchemaType is XmlSchemaSimpleType simpleType)
+                AddProperty(parentModel, element, simpleType);
+            else if (element.SchemaType == null)
                 AddPropertyOrAssociation(parentModel, element, element.Name);
             else
                 throw new NotImplementedException("Not sure when we'd ever land here");
         }
 
-        private void MaybeAddEnum(Property property, XmlSchemaSimpleType  simpleType) {
-            if (simpleType.Content is XmlSchemaSimpleTypeRestriction restr) {
-                Enum enumeration = new Enum();
-                foreach (var item in restr.Facets.OfType<XmlSchemaEnumerationFacet>()) 
-                    enumeration.Add(item.Value, null);
-
-                if (enumeration.Values.Count() > 0) {
-                    property.Enum = enumeration;
-                    property.DataType = "enum";
-                }
-            }
-        }
-
         private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement element, string roleName) {
                 string otherSideType = element.SchemaTypeName.Name;
-                bool isAssoc = _types.TryGetValue(otherSideType, out XmlSchemaType type)
-                    && type is XmlSchemaComplexType;
+                _types.TryGetValue(otherSideType, out XmlSchemaType type);
 
                 // Nested object referenced by type name - Add Association.
-                if (isAssoc)
+                if (type is XmlSchemaComplexType)
                     AddAssociation(parentModel, element, otherSideType, roleName);
-                else
-                    AddProperty(parentModel, element, otherSideType);
-        }
-
-        private void AddAssociation(Model ownerModel, XmlSchemaElement element, string otherSide, string otherRole) {
-            _associations.Add(new Association() {
-                OwnerSide = ownerModel.QualifiedName,
-                OwnerMultiplicity = Multiplicity.Aggregation,
-                OtherSide = otherSide,
-                OtherMultiplicity = GetOtherMultiplicity(element),
-                OtherRole = otherRole,
-            });
-        }
-
-        private static Multiplicity GetOtherMultiplicity(XmlSchemaParticle particle) {
-            if (particle.MaxOccursString?.ToLower() == "unbounded")
-                return Multiplicity.Many;
-            return particle.MinOccurs == 0 ? Multiplicity.ZeroOrOne : Multiplicity.One;
+                else {
+                    AddProperty(parentModel, element, type as XmlSchemaSimpleType);
+                }
         }
 
         private void ParseComplexType(Model ownerModel, XmlSchemaElement parent, XmlSchemaComplexType cplxType) {
@@ -146,6 +116,8 @@ namespace datamodel.schema.source {
             _models.Add(model);
         }
 
+        #region Utilities
+
         private static string GetQualifiedName(XmlSchemaObject obj) {
             List<string> parts = new List<string>();
 
@@ -166,20 +138,64 @@ namespace datamodel.schema.source {
             return doc == null ? null : doc.Markup?.SingleOrDefault()?.InnerText;
         }
 
-        private static Property AddProperty(Model model, XmlSchemaElement element, string dataType) {
-            if (element.MaxOccursString == "unbounded")
-                dataType = string.Format("[]{0}", dataType);
+        private static void AddProperty(Model model, XmlSchemaElement element, XmlSchemaSimpleType simpleType) {
+            // Determine Data Type
+            Enum enumeration = MaybeCreateEnum(simpleType);
+            string finalType = simpleType?.Name ?? element.SchemaTypeName?.Name;
+            if (string.IsNullOrEmpty(finalType))
+                finalType = enumeration == null ? "string" : "enum"; 
+            if (IsMultiple(element))
+                finalType = string.Format("[]{0}", finalType);
 
-            Property property = new Property() {
+            // Create the property
+            model.AllProperties.Add(new Property() {
                 Name = element.Name,
-                DataType = string.IsNullOrEmpty(dataType) ? "string" : dataType,
+                DataType = finalType,
                 CanBeEmpty = element.MinOccurs == 0,
                 Description = ExtractDescription(element),
-            };
-
-            model.AllProperties.Add(property);
-            return property;
+                Enum = enumeration,
+            });
         }
+
+        private static Enum MaybeCreateEnum(XmlSchemaSimpleType simpleType) {
+            if (simpleType?.Content is XmlSchemaSimpleTypeRestriction restr) {
+                Enum enumeration = new Enum() {
+                    Name = simpleType.Name,
+                };
+
+                foreach (var item in restr.Facets.OfType<XmlSchemaEnumerationFacet>()) 
+                    enumeration.Add(item.Value, null);
+
+                if (enumeration.Values.Count() > 0)
+                    return enumeration;
+            }
+
+            return null;
+        }
+
+        private void AddAssociation(Model ownerModel, XmlSchemaElement element, string otherSide, string otherRole) {
+            _associations.Add(new Association() {
+                OwnerSide = ownerModel.QualifiedName,
+                OwnerMultiplicity = Multiplicity.Aggregation,
+                OtherSide = otherSide,
+                OtherMultiplicity = GetOtherMultiplicity(element),
+                OtherRole = otherRole,
+            });
+        }
+
+        private static Multiplicity GetOtherMultiplicity(XmlSchemaParticle particle) {
+            if (IsMultiple(particle))
+                return Multiplicity.Many;
+            return particle.MinOccurs == 0 ? Multiplicity.ZeroOrOne : Multiplicity.One;
+        }
+
+        private static bool IsMultiple(XmlSchemaParticle particle) {
+            return particle.MaxOccursString?.ToLower() == "unbounded"
+                || particle.MaxOccurs > 1;
+        }
+        #endregion
+
+        #region Abstract Class Implementation
 
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>() {
@@ -205,20 +221,9 @@ namespace datamodel.schema.source {
             return _models;
         }
 
-        // private Enum GetEnum(Dictionary<string, string> sEnum) {
-        //     if (sEnum == null)
-        //         return null;
-
-        //     Enum theEnum = new Enum();
-            
-        //     foreach (var entry in sEnum)
-        //         theEnum.Add(entry.Key, entry.Value);
-
-        //     return theEnum;
-        // }
-
         public override IEnumerable<Association> GetAssociations() {
             return _associations;
         }
+        #endregion
     }
 }
