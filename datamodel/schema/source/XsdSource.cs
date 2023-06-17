@@ -48,26 +48,26 @@ namespace datamodel.schema.source {
                 // should not trigger the creation of a model - They basically represent List<T>.
                 // Creating models for these contributes nothing to visualization. All we want is to create a 1:n association.
                 if (cplxType.Particle is XmlSchemaSequence seq && seq.Items.Count == 1 && seq.Items[0] is XmlSchemaElement seqElement)
-                    AddPropertyOrAssociation(parentModel, seqElement, element.Name);
+                    AddPropertyOrAssociation(parentModel, element, seqElement);
                 else
                     ParseComplexType(parentModel, element, cplxType);
             else if (element.SchemaType is XmlSchemaSimpleType simpleType)
-                AddProperty(parentModel, element, simpleType);
+                AddProperty(parentModel, element, element, simpleType);
             else if (element.SchemaType == null)
-                AddPropertyOrAssociation(parentModel, element, element.Name);
+                AddPropertyOrAssociation(parentModel, element, element);
             else
                 throw new NotImplementedException("Not sure when we'd ever land here");
         }
 
-        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement element, string roleName) {
-                string otherSideType = element.SchemaTypeName.Name;
+        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement forName, XmlSchemaElement forMultiplicity) {
+                string otherSideType = forMultiplicity.SchemaTypeName.Name;
                 _types.TryGetValue(otherSideType, out XmlSchemaType type);
 
                 // Nested object referenced by type name - Add Association.
                 if (type is XmlSchemaComplexType)
-                    AddAssociation(parentModel, element, otherSideType, roleName);
+                    AddAssociation(parentModel, forMultiplicity, otherSideType, forName.Name);
                 else {
-                    AddProperty(parentModel, element, type as XmlSchemaSimpleType);
+                    AddProperty(parentModel, forName, forMultiplicity, type as XmlSchemaSimpleType);
                 }
         }
 
@@ -138,21 +138,21 @@ namespace datamodel.schema.source {
             return doc == null ? null : doc.Markup?.SingleOrDefault()?.InnerText;
         }
 
-        private static void AddProperty(Model model, XmlSchemaElement element, XmlSchemaSimpleType simpleType) {
+        private static void AddProperty(Model model, XmlSchemaElement forName, XmlSchemaElement forMultiplicity, XmlSchemaSimpleType simpleType) {
             // Determine Data Type
             Enum enumeration = MaybeCreateEnum(simpleType);
-            string finalType = simpleType?.Name ?? element.SchemaTypeName?.Name;
+            string finalType = simpleType?.Name ?? forName.SchemaTypeName?.Name;
             if (string.IsNullOrEmpty(finalType))
                 finalType = enumeration == null ? "string" : "enum"; 
-            if (IsMultiple(element))
+            if (IsMultiple(forMultiplicity))
                 finalType = string.Format("[]{0}", finalType);
 
             // Create the property
             model.AllProperties.Add(new Property() {
-                Name = element.Name,
+                Name = forName.Name,
                 DataType = finalType,
-                CanBeEmpty = element.MinOccurs == 0,
-                Description = ExtractDescription(element),
+                CanBeEmpty = forName.MinOccurs == 0,
+                Description = ExtractDescription(forMultiplicity),
                 Enum = enumeration,
             });
         }
