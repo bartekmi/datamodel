@@ -65,7 +65,7 @@ namespace datamodel.schema.source {
 
                 // Nested object referenced by type name - Add Association.
                 if (type is XmlSchemaComplexType)
-                    AddAssociation(parentModel, forMultiplicity, otherSideType, forName.Name);
+                    AddAssociation(parentModel, forName, forMultiplicity, otherSideType);
                 else {
                     AddProperty(parentModel, forName, forMultiplicity, type as XmlSchemaSimpleType);
                 }
@@ -96,7 +96,7 @@ namespace datamodel.schema.source {
 
             // Nested object specified inline - Add Association.
             if (ownerModel != null)
-                AddAssociation(ownerModel, parent, model.QualifiedName, parent.Name);
+                AddAssociation(ownerModel, parent, parent, model.QualifiedName);
 
             // Add Properties
             XmlSchemaGroupBase group = cplxType.Particle as XmlSchemaGroupBase;
@@ -173,14 +173,14 @@ namespace datamodel.schema.source {
             return null;
         }
 
-        private void AddAssociation(Model ownerModel, XmlSchemaElement element, string otherSide, string otherRole) {
+        private void AddAssociation(Model ownerModel, XmlSchemaElement forName, XmlSchemaElement forMultiplicity, string otherSide) {
             _associations.Add(new Association() {
                 OwnerSide = ownerModel.QualifiedName,
                 OwnerMultiplicity = Multiplicity.Aggregation,
                 OtherSide = otherSide,
-                OtherMultiplicity = GetOtherMultiplicity(element),
-                OtherRole = otherRole,
-                Description = ExtractDescription(element),
+                OtherMultiplicity = GetOtherMultiplicity(forMultiplicity),
+                OtherRole = forName.Name,
+                Description = ExtractDescription(forName),
             });
         }
 
