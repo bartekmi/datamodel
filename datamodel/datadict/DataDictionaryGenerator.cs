@@ -191,13 +191,14 @@ namespace datamodel.datadict {
 
             table.AddTr(new HtmlTr(new HtmlTh("Outgoing Associations").Class("heading2")));
 
-            foreach (Property property in dbModel.RefProperties) {
-                Model referenced = property.ReferencedModel;
+            foreach (Association assoc in Schema.Singleton.Associations.Where(x => x.OwnerSideModel == dbModel)) {
+                Model referenced = assoc.OtherSideModel;
+                Property property = assoc.RefProperty;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0} ({1})", property.HumanName, link);
                 bool isRequired = !property.CanBeEmpty;
 
-                AddRefPropertyInfo(table, property, property.ReferencedModel, name, isRequired);
+                AddRefPropertyInfo(table, property, referenced, name, assoc.OtherMultiplicity);
             }
         }
 
@@ -214,18 +215,31 @@ namespace datamodel.datadict {
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
                 string name = string.Format("{0}.{1}", link, property.HumanName);
 
-                AddRefPropertyInfo(table, property, property.Owner, name, false);
+                AddRefPropertyInfo(table, property, property.Owner, name, null);
             }
         }
 
-        private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string name, bool isRequired) {
+        private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string name, Multiplicity? multiplicity) {
             if (Schema.Singleton.IsInteresting(property)) {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
+
+                string multiplicityIcon = null;
+                string multiplicityToolTip = null;
+                switch (multiplicity) {
+                    case Multiplicity.One:
+                        multiplicityIcon = IconUtils.CHECKMARK;
+                        multiplicityToolTip = "This associated object must be specified";
+                        break;
+                    case Multiplicity.Many:
+                        multiplicityIcon = IconUtils.ONE_TO_MANY;
+                        multiplicityToolTip = "One-to-many association";
+                        break;
+                }
 
                 // Property Header
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
-                        isRequired ? HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This associated object must be specified") : null,
+                        multiplicityIcon == null ? null : HtmlUtils.MakeIcon(multiplicityIcon, null, multiplicityToolTip),
                         new HtmlElement("span", name, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,
