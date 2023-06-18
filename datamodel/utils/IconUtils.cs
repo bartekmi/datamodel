@@ -11,5 +11,6 @@ namespace datamodel.utils {
         public const string DIAGRAM = "diagram.png";
         public const string DIAGRAM_SMALL = "diagram-small.png";
         public const string ONE_TO_MANY = "one-to-many.png";
+        public const string ON_OFF = "on-off.png";
     }
 }

@@ -120,7 +120,10 @@ namespace datamodel.datadict {
                     // Property Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
-                            property.CanBeEmpty ? null : HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute must be specified"),
+                            property.CanBeEmpty ? 
+                                HtmlUtils.MakeIcon(IconUtils.ON_OFF, null, "This attribute is OPTIONAL") : 
+                                HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute is REQUIRED"),
+
                             new HtmlElement("span", property.HumanName).Class("heading3"),
                             new HtmlElement("span", "(" + property.DataType + ")").Class("faded gap-left"),
                             DeprecatedSpan(property)
@@ -228,7 +231,11 @@ namespace datamodel.datadict {
                 switch (multiplicity) {
                     case Multiplicity.One:
                         multiplicityIcon = IconUtils.CHECKMARK;
-                        multiplicityToolTip = "This associated object must be specified";
+                        multiplicityToolTip = "This associated object is REQUIRED";
+                        break;
+                    case Multiplicity.ZeroOrOne:
+                        multiplicityIcon = IconUtils.ON_OFF;
+                        multiplicityToolTip = "This associated object is OPTIONAL";
                         break;
                     case Multiplicity.Many:
                         multiplicityIcon = IconUtils.ONE_TO_MANY;
