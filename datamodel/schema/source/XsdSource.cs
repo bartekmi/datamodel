@@ -30,7 +30,7 @@ namespace datamodel.schema.source {
                 .ToDictionary(x => x.Name);
 
             foreach (XmlSchemaComplexType cplxType in _types.Values.OfType<XmlSchemaComplexType>())
-                ParseComplexType(null, null, cplxType);
+                ParseComplexType(null, null, null, cplxType);
 
             ParseElement(null, rootElement);    
 
@@ -50,7 +50,7 @@ namespace datamodel.schema.source {
                 if (cplxType.Particle is XmlSchemaSequence seq && seq.Items.Count == 1 && seq.Items[0] is XmlSchemaElement seqElement)
                     AddPropertyOrAssociation(parentModel, element, seqElement);
                 else
-                    ParseComplexType(parentModel, element, cplxType);
+                    ParseComplexType(parentModel, element, element, cplxType);
             else if (element.SchemaType is XmlSchemaSimpleType simpleType)
                 AddProperty(parentModel, element, element, simpleType);
             else if (element.SchemaType == null)
@@ -59,28 +59,31 @@ namespace datamodel.schema.source {
                 throw new NotImplementedException("Not sure when we'd ever land here");
         }
 
-        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement forName, XmlSchemaElement forMultiplicity) {
-                string otherSideType = forMultiplicity.SchemaTypeName.Name;
+        private void AddPropertyOrAssociation(Model parentModel, XmlSchemaElement outer, XmlSchemaElement inner) {
+                string otherSideType = inner.SchemaTypeName.Name;
                 _types.TryGetValue(otherSideType, out XmlSchemaType type);
 
                 // Nested object referenced by type name - Add Association.
                 if (type is XmlSchemaComplexType)
-                    AddAssociation(parentModel, forName, forMultiplicity, otherSideType);
-                else {
-                    AddProperty(parentModel, forName, forMultiplicity, type as XmlSchemaSimpleType);
-                }
+                    AddAssociation(parentModel, outer, inner, otherSideType);
+                // Nested object inline
+                else if (inner.SchemaType is XmlSchemaComplexType cplxType)
+                    ParseComplexType(parentModel, outer, inner, cplxType);
+                // Otherwise, assume it's a property, maybe referencing a simple type
+                else 
+                    AddProperty(parentModel, outer, inner, type as XmlSchemaSimpleType);
         }
 
-        private void ParseComplexType(Model ownerModel, XmlSchemaElement parent, XmlSchemaComplexType cplxType) {
+        private void ParseComplexType(Model ownerModel, XmlSchemaElement outer, XmlSchemaElement inner, XmlSchemaComplexType cplxType) {
             // Create the Model
-            string name = parent == null ? cplxType.Name : parent.Name;
-            string description = ExtractDescription(parent == null ? cplxType : parent);
+            string modelName = inner == null ? cplxType.Name : inner.Name;
+            string description = ExtractDescription(outer == null ? cplxType : outer);
 
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(modelName))
                 throw new Exception("Blank Complex Type name at line " + cplxType.LineNumber);
 
             Model model = new Model() {
-                Name = name,
+                Name = modelName,
                 QualifiedName = GetQualifiedName(cplxType),
                 Description = description,
                 IsAbstract = cplxType.IsAbstract,
@@ -96,7 +99,7 @@ namespace datamodel.schema.source {
 
             // Nested object specified inline - Add Association.
             if (ownerModel != null)
-                AddAssociation(ownerModel, parent, parent, model.QualifiedName);
+                AddAssociation(ownerModel, outer, inner, model.QualifiedName);
 
             // Add Properties
             XmlSchemaGroupBase group = cplxType.Particle as XmlSchemaGroupBase;
@@ -173,14 +176,14 @@ namespace datamodel.schema.source {
             return null;
         }
 
-        private void AddAssociation(Model ownerModel, XmlSchemaElement forName, XmlSchemaElement forMultiplicity, string otherSide) {
+        private void AddAssociation(Model ownerModel, XmlSchemaElement outer, XmlSchemaElement inner, string otherSide) {
             _associations.Add(new Association() {
                 OwnerSide = ownerModel.QualifiedName,
                 OwnerMultiplicity = Multiplicity.Aggregation,
                 OtherSide = otherSide,
-                OtherMultiplicity = GetOtherMultiplicity(forMultiplicity),
-                OtherRole = forName.Name,
-                Description = ExtractDescription(forName),
+                OtherMultiplicity = GetOtherMultiplicity(inner),
+                OtherRole = outer.Name,
+                Description = ExtractDescription(outer),
             });
         }
 
