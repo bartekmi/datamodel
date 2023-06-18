@@ -195,10 +195,10 @@ namespace datamodel.datadict {
                 Model referenced = assoc.OtherSideModel;
                 Property property = assoc.RefProperty;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
-                string name = string.Format("{0} ({1})", property.HumanName, link);
+                string mainHtml = string.Format("{0} ({1})", property.HumanName, link);
                 bool isRequired = !property.CanBeEmpty;
 
-                AddRefPropertyInfo(table, property, referenced, name, assoc.OtherMultiplicity);
+                AddRefPropertyInfo(table, property, referenced, mainHtml, assoc.OtherMultiplicity);
             }
         }
 
@@ -213,13 +213,13 @@ namespace datamodel.datadict {
             foreach (Property property in orderedIncoming) {
                 Model referenced = property.Owner;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
-                string name = string.Format("{0}.{1}", link, property.HumanName);
+                string mainHtml = string.Format("{0}.{1}", link, property.HumanName);
 
-                AddRefPropertyInfo(table, property, property.Owner, name, null);
+                AddRefPropertyInfo(table, property, property.Owner, mainHtml, null);
             }
         }
 
-        private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string name, Multiplicity? multiplicity) {
+        private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string mainHtml, Multiplicity? multiplicity) {
             if (Schema.Singleton.IsInteresting(property)) {
                 HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
 
@@ -240,7 +240,7 @@ namespace datamodel.datadict {
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
                         multiplicityIcon == null ? null : HtmlUtils.MakeIcon(multiplicityIcon, null, multiplicityToolTip),
-                        new HtmlElement("span", name, true).Class("heading3"),
+                        new HtmlElement("span", mainHtml, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,
                         new HtmlElement("span").Class("gap-left"),
