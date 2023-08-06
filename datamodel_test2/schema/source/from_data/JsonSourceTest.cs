@@ -97,6 +97,7 @@ namespace datamodel.schema.source.from_data {
           Name: d
         },
         {
+          DataType: unknown,
           Name: e
         },
         {
@@ -177,7 +178,7 @@ namespace datamodel.schema.source.from_data {
       OwnerSide: cluster1,
       OwnerMultiplicity: Aggregation,
       OtherSide: cluster1.object,
-      OtherMultiplicity: ZeroOrOne
+      OtherMultiplicity: One
     }
   ]
 }", json);

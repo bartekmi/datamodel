@@ -17,7 +17,7 @@ namespace datamodel.schema.source.from_data {
 
             JsonSource source = new JsonSource();
             source.Initialize(new Parameters(source, new string[] { 
-                @"files=
+                @"paths=
                     ../../../schema/source/from_data/json_source_cluster_1.json,
                     ../../../schema/source/from_data/json_source_cluster_2.json,
                     ../../../schema/source/from_data/json_source_cluster_3.json,"
@@ -122,13 +122,13 @@ namespace datamodel.schema.source.from_data {
       OwnerSide: cluster1,
       OwnerMultiplicity: Aggregation,
       OtherSide: cluster1.obj1,
-      OtherMultiplicity: ZeroOrOne
+      OtherMultiplicity: One
     },
     {
       OwnerSide: cluster2,
       OwnerMultiplicity: Aggregation,
       OtherSide: cluster2.obj999,
-      OtherMultiplicity: ZeroOrOne
+      OtherMultiplicity: One
     }
   ]
 }", json);
