@@ -73,7 +73,8 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "json",
-        "paths= ../../Downloads",
+        // "paths= ../../Downloads",
+        "paths=../../cs/test_data/mini",
         "title=JSON",
       ],
       "cwd": "${workspaceFolder}/datamodel",

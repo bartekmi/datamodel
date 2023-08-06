@@ -68,5 +68,13 @@ namespace datamodel.utils {
         public static string CompoundToSafe(IEnumerable<string> compound) {
             return string.Join("__", compound).Replace(' ', '_');
         }
+
+        public static string Pluralize(string singular) {
+            if (singular.EndsWith("s"))     // Bonus => Bonuses
+                return singular + "es";
+            if (singular.EndsWith("y"))     // Country => Countries
+                return singular[..^1] + "ies";
+            return singular + "s";          // Cat => Cats
+        }
     }
 }

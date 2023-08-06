@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 
 using datamodel.schema.tweaks;
+using datamodel.utils;
 
 namespace datamodel.schema.source.from_data {
 
@@ -85,6 +86,7 @@ namespace datamodel.schema.source.from_data {
             SetCanBeEmptyProperty();
             SetOtherMultiplicityProperty();
             SetModelInstanceCountLabel();
+            SetListSemanticProperty();
         }
 
         public override IEnumerable<Parameter> GetParameters() {
@@ -358,8 +360,6 @@ namespace datamodel.schema.source.from_data {
                 };
                 source.Associations.Add(assoc);
                 _associations[assoc] = 0;
-            } else {
-                // TODO: If assoc exists, test if any of the parameters different from what has been recorded
             }
 
             _associations[assoc]++;
@@ -421,6 +421,24 @@ namespace datamodel.schema.source.from_data {
         private void SetModelInstanceCountLabel() {
             foreach (var item in _models)
                 item.Key.AddLabel("Instance Count", item.Value.ToString());
+        }
+
+        // Convert things like entry<>---Invoices<>---<Invoice into...
+        //                     entry<>---<Invoice
+        private void SetListSemanticProperty() {
+            foreach (var item in _models) {
+                Model model = item.Key;
+                IEnumerable<Association> outgoing = _associations.Keys
+                    .Where(x => x.OwnerSide == model.QualifiedName);
+
+                if (model.AllProperties.Count == 0 && outgoing.Count() == 1) {
+                    string childModelNameFQ = outgoing.Single().OtherSide;
+                    string childModelName = childModelNameFQ.Split('.').Last();
+                    string modelName = model.QualifiedName.Split('.').Last();
+                    if (modelName == NameUtils.Pluralize(childModelName))
+                        model.ListSemanticsForType = childModelNameFQ;
+                }
+            }
         }
         #endregion
 
