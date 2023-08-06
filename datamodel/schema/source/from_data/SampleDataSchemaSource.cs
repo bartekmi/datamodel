@@ -196,7 +196,9 @@ namespace datamodel.schema.source.from_data {
         }
 
         private string GetDataType(SDSS_Element element, bool isMany) {
-            string type = element == null ? "unknown" : element.DataType;
+            string type = string.IsNullOrWhiteSpace(element?.DataType) ? 
+                "unknown" : element.DataType;
+                
             if (isMany)
                 type = "[]" + type;
             return type;
