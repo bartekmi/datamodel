@@ -59,8 +59,9 @@ namespace datamodel.schema.source {
 
             try {
                 return ParseSingle(text);
-            } catch {
-                error = string.Format("Could not parse/read {0} from '{1}'", Type, text);
+            } catch (Exception e) {
+                error = string.Format("Could not parse/read a parameter of type '{0}' from the text '{1}'. Extra info: {2}",
+                    Type, text, e.Message);
                 return null;
             }
         }
@@ -72,6 +73,8 @@ namespace datamodel.schema.source {
                 case ParamType.Float: return double.Parse(text);
                 case ParamType.Bool: return bool.Parse(text);
                 case ParamType.File: return File.ReadAllText(text);
+                case ParamType.FileOrDir:
+                    throw new Exception("To use FileOrDir, do not instantiate Parameter directly; instead, instantate ParameterFileOrDir");
                 case ParamType.Url: return DownloadUrl(text);
                 case ParamType.Regex: return new Regex(text);
                 default:
@@ -92,6 +95,8 @@ namespace datamodel.schema.source {
             }
         }
     }
+
+    #region ParameterFileOrDir
     public class ParameterFileOrDir : Parameter {
         public string FilePattern;
         public bool ReadContent = true;
@@ -111,7 +116,7 @@ namespace datamodel.schema.source {
         }
 
         private void ReadRecursively(List<PathAndContent> files, string dir) {
-            files.AddRange(Directory.GetFiles(dir, FilePattern).Select(x => PathAndContent.Read(x, ReadContent)));
+            files.AddRange(Directory.GetFiles(dir, FilePattern ?? "*").Select(x => PathAndContent.Read(x, ReadContent)));
             foreach (string nestedDir in Directory.GetDirectories(dir))
                 ReadRecursively(files, nestedDir);
         }
@@ -154,7 +159,9 @@ namespace datamodel.schema.source {
         }
     }
     #endregion
+    #endregion
 
+    #region Parameters - Top-level command-line parameter parsing
     public class Parameters {
         private Dictionary<string, Parameter> _params;
 
@@ -340,4 +347,5 @@ namespace datamodel.schema.source {
         }
         #endregion
     }
+    #endregion
 }

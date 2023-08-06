@@ -11,12 +11,14 @@ using datamodel.schema.tweaks;
 
 namespace datamodel.schema.source.from_data {
     public class JsonSource : SampleDataSchemaSource {
-        protected override SDSS_Element GetRaw(string json) {
-                return GetRawInternal(json);
+        protected override SDSS_Element GetRaw(PathAndContent jsonFile) {
+            return GetRawInternal(jsonFile);
         }
 
-        internal static SDSS_Element GetRawInternal(string json) {      // Exposing for testing
-            object root = JsonConvert.DeserializeObject(json);
+        internal static SDSS_Element GetRawInternal(PathAndContent jsonFile) {      // Exposing for testing
+            object root = JsonConvert.DeserializeObject(jsonFile.Content);
+            if (root == null)
+                throw new Exception("Could not read JSON from file: " + jsonFile.Path);
             return Convert((JToken)root);
         }
 
@@ -34,6 +36,18 @@ namespace datamodel.schema.source.from_data {
                     token.Type == JTokenType.Null ? null : token.Type.ToString()
                 );
             }
+        }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                new ParameterFileOrDir() {
+                    Name = PARAM_PATHS,
+                    Description = @"Comma-separated list of files and/or directories.
+        Only files matching the pattern '*.js?n' will be read.",
+                    IsMultiple = true,
+                    FilePattern = "*.js?n",
+                },
+            }.Concat(base.GetParameters());
         }
     }
 }

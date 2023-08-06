@@ -7,8 +7,8 @@ using YamlDotNet.RepresentationModel;
 
 namespace datamodel.schema.source.from_data {
     public class YamlSource : SampleDataSchemaSource {
-        public static YamlNode ReadYaml(string yamlString) {
-            using (TextReader reader = new StringReader(yamlString)) {
+        public static YamlNode ReadYaml(PathAndContent yamlFile) {
+            using (TextReader reader = new StringReader(yamlFile.Content)) {
                 YamlStream yaml = new YamlStream();
 
                 yaml.Load(reader);
@@ -20,8 +20,8 @@ namespace datamodel.schema.source.from_data {
             }
         }
 
-        protected override SDSS_Element GetRaw(string yaml) {
-            YamlNode root = ReadYaml(yaml);
+        protected override SDSS_Element GetRaw(PathAndContent yamlFile) {
+            YamlNode root = ReadYaml(yamlFile);
             return Convert(root);
         }
 
@@ -51,5 +51,18 @@ namespace datamodel.schema.source.from_data {
 
             return "string";
         }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                new ParameterFileOrDir() {
+                    Name = PARAM_PATHS,
+                    Description = @"Comma-separated list of files and/or directories.
+        Only files matching the pattern '*.y?ml' will be read.",
+                    IsMultiple = true,
+                    FilePattern = "*.y?ml",
+                },
+            }.Concat(base.GetParameters());
+        }
+
     }
 }

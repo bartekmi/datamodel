@@ -30,7 +30,7 @@ namespace datamodel.schema.source.from_data {
     // - How to treat same paths with (very) different properties - e.g representing inheritance
     public abstract class SampleDataSchemaSource : SchemaSource {
 
-        protected abstract SDSS_Element GetRaw(string text);
+        protected abstract SDSS_Element GetRaw(PathAndContent file);
         protected Options TheOptions;
 
         internal TempSource _source = new TempSource();     // Internal for testing
@@ -46,7 +46,7 @@ namespace datamodel.schema.source.from_data {
             public Regex KeyIsDataRegex;
         }
 
-        public const string PARAM_FILES = "files";
+        public const string PARAM_PATHS = "paths";
         public const string PARAM_RAW = "raw";
 
         public const string PARAM_TITLE = "title";
@@ -54,7 +54,6 @@ namespace datamodel.schema.source.from_data {
         public const string PARAM_SAME_NAME_IS_SAME_MODEL = "same-name-is-same-model";
         public const string PARAM_MINIMUM_CLUSTER_OVERLAP = "minimum-cluster-overlap";
         public const string PARAM_KEY_IS_DATA_REGEX = "key-is-data-regex";
-        
 
         public override void Initialize(Parameters parameters) {
             TheOptions = new Options() {
@@ -62,20 +61,21 @@ namespace datamodel.schema.source.from_data {
                 PathsWhereKeyIsData = parameters.GetStrings(PARAM_PATHS_WHERE_KEY_IS_DATA),
                 SameNameIsSameModel = parameters.GetBool(PARAM_SAME_NAME_IS_SAME_MODEL),
                 MinimumClusterOverlap = parameters.GetInt(PARAM_MINIMUM_CLUSTER_OVERLAP).Value, // Safe due to default
-                KeyIsDataRegex = parameters.GetRegex(PARAM_KEY_IS_DATA_REGEX)
+                KeyIsDataRegex = parameters.GetRegex(PARAM_KEY_IS_DATA_REGEX),
             };
 
             string raw = parameters.GetString(PARAM_RAW);
-            string[] fileContents = parameters.GetFileContents(PARAM_FILES);
+            FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);
 
-            if (!(raw != null ^ fileContents.Length > 0))
+            if (!(raw != null ^ fileOrDirs.Length > 0))
                 throw new Exception(String.Format("Exactly one of these parameters must be set: {0}, {1}",
-                    PARAM_RAW, PARAM_FILES));
+                    PARAM_RAW, PARAM_PATHS));
 
-            string[] texts = raw == null ? fileContents : new string[] { raw};
+            IEnumerable<PathAndContent> files = new PathAndContent[] { new PathAndContent("from raw text", raw) };
+            if (raw == null)
+                files = FileOrDir.Combine(fileOrDirs);
 
-
-            List<TempSource> clusters = ProcessFilesWithClustering(texts);
+            List<TempSource> clusters = ProcessFilesWithClustering(files);
             _source = new TempSource();
             foreach (TempSource cluster in clusters)
                 MergeSources(_source, cluster);
@@ -86,13 +86,6 @@ namespace datamodel.schema.source.from_data {
 
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>() {
-                // Data Sources...
-                new Parameter() {
-                    Name = PARAM_FILES,
-                    Description = @"Comma-separated list of data filesnames",
-                    Type = ParamType.File,
-                    IsMultiple = true,
-                },
                 new Parameter() {
                     Name = PARAM_RAW,
                     Description = @"Raw json/yaml/etc content - useful for testing",
@@ -151,38 +144,42 @@ namespace datamodel.schema.source.from_data {
         // 3a. One cluster overlap => add any new members to that cluster
         // 3b. Multiple overlaps => join the multiple clusters into one and add new members as above
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
-        private List<TempSource> ProcessFilesWithClustering(IEnumerable<string> texts) {
+        private List<TempSource> ProcessFilesWithClustering(IEnumerable<PathAndContent> files) {
             List<TempSource> clusters = new List<TempSource>();
 
             // 1 as above
-            foreach (string text in texts) {
-                // 2a as above
-                SDSS_Element root = GetRaw(text);
-                SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
+            foreach (PathAndContent file in files) {
+                try {
+                    // 2a as above
+                    SDSS_Element root = GetRaw(file);
+                    SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
 
-                TempSource candidate = new TempSource();
-                ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
+                    TempSource candidate = new TempSource();
+                    ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
 
-                // 2b as above 
-                List<TempSource> overlaps = new List<TempSource>();
-                foreach (TempSource cluster in clusters) {
-                    int overlap = CalculateOverlap(cluster, candidate);
-                    if (overlap >= TheOptions.MinimumClusterOverlap)
-                        overlaps.Add(cluster);
-                }
-
-                // 3 as above
-                if (overlaps.Count == 1) {              // 3a
-                    MergeSources(overlaps.Single(), candidate);
-                } else if (overlaps.Count > 1) {        // 3b
-                    TempSource first = overlaps.First();
-                    foreach (TempSource other in overlaps.Skip(1)) {
-                        MergeSources(first, other);
-                        clusters.Remove(other);
+                    // 2b as above 
+                    List<TempSource> overlaps = new List<TempSource>();
+                    foreach (TempSource cluster in clusters) {
+                        int overlap = CalculateOverlap(cluster, candidate);
+                        if (overlap >= TheOptions.MinimumClusterOverlap)
+                            overlaps.Add(cluster);
                     }
-                    MergeSources(overlaps.Single(), candidate);
-                } else {                                // 3c
-                    clusters.Add(candidate);
+
+                    // 3 as above
+                    if (overlaps.Count == 1) {              // 3a
+                        MergeSources(overlaps.Single(), candidate);
+                    } else if (overlaps.Count > 1) {        // 3b
+                        TempSource first = overlaps.First();
+                        foreach (TempSource other in overlaps.Skip(1)) {
+                            MergeSources(first, other);
+                            clusters.Remove(other);
+                        }
+                        MergeSources(overlaps.Single(), candidate);
+                    } else {                                // 3c
+                        clusters.Add(candidate);
+                    }
+                } catch (Exception e) {
+                    throw new Exception(string.Format("Error while working on file '{0}'", file.Path), e);
                 }
             }
 
