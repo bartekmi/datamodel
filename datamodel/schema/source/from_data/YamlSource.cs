@@ -20,9 +20,10 @@ namespace datamodel.schema.source.from_data {
             }
         }
 
-        protected override SDSS_Element GetRaw(PathAndContent yamlFile) {
+        protected override IEnumerable<SDSS_Element> GetRaw(PathAndContent yamlFile) {
             YamlNode root = ReadYaml(yamlFile);
-            return Convert(root);
+            // Note that YAML does allow multiple records per fail. We just haven't implemented it here yet.
+            return new List<SDSS_Element>() { Convert(root) };
         }
 
         private SDSS_Element Convert(YamlNode token) {

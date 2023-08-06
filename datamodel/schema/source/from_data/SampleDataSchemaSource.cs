@@ -31,7 +31,7 @@ namespace datamodel.schema.source.from_data {
     // - How to treat same paths with (very) different properties - e.g representing inheritance
     public abstract class SampleDataSchemaSource : SchemaSource {
 
-        protected abstract SDSS_Element GetRaw(PathAndContent file);
+        protected abstract IEnumerable<SDSS_Element> GetRaw(PathAndContent file);
         protected Options TheOptions;
 
         internal TempSource _source = new TempSource();     // Internal for testing
@@ -207,8 +207,30 @@ namespace datamodel.schema.source.from_data {
 
         #region Clustering
         // Algorithm:
-        // 1. Iterate all files/texts
-        // 2a. Extract top-level model from each file
+        // 1. For each file
+        // 2a. Extract top-level samples
+        private List<TempSource> ProcessFilesWithClustering(IEnumerable<PathAndContent> files) {
+            List<TempSource> clusters = new();
+
+            // 1 as above
+            foreach (PathAndContent file in files) {
+                try {
+                    // 2a as above
+                    IEnumerable<SDSS_Element> roots = GetRaw(file);
+                    foreach (SDSS_Element root in roots)
+                        ProcessSample(clusters, root);
+
+                } catch (Exception e) {
+                    throw new Exception(string.Format("Error while working on file '{0}'", file.Path), e);
+                }
+            }
+
+            PostProcessClusters(clusters);
+
+            return clusters;
+        }
+
+        // Algorithm:
         // 2b. find overlap with each individual cluster - the parameter MIN_OVERLAP specifies the minimum overlap
         //    to be considered part of the same cluster - any smaller overlap is assumed to be accidental
         //    and does not constitute membership in a cluster.
@@ -220,48 +242,33 @@ namespace datamodel.schema.source.from_data {
         // 3b. Multiple overlaps => This instance is the "missing link" between the multiple clusters.
         //     Join the multiple clusters into one and add new members as above.
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
-        private List<TempSource> ProcessFilesWithClustering(IEnumerable<PathAndContent> files) {
-            List<TempSource> clusters = new List<TempSource>();
+        private void ProcessSample(List<TempSource> clusters, SDSS_Element root) {
+            SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
 
-            // 1 as above
-            foreach (PathAndContent file in files) {
-                try {
-                    // 2a as above
-                    SDSS_Element root = GetRaw(file);
-                    SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
+            TempSource candidate = new();
+            ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
 
-                    TempSource candidate = new TempSource();
-                    ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
-
-                    // 2b as above 
-                    List<TempSource> overlaps = new List<TempSource>();
-                    foreach (TempSource cluster in clusters) {
-                        int overlap = CalculateOverlap(cluster, candidate);
-                        if (overlap >= TheOptions.MinimumClusterOverlap)
-                            overlaps.Add(cluster);
-                    }
-
-                    // 3 as above
-                    if (overlaps.Count == 1) {              // 3a
-                        MergeSources(overlaps.Single(), candidate);
-                    } else if (overlaps.Count > 1) {        // 3b
-                        TempSource first = overlaps.First();
-                        foreach (TempSource other in overlaps.Skip(1)) {
-                            MergeSources(first, other);
-                            clusters.Remove(other);
-                        }
-                        MergeSources(overlaps.Single(), candidate);
-                    } else {                                // 3c
-                        clusters.Add(candidate);
-                    }
-                } catch (Exception e) {
-                    throw new Exception(string.Format("Error while working on file '{0}'", file.Path), e);
-                }
+            // 2b as above 
+            List<TempSource> overlaps = new();
+            foreach (TempSource cluster in clusters) {
+                int overlap = CalculateOverlap(cluster, candidate);
+                if (overlap >= TheOptions.MinimumClusterOverlap)
+                    overlaps.Add(cluster);
             }
 
-            PostProcessClusters(clusters);
-
-            return clusters;
+            // 3 as above
+            if (overlaps.Count == 1) {              // 3a
+                MergeSources(overlaps.Single(), candidate);
+            } else if (overlaps.Count > 1) {        // 3b
+                TempSource first = overlaps.First();
+                foreach (TempSource other in overlaps.Skip(1)) {
+                    MergeSources(first, other);
+                    clusters.Remove(other);
+                }
+                MergeSources(overlaps.Single(), candidate);
+            } else {                                // 3c
+                clusters.Add(candidate);
+            }
         }
 
         // Now that we have the final list of clusters, distinguish them by giving

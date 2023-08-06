@@ -7,19 +7,20 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using datamodel.schema.tweaks;
+using datamodel.utils;
 
 namespace datamodel.schema.source.from_data {
     public class JsonSource : SampleDataSchemaSource {
-        protected override SDSS_Element GetRaw(PathAndContent jsonFile) {
+        protected override IEnumerable<SDSS_Element> GetRaw(PathAndContent jsonFile) {
             return GetRawInternal(jsonFile);
         }
 
-        internal static SDSS_Element GetRawInternal(PathAndContent jsonFile) {      // Exposing for testing
-            object root = JsonConvert.DeserializeObject(jsonFile.Content);
-            if (root == null)
-                throw new Exception("Could not read JSON from file: " + jsonFile.Path);
-            return Convert((JToken)root);
+        internal static IEnumerable<SDSS_Element> GetRawInternal(PathAndContent jsonFile) {      // Exposing for testing
+            IEnumerable<JObject> objects = JsonUtils.DeserializeMultipleObjects(jsonFile.Content);
+            if (objects.Count() == 0)
+                throw new Exception("Could not read JSON records from file: " + jsonFile.Path);
+
+            return objects.Select(x => Convert(x));
         }
 
         private static SDSS_Element Convert(JToken token) {
