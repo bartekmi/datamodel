@@ -36,8 +36,10 @@ namespace datamodel.schema.source.from_data {
         internal TempSource _source = new TempSource();     // Internal for testing
         private HashSet<string> _pathsWhereKeyIsData = new HashSet<string>();
         private Dictionary<Model, int> _models = new Dictionary<Model, int>();
-        private Dictionary<Property, int> _propertys = new Dictionary<Property, int>();
+        private Dictionary<Property, int> _properties = new Dictionary<Property, int>();
+        private Dictionary<Association, int> _associations = new Dictionary<Association, int>();
 
+        #region Initialization, Parameters
         public class Options {
             public string Title;
             public string[] PathsWhereKeyIsData;
@@ -80,8 +82,9 @@ namespace datamodel.schema.source.from_data {
             foreach (TempSource cluster in clusters)
                 MergeSources(_source, cluster);
 
-            SetCanBeEmpty();
-            SetModelInstanceCounts();
+            SetCanBeEmptyProperty();
+            SetOtherMultiplicityProperty();
+            SetModelInstanceCountLabel();
         }
 
         public override IEnumerable<Parameter> GetParameters() {
@@ -130,6 +133,7 @@ namespace datamodel.schema.source.from_data {
                 },
             };
         }
+        #endregion
 
         #region Clustering
         // Algorithm:
@@ -140,9 +144,11 @@ namespace datamodel.schema.source.from_data {
         //    and does not constitute membership in a cluster.
         //    "Overlap" is defined as the count of shared QualifiedNames
         //
-        // 3 => Next action determine by number of overlapping clusters...
-        // 3a. One cluster overlap => add any new members to that cluster
-        // 3b. Multiple overlaps => join the multiple clusters into one and add new members as above
+        // 3 => Next action is determine by number of overlapping clusters...
+        // 3a. One cluster overlap => We've found another instance of an existing cluster.
+        //     Add any new members to that cluster.
+        // 3b. Multiple overlaps => This instance is the "missing link" between the multiple clusters.
+        //     Join the multiple clusters into one and add new members as above.
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
         private List<TempSource> ProcessFilesWithClustering(IEnumerable<PathAndContent> files) {
             List<TempSource> clusters = new List<TempSource>();
@@ -228,12 +234,20 @@ namespace datamodel.schema.source.from_data {
             foreach (Association addAssoc in additional.Associations) {
                 Association mainAssoc = main.Associations.SingleOrDefault(
                     x => x.OwnerSide == addAssoc.OwnerSide && x.OtherSide == addAssoc.OtherSide
-                    // TODO: Ignoring multiplicity, etc
+                    // TODO: Ignoring multiplicity
                 );
 
-                if (mainAssoc == null)
+                if (mainAssoc == null) { // This is a newly-discovered association
                     main.Associations.Add(addAssoc);
+                    addAssoc.OwnerSideModel = main.FindModel(addAssoc.OwnerSide);
+                } else
+                    MergeAssociation(mainAssoc, addAssoc);
             }
+        }
+
+        private void MergeAssociation(Association main, Association additional) {
+            _associations[main] += _associations[additional];
+            _associations.Remove(additional);
         }
 
         private void MergeModel(Model main, Model additional) {
@@ -246,8 +260,8 @@ namespace datamodel.schema.source.from_data {
                     main.AllProperties.Add(addProperty);
                     addProperty.Owner = main;
                 } else {
-                    _propertys[mainProperty] += _propertys[addProperty];
-                    _propertys.Remove(addProperty);
+                    _properties[mainProperty] += _properties[addProperty];
+                    _properties.Remove(addProperty);
                 }
             }
         }
@@ -334,16 +348,21 @@ namespace datamodel.schema.source.from_data {
             Association assoc = source.Associations
                 .SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherSide == path);
 
-            if (assoc == null)
-                source.Associations.Add(new Association() {
+            if (assoc == null) {
+                assoc = new Association() {
                     OwnerSide = model.QualifiedName,
+                    OwnerSideModel = model,
                     OwnerMultiplicity = Multiplicity.Aggregation,
                     OtherSide = path,
                     OtherMultiplicity = isMany ? Multiplicity.Many : Multiplicity.ZeroOrOne,
-                });
-            else {
+                };
+                source.Associations.Add(assoc);
+                _associations[assoc] = 0;
+            } else {
                 // TODO: If assoc exists, test if any of the parameters different from what has been recorded
             }
+
+            _associations[assoc]++;
         }
 
         private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
@@ -359,7 +378,7 @@ namespace datamodel.schema.source.from_data {
                     property.AddLabel("Example", element.ToString());
 
                 model.AllProperties.Add(property);
-                _propertys[property] = 0;
+                _properties[property] = 0;
             } else {
                 string dataType = GetDataType(element, isMany);
                 if (dataType != property.DataType)
@@ -370,7 +389,7 @@ namespace datamodel.schema.source.from_data {
                         property.DataType);
             }
 
-            _propertys[property]++;
+            _properties[property]++;
         }
 
         private string GetDataType(SDSS_Element element, bool isMany) {
@@ -382,15 +401,24 @@ namespace datamodel.schema.source.from_data {
         #endregion
 
         #region Post-Processing
-        private void SetCanBeEmpty() {
-            foreach (var item in _propertys) {
+        private void SetCanBeEmptyProperty() {
+            foreach (var item in _properties) {
                 Property property = item.Key;
                 int modelCount = _models[property.Owner];
                 property.CanBeEmpty = item.Value < modelCount;
             }
         }
 
-        private void SetModelInstanceCounts() {
+        private void SetOtherMultiplicityProperty() {
+            foreach (var item in _associations) {
+                Association association = item.Key;
+                int modelCount = _models[association.OwnerSideModel];
+                if (association.OtherMultiplicity == Multiplicity.ZeroOrOne && item.Value == modelCount)
+                    association.OtherMultiplicity = Multiplicity.One;
+            }
+        }
+
+        private void SetModelInstanceCountLabel() {
             foreach (var item in _models)
                 item.Key.AddLabel("Instance Count", item.Value.ToString());
         }

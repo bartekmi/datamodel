@@ -75,7 +75,6 @@
         "json",
         "paths= ../../Downloads",
         "title=JSON",
-        "pattern=*.json"
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",
