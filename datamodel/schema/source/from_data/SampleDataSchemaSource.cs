@@ -40,7 +40,7 @@ namespace datamodel.schema.source.from_data {
         private Dictionary<Property, int> _properties = new Dictionary<Property, int>();
         private Dictionary<Association, int> _associations = new Dictionary<Association, int>();
 
-        #region Initialization, Parameters
+        #region Initialization
         public class Options {
             public string Title;
             public string[] PathsWhereKeyIsData;
@@ -88,52 +88,118 @@ namespace datamodel.schema.source.from_data {
             SetModelInstanceCountLabel();
             SetListSemanticProperty();
         }
+        #endregion
 
-        public override IEnumerable<Parameter> GetParameters() {
-            return new List<Parameter>() {
-                new Parameter() {
-                    Name = PARAM_RAW,
-                    Description = @"Raw json/yaml/etc content - useful for testing",
-                    Type = ParamType.String,
-                },
+        #region Recursive File Processing
+        public void ParseObjectOrArray(TempSource source, SDSS_Element element, string path) {
+            if (element.IsArray) {
+                foreach (SDSS_Element item in element.ArrayItems) {
+                    ParseObjectOrArray(source, item, path);
+                }
+            } else if (element.IsObject) {
+                ParseObject(source, element, path);
+            } else
+                throw new Exception("Expected Array or Object, but got: " + element.DataType);
+        }
 
-                // Options
-                new Parameter() {
-                    Name = PARAM_TITLE,
-                    Description = @"Title of the Schema",
-                    Type = ParamType.String,
-                },
-                new Parameter() {
-                    Name = PARAM_PATHS_WHERE_KEY_IS_DATA,
-                    Description = @"JSON paths to attributes where we know that the key represents a data field",
-                    Type = ParamType.String,
-                    IsMultiple = true,
-                },
-                new Parameter() {
-                    Name = PARAM_SAME_NAME_IS_SAME_MODEL,
-                    Description = @"If true, any Model located at the same attribute name, regardless of the path, is considered to be identical",
-                    Type = ParamType.Bool,
-                },
-                new Parameter() {
-                    Name = PARAM_MINIMUM_CLUSTER_OVERLAP,
-                    Description = @"The minimum number of common properties in order for two sample files
-        to be considered part of the same 'cluster'.
-        By increasing this number, you can force files which accidentally have a few common
-        properties to still be considered separate clusters.
-        If you set this to zero, even files with no shared properties will be considered to
-        belong to the same cluster - so all files will be considered the same.",
-                    Type = ParamType.Int,
-                    Default = "1",
-                },
-                new Parameter() {
-                    Name = PARAM_KEY_IS_DATA_REGEX,
-                    Description = @"If the key of an Object does NOT match this Regex, it will be assumed
-        that all the keys of all the instances if this object should be 
-        treated as data, and the Object itself should be treated as an Array.",
-                    Type = ParamType.Regex,
-                    Default = "^[$a-zA-Z][_$a-zA-Z0-9]*$"
-                },
-            };
+        private Model MaybeCreateModel(TempSource source, string path, bool addInstanceCount) {
+            Model model = source.FindModel(path);
+            if (model == null) {
+                model = new Model() {
+                    QualifiedName = path,
+                    Name = path.Split('.').Last(),
+                };
+                _models[model] = 0;
+                source.AddModel(model);
+            }
+
+            if (addInstanceCount)
+                _models[model]++;
+
+            return model;
+        }
+
+        private Model ParseObject(TempSource source, SDSS_Element obj, string path) {
+            Model model = MaybeCreateModel(source, path, true);
+
+            foreach (KeyValuePair<string, SDSS_Element> item in obj.ObjectItems) {
+                string newPath = TheOptions.SameNameIsSameModel ?
+                    item.Key :
+                    string.Format("{0}.{1}", path, item.Key);
+
+                SDSS_Element element = item.Value;
+                if (element.IsArray) {
+                    // Array of primitive is treated like a primitive value
+                    SDSS_Element first = element.ArrayItems.FirstOrDefault();
+                    if (first != null && first.IsPrimitive) {
+                        MaybeAddAttribute(model, item.Key, first, true);
+                        continue;
+                    }
+
+                    MaybeAddAssociation(source, model, newPath, true);
+                    ParseObjectOrArray(source, element, newPath);
+                } else if (item.Value.IsObject) {
+                    ParseObjectOrArray(source, element, newPath);
+                    MaybeAddAssociation(source, model, newPath, false);
+                } else {
+                    MaybeAddAttribute(model, item.Key, item.Value, false);
+                }
+            }
+
+            return model;
+        }
+
+        private void MaybeAddAssociation(TempSource source, Model model, string path, bool isMany) {
+            Association assoc = source.Associations
+                .SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherSide == path);
+
+            if (assoc == null) {
+                assoc = new Association() {
+                    OwnerSide = model.QualifiedName,
+                    OwnerSideModel = model,
+                    OwnerMultiplicity = Multiplicity.Aggregation,
+                    OtherSide = path,
+                    OtherMultiplicity = isMany ? Multiplicity.Many : Multiplicity.ZeroOrOne,
+                };
+                source.Associations.Add(assoc);
+                _associations[assoc] = 0;
+            }
+
+            _associations[assoc]++;
+        }
+
+        private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
+            Property property = model.FindProperty(name);
+            if (property == null) {
+                property = new Property() {
+                    Name = name,
+                    DataType = GetDataType(element, isMany),
+                    Owner = model,
+                };
+
+                if (element != null)
+                    property.AddLabel("Example", element.ToString());
+
+                model.AllProperties.Add(property);
+                _properties[property] = 0;
+            } else {
+                string dataType = GetDataType(element, isMany);
+                if (dataType != property.DataType)
+                    Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
+                        model.Name,
+                        name,
+                        dataType,
+                        property.DataType);
+            }
+
+            _properties[property]++;
+        }
+
+        private string GetDataType(SDSS_Element element, bool isMany) {
+            string type = element == null ? "unknown" : element.DataType;
+            if (isMany)
+                type = "[]" + type;
+            return type;
         }
         #endregion
 
@@ -287,119 +353,6 @@ namespace datamodel.schema.source.from_data {
 
         #endregion
 
-        #region Recursive File Processing
-        public void ParseObjectOrArray(TempSource source, SDSS_Element element, string path) {
-            if (element.IsArray) {
-                foreach (SDSS_Element item in element.ArrayItems) {
-                    ParseObjectOrArray(source, item, path);
-                }
-            } else if (element.IsObject) {
-                ParseObject(source, element, path);
-            } else
-                throw new Exception("Expected Array or Object, but got: " + element.DataType);
-        }
-
-        private Model MaybeCreateModel(TempSource source, string path, bool addInstanceCount) {
-            Model model = source.FindModel(path);
-            if (model == null) {
-                model = new Model() {
-                    QualifiedName = path,
-                    Name = path.Split('.').Last(),
-                };
-                _models[model] = 0;
-                source.AddModel(model);
-            }
-
-            if (addInstanceCount)
-                _models[model]++;
-
-            return model;
-        }
-
-        private Model ParseObject(TempSource source, SDSS_Element obj, string path) {
-            Model model = MaybeCreateModel(source, path, true);
-
-            foreach (KeyValuePair<string, SDSS_Element> item in obj.ObjectItems) {
-                string newPath = TheOptions.SameNameIsSameModel ?
-                    item.Key :
-                    string.Format("{0}.{1}", path, item.Key);
-
-                SDSS_Element element = item.Value;
-                if (element.IsArray) {
-                    // Array of primitive is treated like a primitive value
-                    SDSS_Element first = element.ArrayItems.FirstOrDefault();
-                    if (first != null && first.IsPrimitive) {
-                        MaybeAddAttribute(model, item.Key, first, true);
-                        continue;
-                    }
-
-                    MaybeAddAssociation(source, model, newPath, true);
-                    ParseObjectOrArray(source, element, newPath);
-                } else if (item.Value.IsObject) {
-                    ParseObjectOrArray(source, element, newPath);
-                    MaybeAddAssociation(source, model, newPath, false);
-                } else {
-                    MaybeAddAttribute(model, item.Key, item.Value, false);
-                }
-            }
-
-            return model;
-        }
-
-        private void MaybeAddAssociation(TempSource source, Model model, string path, bool isMany) {
-            Association assoc = source.Associations
-                .SingleOrDefault(x => x.OwnerSide == model.QualifiedName && x.OtherSide == path);
-
-            if (assoc == null) {
-                assoc = new Association() {
-                    OwnerSide = model.QualifiedName,
-                    OwnerSideModel = model,
-                    OwnerMultiplicity = Multiplicity.Aggregation,
-                    OtherSide = path,
-                    OtherMultiplicity = isMany ? Multiplicity.Many : Multiplicity.ZeroOrOne,
-                };
-                source.Associations.Add(assoc);
-                _associations[assoc] = 0;
-            }
-
-            _associations[assoc]++;
-        }
-
-        private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
-            Property property = model.FindProperty(name);
-            if (property == null) {
-                property = new Property() {
-                    Name = name,
-                    DataType = GetDataType(element, isMany),
-                    Owner = model,
-                };
-
-                if (element != null)
-                    property.AddLabel("Example", element.ToString());
-
-                model.AllProperties.Add(property);
-                _properties[property] = 0;
-            } else {
-                string dataType = GetDataType(element, isMany);
-                if (dataType != property.DataType)
-                    Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
-                        model.Name,
-                        name,
-                        dataType,
-                        property.DataType);
-            }
-
-            _properties[property]++;
-        }
-
-        private string GetDataType(SDSS_Element element, bool isMany) {
-            string type = element == null ? "unknown" : element.DataType;
-            if (isMany)
-                type = "[]" + type;
-            return type;
-        }
-        #endregion
-
         #region Post-Processing
         private void SetCanBeEmptyProperty() {
             foreach (var item in _properties) {
@@ -454,6 +407,53 @@ namespace datamodel.schema.source.from_data {
 
         public override IEnumerable<Association> GetAssociations() {
             return _source.Associations;
+        }
+
+        public override IEnumerable<Parameter> GetParameters() {
+            return new List<Parameter>() {
+                new Parameter() {
+                    Name = PARAM_RAW,
+                    Description = @"Raw json/yaml/etc content - useful for testing",
+                    Type = ParamType.String,
+                },
+
+                // Options
+                new Parameter() {
+                    Name = PARAM_TITLE,
+                    Description = @"Title of the Schema",
+                    Type = ParamType.String,
+                },
+                new Parameter() {
+                    Name = PARAM_PATHS_WHERE_KEY_IS_DATA,
+                    Description = @"JSON paths to attributes where we know that the key represents a data field",
+                    Type = ParamType.String,
+                    IsMultiple = true,
+                },
+                new Parameter() {
+                    Name = PARAM_SAME_NAME_IS_SAME_MODEL,
+                    Description = @"If true, any Model located at the same attribute name, regardless of the path, is considered to be identical",
+                    Type = ParamType.Bool,
+                },
+                new Parameter() {
+                    Name = PARAM_MINIMUM_CLUSTER_OVERLAP,
+                    Description = @"The minimum number of common properties in order for two sample files
+        to be considered part of the same 'cluster'.
+        By increasing this number, you can force files which accidentally have a few common
+        properties to still be considered separate clusters.
+        If you set this to zero, even files with no shared properties will be considered to
+        belong to the same cluster - so all files will be considered the same.",
+                    Type = ParamType.Int,
+                    Default = "1",
+                },
+                new Parameter() {
+                    Name = PARAM_KEY_IS_DATA_REGEX,
+                    Description = @"If the key of an Object does NOT match this Regex, it will be assumed
+        that all the keys of all the instances if this object should be 
+        treated as data, and the Object itself should be treated as an Array.",
+                    Type = ParamType.Regex,
+                    Default = "^[$a-zA-Z][_$a-zA-Z0-9]*$"
+                },
+            };
         }
         #endregion
     }
