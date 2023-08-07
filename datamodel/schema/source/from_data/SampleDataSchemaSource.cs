@@ -325,6 +325,13 @@ namespace datamodel.schema.source.from_data {
         private void MergeAssociation(Association main, Association additional) {
             _associations[main] += _associations[additional];
             _associations.Remove(additional);
+
+            // In some cases, an association may link to either a single object or many objects.
+            // The following accounts for the situation where the first instance of the Association
+            // links to a single object, but it turns out that the association is really one-to-many
+            // as demostrated by a subsequent instance.
+            if (additional.OtherMultiplicity == Multiplicity.Many)
+                main.OtherMultiplicity = Multiplicity.Many;
         }
 
         private void MergeModel(Model main, Model additional) {
