@@ -140,6 +140,8 @@ namespace datamodel.datadict {
 
                     // Property Enum Values
                     AddEnumValuesRow(table, property);
+
+                    AddSeparator(table);
                 }
         }
 
@@ -268,6 +270,9 @@ namespace datamodel.datadict {
         }
 
         private static void AddDescriptionRow(HtmlTable table, IDbElement element) {
+            if (string.IsNullOrWhiteSpace(element.Description))
+                return;
+
             HtmlTd descriptionTd = table
                 .Add(new HtmlTr())
                 .Add(new HtmlTd())
@@ -293,6 +298,13 @@ namespace datamodel.datadict {
                     ).Class("enum-table")
                 );
             }
+        }
+
+        private static void AddSeparator(HtmlTable table) {
+            table
+                .Add(new HtmlTr())
+                .Add(new HtmlTd())
+                .Class("text");
         }
 
         private static HtmlElement DeprecatedSpan(IDbElement dbElement) {
