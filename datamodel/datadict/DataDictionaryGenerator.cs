@@ -14,7 +14,7 @@ namespace datamodel.datadict {
 
         public static void Generate(string rootDir, IEnumerable<Model> models) {
             foreach (Model model in models) {
-                string dir = model.GetLevel(0) == null ? rootDir : Path.Combine(rootDir, model.GetLevel(0));
+                string dir = Path.Combine(rootDir, model.RootLevel ?? UrlService.DATA_DICT_SUBDIR);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 

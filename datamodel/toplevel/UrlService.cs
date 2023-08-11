@@ -7,10 +7,12 @@ using datamodel.metadata;
 
 namespace datamodel.toplevel {
     public class UrlService {
+        // If a model does not have a root level, put the data dictionary in this subdirectory
+        public const string DATA_DICT_SUBDIR = "datadict";
 
         private Dictionary<Model, List<GraphDefinition>> _modelToGraphs = new();
 
-        private static UrlService _service = new();
+        private static readonly UrlService _service = new();
         public static UrlService Singleton { get { return _service; } }
 
         private UrlService() { }     // Hide constructor
@@ -18,8 +20,11 @@ namespace datamodel.toplevel {
         public string DocUrl(Model model, bool fromNested) {
             if (model == null)
                 return null;
+
             return UrlUtils.MakeUrl(
-                string.Format("{0}/{1}.html", model.GetLevel(0), model.SanitizedQualifiedName),
+                string.Format("{0}{1}.html", 
+                    (model.RootLevel ?? DATA_DICT_SUBDIR) + "/", 
+                    model.SanitizedQualifiedName),
                 fromNested);
         }
 

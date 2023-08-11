@@ -91,7 +91,11 @@ namespace datamodel.schema {
         public string SanitizedQualifiedName { get { return FileUtils.SanitizeFilename(QualifiedName); } }
         [JsonIgnore]
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
-        
+        [JsonIgnore]
+        public bool HasRootLevel { get { return RootLevel != null; }}
+        [JsonIgnore]
+        public string RootLevel {get { return GetLevel(0); } }
+
         // Color String is assigned based on hierarchy
         private string _colorString;
         [JsonIgnore]
