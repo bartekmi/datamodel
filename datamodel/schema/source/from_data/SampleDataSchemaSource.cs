@@ -293,7 +293,7 @@ namespace datamodel.schema.source.from_data {
         }
 
         private string ComputeQualifiedName(string cluster, string name) {
-            return string.Format("{0}{1}", cluster, name);
+            return string.Format("{0}.{1}", cluster, name);
         }
 
         private void MergeSources(TempSource main, TempSource additional) {
