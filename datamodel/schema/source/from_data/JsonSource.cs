@@ -25,7 +25,7 @@ namespace datamodel.schema.source.from_data {
 
         private static SDSS_Element Convert(JToken token) {
             if (token is JObject obj) {
-                SDSS_Element sdssObj = new SDSS_Element(ElementType.Object);
+                SDSS_Element sdssObj = new(ElementType.Object);
                 foreach (var pair in obj)
                     sdssObj.AddKeyAndValue(pair.Key, Convert(pair.Value));
                 return sdssObj;

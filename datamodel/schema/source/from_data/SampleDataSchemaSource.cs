@@ -34,11 +34,10 @@ namespace datamodel.schema.source.from_data {
         protected abstract IEnumerable<SDSS_Element> GetRaw(PathAndContent file);
         protected Options TheOptions;
 
-        internal TempSource _source = new TempSource();     // Internal for testing
-        private HashSet<string> _pathsWhereKeyIsData = new HashSet<string>();
-        private Dictionary<Model, int> _models = new Dictionary<Model, int>();
-        private Dictionary<Property, int> _properties = new Dictionary<Property, int>();
-        private Dictionary<Association, int> _associations = new Dictionary<Association, int>();
+        internal TempSource _source = new();     // Internal for testing
+        private Dictionary<Model, int> _models = new();
+        private Dictionary<Property, int> _properties = new();
+        private Dictionary<Association, int> _associations = new();
 
         #region Initialization
         public class Options {
@@ -357,7 +356,7 @@ namespace datamodel.schema.source.from_data {
                 if (candidateModel == null)
                     continue;
 
-                HashSet<string> clustProperties = new HashSet<string>(clustModel.AllProperties.Select(x => x.Name));
+                HashSet<string> clustProperties = new(clustModel.AllProperties.Select(x => x.Name));
                 overlap += clustProperties.Intersect(candidateModel.AllProperties.Select(x => x.Name)).Count();
             }
 

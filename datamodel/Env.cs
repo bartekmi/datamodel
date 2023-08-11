@@ -12,11 +12,6 @@ namespace datamodel {
         // Bin directory for Graphviz. It is expected that this contains the programs which generate graphs of different styles, e.g. 'dot'
         public static string GRAPHVIZ_BIN_DIR;
 
-        // The http root where all generated files live relative to the host. This is used when generating hyperlinks. 
-        // So all hyperlinks would have the form: <HTTP_ROOT>/relative-url
-        // We need this because on the Mac, all user-accessible content lives in http://localhost/~user
-        public static string HTTP_ROOT = "";
-
         // Generate a graph for the top level of the hierarchy?
         public static bool GENERATE_TOP_LEVEL_GRAPH = true;
 
@@ -39,7 +34,7 @@ namespace datamodel {
 
         #region Mac
         private static void ConfigureMac() {
-            OUTPUT_ROOT_DIR = @"/tmp/datamodel";
+            OUTPUT_ROOT_DIR = @"/tmp/datamodel/subdir";
             REPO_ROOT = @"..";
             GRAPHVIZ_BIN_DIR = @"/opt/homebrew/bin";
         }

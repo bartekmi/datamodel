@@ -43,9 +43,9 @@ namespace datamodel.graphviz {
         }
 
         public Graph CreateGraph(IEnumerable<Model> models, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
-            Graph graph = new Graph();
+            Graph graph = new();
             // Graphviz forces the images to be available on disk, even though they are not needed for SVG
-            // This means that the build path to the imsages has to be the same as the web deploy path, which is annoying
+            // This means that the build path to the images has to be the same as the web deploy path, which is annoying
             // I've left the following line commented out in case this ever actually works as it should.
             //.SetAttrGraph("imagepath", IMAGE_PATH);
 
@@ -75,7 +75,7 @@ namespace datamodel.graphviz {
         private Edge SuplerclassLinkToEdge(Model model) {
             // The source/destination ordering here is important and forces the 
             // superclass to be above the derived class
-            Edge edge = new Edge() {
+            Edge edge = new() {
                 Source = ModelToNodeId(model.Superclass),
                 Destination = ModelToNodeId(model),
             };
@@ -109,7 +109,7 @@ namespace datamodel.graphviz {
         }
 
         private Node PolymorphicInterfaceToNode(PolymorphicInterface _interface) {
-            Node node = new Node() {
+            Node node = new() {
                 Name = _interface.Name,
             };
 
@@ -133,7 +133,7 @@ namespace datamodel.graphviz {
         }
 
         private Edge PolymorphicInterfaceToEdge(PolymorphicInterface _interface) {
-            Edge edge = new Edge() {
+            Edge edge = new() {
                 Source = ModelToNodeId(_interface.Model),
                 Destination = _interface.Name,
             };
@@ -146,7 +146,7 @@ namespace datamodel.graphviz {
 
         #region Models
         private Node ModelToNode(IEnumerable<Model> allModels, Model model) {
-            Node node = new Node() {
+            Node node = new() {
                 Name = ModelToNodeId(model),
             };
 
@@ -163,7 +163,7 @@ namespace datamodel.graphviz {
 
         #region Extra Models - Not part of graph but added as "glue"
         private Node ExtraModelToNode(IEnumerable<Model> models, Model model) {
-            Node node = new Node() {
+            Node node = new() {
                 Name = ModelToNodeId(model),
             };
 
@@ -190,7 +190,7 @@ namespace datamodel.graphviz {
 
             HtmlTd headerTd = new HtmlTd(headerText)
                 .SetAttrHtml("tooltip", CreateModelToolTip(dbModel))
-                .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbModel));
+                .SetAttrHtml("href", UrlService.Singleton.DocUrl(dbModel, false));
 
             table.AddTr(new HtmlTr(headerTd));
 
@@ -198,17 +198,16 @@ namespace datamodel.graphviz {
                 return table;
 
             CreateLabelProperties(models, dbModel, table);
-            CreateLabelMethods(models, dbModel, table);
+            CreateLabelMethods(dbModel, table);
 
             return table;
         }
 
-        private void CreateLabelMethods(IEnumerable<Model> models, Model dbModel, HtmlTable table) {
+        private void CreateLabelMethods(Model dbModel, HtmlTable table) {
         foreach (Method method in dbModel.Methods) {
-                HtmlTr row = new HtmlTr();
+                HtmlTr row = new();
 
-                string propertyName = HtmlUtils.BULLET + method.HumanName;
-                HtmlTd propertyNameTd = new HtmlTd() {
+                HtmlTd propertyNameTd = new() {
                     Text = method.HumanShortRepresentation,
                 };
                 row.AddTd(propertyNameTd);
@@ -224,23 +223,23 @@ namespace datamodel.graphviz {
         }
 
         private void CreateLabelProperties(IEnumerable<Model> models, Model model, HtmlTable table) {
-            HashSet<datamodel.schema.Enum> usedEnums = new HashSet<datamodel.schema.Enum>();
+            HashSet<datamodel.schema.Enum> usedEnums = new();
 
             foreach (Property property in model.AllProperties) {
                 if (Schema.Singleton.IsInteresting(property) &&
                     !property.Deprecated &&
                     !(property.IsPolymorphicId || property.IsPolymorphicType)) {
 
-                    HtmlTr row = new HtmlTr();
+                    HtmlTr row = new();
                     Model referencedModel = property.IsRef ? property.ReferencedModel : null;
 
                     string propertyName = HtmlUtils.BULLET + property.HumanName;
-                    HtmlTd propertyNameTd = new HtmlTd();
+                    HtmlTd propertyNameTd = new();
                     row.AddTd(propertyNameTd);
 
                     // Mandatory?
                     if (!property.CanBeEmpty) {
-                        row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.CHECKMARK_SMALL))
+                        row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.CHECKMARK_SMALL, false))
                             .SetAttrHtml("tooltip", property.IsRef ?
                                 "This associated object must be specified" :
                                 "This attribute must be specified")
@@ -263,14 +262,14 @@ namespace datamodel.graphviz {
                                     graphDef.HumanName,
                                     graphDef.CoreModels.Length);
 
-                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL))
+                                row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL, false))
                                    .SetAttrHtml("tooltip", graphToolTip)
-                                   .SetAttrHtml("href", graphDef.SvgUrl));
+                                   .SetAttrHtml("href", graphDef.GetSvgUrl(true)));
                             }
 
-                            row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL))
+                            row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL, false))
                                .SetAttrHtml("tooltip", string.Format("Click to go to Data Dictionary of linked model: '{0}'", referencedModel.HumanName))
-                               .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel)));
+                               .SetAttrHtml("href", UrlService.Singleton.DocUrl(referencedModel, false)));
 
                             row.SetAttrAllChildren("bgcolor", referencedModel.ColorString);
                         }
@@ -297,7 +296,7 @@ namespace datamodel.graphviz {
         }
 
         private static string CreateMemberToolTip(IDbElement property, datamodel.schema.Enum theEnum) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             if (!string.IsNullOrEmpty(property.Description)) 
                 builder.AppendLine(property.DescriptionParagraphs().First());
@@ -334,7 +333,7 @@ namespace datamodel.graphviz {
         }
 
         private string CreateModelToolTip(Model model) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             Schema schema = Schema.Singleton;
 
             for (int ii = 0; ii < model.Levels.Length; ii++)
@@ -367,7 +366,7 @@ namespace datamodel.graphviz {
 
         #region Edges / Associations
         private Edge AssociationToEdge(Association association) {
-            Edge edge = new Edge() {
+            Edge edge = new() {
                 Source = ModelToNodeId(association.OtherSideModel),
                 Destination = association.IsPolymorphic ?
                     association.PolymorphicName :
@@ -390,7 +389,7 @@ namespace datamodel.graphviz {
         }
 
         private string ToEdgeToolTip(Association association) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             builder.AppendLine(string.Format("{0}.{1}", association.OwnerSideModel.HumanName, association.RefProperty.HumanName));
             builder.Append(association.Description);

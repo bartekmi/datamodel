@@ -61,7 +61,7 @@ namespace datamodel.graphviz {
         #region Associations
 
         private static void AddAssociations(Graph graph) {
-            Dictionary<string, AggregatedAssociation> aggregatedAssociations = new Dictionary<string, AggregatedAssociation>();
+            Dictionary<string, AggregatedAssociation> aggregatedAssociations = new();
 
             // First, iterate all associations and aggregate associations between colored HierarchyItems
             foreach (Association association in Schema.Singleton.Associations) {
@@ -79,7 +79,7 @@ namespace datamodel.graphviz {
                     };
                     aggregatedAssociations[key] = aa;
                 }
-                aa.AddAssociation(association, from, to);
+                aa.AddAssociation(association, to);
             }
 
             // Second, actually add the Edges
@@ -102,7 +102,7 @@ namespace datamodel.graphviz {
         }
 
         private static Edge ToEdge(AggregatedAssociation aa) {
-            Edge edge = new Edge() {
+            Edge edge = new() {
                 Source = HI_ToNodeId(aa.From),
                 Destination = HI_ToNodeId(aa.To),
             };
@@ -138,7 +138,7 @@ namespace datamodel.graphviz {
         }
 
         private static string CreateEdgeToolTip(AggregatedAssociation aa) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
             builder.AppendLine(string.Format("Arrow(s) show direction of References's{0}", HtmlUtils.LINE_BREAK));
             builder.AppendLine(string.Format("{0} References: {1}", aa.Associations.Count, HtmlUtils.LINE_BREAK));
 
@@ -159,10 +159,10 @@ namespace datamodel.graphviz {
         internal class AggregatedAssociation {
             internal HierarchyItem From;
             internal HierarchyItem To;
-            internal List<Association> Associations = new List<Association>();
+            internal List<Association> Associations = new();
             internal bool IncludeReverseArrow;
 
-            internal void AddAssociation(Association association, HierarchyItem from, HierarchyItem to) {
+            internal void AddAssociation(Association association, HierarchyItem to) {
                 Associations.Add(association);
                 if (From == to)
                     IncludeReverseArrow = true;
@@ -178,7 +178,7 @@ namespace datamodel.graphviz {
 
         #region Node Creation
         private static Node ToNode(HierarchyItem item) {
-            Node node = new Node() {
+            Node node = new() {
                 Name = HI_ToNodeId(item),
             };
 
@@ -188,7 +188,7 @@ namespace datamodel.graphviz {
                 .SetAttrGraph("fillcolor", item.ColorString)
                 .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("href", item.Graph.SvgUrl)
+                .SetAttrGraph("href", item.Graph.GetSvgUrl(false))
                 .SetAttrGraph("tooltip", CreateNodeToolTip(item))
                 .SetAttrGraph("label", CreateLabel(item));
 
@@ -201,7 +201,7 @@ namespace datamodel.graphviz {
                 .SetAttrHtml("cellborder", 0)
                 .SetAttrHtml("cellspacing", 0);
 
-            List<HierarchyItem> parentage = new List<HierarchyItem>();
+            List<HierarchyItem> parentage = new();
             HierarchyItem pointer = item;
             while (pointer.Parent != null) {
                 parentage.Insert(0, pointer);

@@ -14,7 +14,7 @@ namespace datamodel.datadict {
         #region Top Level
         public static void GenerateIndex(string rootDir, HierarchyItem topLevel) {
 
-            HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
+            HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body, false);
             HtmlElement topDiv = CreateStyledDiv("index-top-level");
             body.Add(topDiv);
 
@@ -34,8 +34,8 @@ namespace datamodel.datadict {
             sideBySideDiv.Add(GenerateFlatList());
 
             string path = Path.Combine(rootDir, "index.html");
-            using (StreamWriter writer = new StreamWriter(path))
-                html.ToHtml(writer, 0);
+            using StreamWriter writer = new(path);
+            html.ToHtml(writer, 0);
         }
 
         private static HtmlElement CreateStyledDiv(string cssClass) {
@@ -47,7 +47,6 @@ namespace datamodel.datadict {
 
         #region Hierarchy
         private static HtmlElement GenerateHierarchy(HierarchyItem hierarchyItem) {
-            Schema schema = Schema.Singleton;
             HtmlElement hierarchyHtml = new HtmlElement("div").Class("index-subpanel");
             hierarchyHtml.Add(new HtmlElement("h2", "Hierarchical Index"));
             AddHierarchyToParentRecursively(hierarchyHtml, hierarchyItem);
@@ -60,13 +59,13 @@ namespace datamodel.datadict {
         }
 
         private static HtmlElement AddHierarchyToParent(HtmlElement parent, HierarchyItem hierItem) {
-            HtmlElement htmlItem = new HtmlElement("li");
+            HtmlElement htmlItem = new("li");
             parent.Add(htmlItem);
 
             string text = string.Format("{0} ({1} Models)", hierItem.HumanName, hierItem.ModelCount);
 
             if (hierItem.HasDiagram) 
-                htmlItem.Add(HtmlUtils.MakeLink(hierItem.SvgUrl, text, null, null, hierItem.ColorString));
+                htmlItem.Add(HtmlUtils.MakeLink(hierItem.GetSvgUrl(false), text, null, null, hierItem.ColorString));
             else
                 htmlItem.Text = text;
 
@@ -74,7 +73,7 @@ namespace datamodel.datadict {
         }
 
         private static void AddChildrenToList(HtmlElement list, HierarchyItem itemHier) {
-            HtmlElement ul = new HtmlElement("ul");
+            HtmlElement ul = new("ul");
             list.Add(ul);
 
             foreach (HierarchyItem child in itemHier.Children)
@@ -95,12 +94,12 @@ namespace datamodel.datadict {
         }
 
         private static HtmlElement GenerateFlatListItem(Model model) {
-            HtmlElement div = new HtmlElement("div");
+            HtmlElement div = new("div");
             HtmlElement span = div.Add(new HtmlElement("span"));
 
-            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(model), model.HumanName, null, model.Description));
-            span.Add(HtmlUtils.MakeIconForDocs(model));
-            span.Add(HtmlUtils.MakeIconsForDiagrams(model, "text-icon"));
+            span.Add(HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(model, false), model.HumanName, null, model.Description));
+            span.Add(HtmlUtils.MakeIconForDocs(model, false));
+            span.Add(HtmlUtils.MakeIconsForDiagrams(model, "text-icon", false));
 
             return div;
         }

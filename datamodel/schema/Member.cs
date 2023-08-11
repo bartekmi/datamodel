@@ -23,6 +23,6 @@ namespace datamodel.schema {
 
         // Derived 
         [JsonIgnore]
-        public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner), Name); } }
+        public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner, false), Name); } }
     }
 }

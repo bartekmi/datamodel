@@ -47,7 +47,7 @@ namespace datamodel {
                 Env.Configure();
                 Error.Clear();
 
-                Dictionary<string, SchemaSource> schemaSources = new Dictionary<string, SchemaSource>() {
+                Dictionary<string, SchemaSource> schemaSources = new() {
                     { "json", new JsonSource() },
                     { "k8s", new K8sSwaggerSource() },
                     { "proto", new ProtobufSource() },
@@ -98,27 +98,9 @@ namespace datamodel {
             }
         }
 
-        private static string BuildErrorMessage(Exception e) {
-            StringBuilder builder = new StringBuilder();
-
-            bool first = true;
-            while (e != null) {
-                string line = string.Format("{0}{1}{2}", 
-                    first ? "" : "\t", 
-                    e.Message, 
-                    e.GetType() == typeof(Exception) ? "" : string.Format(" ({0})", e.GetType().Name));
-
-                builder.AppendLine(line);
-                e = e.InnerException;
-                first = false;
-            }
-
-            return builder.ToString();
-        }
-
         private static void GenerateGraphs() {
             // Parse "visualizations.yaml" files
-            List<GraphDefinition> graphDefsFromMetadata = new List<GraphDefinition>();
+            List<GraphDefinition> graphDefsFromMetadata = new();
 
             // Copy static assets to output directory
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),

@@ -8,16 +8,15 @@ using YamlDotNet.RepresentationModel;
 namespace datamodel.schema.source.from_data {
     public class YamlSource : SampleDataSchemaSource {
         public static YamlNode ReadYaml(PathAndContent yamlFile) {
-            using (TextReader reader = new StringReader(yamlFile.Content)) {
-                YamlStream yaml = new YamlStream();
+            using TextReader reader = new StringReader(yamlFile.Content);
+            YamlStream yaml = new();
 
-                yaml.Load(reader);
-                if (yaml.Documents.Count == 0)
-                    return null;
+            yaml.Load(reader);
+            if (yaml.Documents.Count == 0)
+                return null;
 
-                YamlDocument document = yaml.Documents[0];
-                return document.RootNode;
-            }
+            YamlDocument document = yaml.Documents[0];
+            return document.RootNode;
         }
 
         protected override IEnumerable<SDSS_Element> GetRaw(PathAndContent yamlFile) {
@@ -28,7 +27,7 @@ namespace datamodel.schema.source.from_data {
 
         private SDSS_Element Convert(YamlNode token) {
             if (token is YamlMappingNode obj) {
-                SDSS_Element sdssObj = new SDSS_Element(ElementType.Object);
+                SDSS_Element sdssObj = new(ElementType.Object);
                 foreach (var pair in obj)
                     sdssObj.AddKeyAndValue(pair.Key.ToString(), Convert(pair.Value));
                 return sdssObj;

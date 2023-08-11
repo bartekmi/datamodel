@@ -26,7 +26,7 @@ namespace datamodel.datadict {
         }
 
         private static void GenerateForModel(Model model, string path) {
-            HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body);
+            HtmlElement html = HtmlUtils.CreatePage(out HtmlElement body, true);
 
             GenerateModelHeader(body, model);
             GenerateModelDerivedClasses(body, model);
@@ -35,8 +35,8 @@ namespace datamodel.datadict {
             GenerateModelOutgoingAssociations(body, model);
             GenerateModelIncomingAssociations(body, model);
 
-            using (StreamWriter writer = new StreamWriter(path))
-                html.ToHtml(writer, 0);
+            using StreamWriter writer = new(path);
+            html.ToHtml(writer, 0);
         }
 
         private static void GenerateModelHeader(HtmlElement body, Model model) {
@@ -45,13 +45,13 @@ namespace datamodel.datadict {
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
-                    new HtmlElement("span", HtmlUtils.MakeLink("/", "Index").Text, true).Class("heading1"),
+                    new HtmlElement("span", HtmlUtils.MakeLink("..", "Index").Text, true).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
                     new HtmlElement("span", "|").Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
                     new HtmlElement("span", model.HumanName).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
-                    HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon"),
+                    HtmlUtils.MakeIconsForDiagrams(model, "h1-text-icon", true),
                     DeprecatedSpan(model)
                 )));
 
@@ -60,7 +60,7 @@ namespace datamodel.datadict {
 
             AddLabelAndData(table, "Name", model.Name);
             AddLabelAndData(table, "Qualified Name", model.QualifiedName);
-            AddLabelAndData(table, "Super-Class", model.SuperClassName, UrlService.Singleton.DocUrl(model.Superclass));
+            AddLabelAndData(table, "Super-Class", model.SuperClassName, UrlService.Singleton.DocUrl(model.Superclass, true));
 
             foreach (Label label in model.Labels)
                 AddLabelAndData(table, label.Name, label.Value, label.IsUrl ? label.Value : null);
@@ -88,12 +88,12 @@ namespace datamodel.datadict {
             table.AddTr(new HtmlTr(new HtmlTh("Derived Classes").Class("heading2")));
 
             foreach (Model derived in dbModel.DerivedClasses.OrderBy(x => x.HumanName)) {
-                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(derived), derived.HumanName).Text;
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(derived, true), derived.HumanName).Text;
 
-                HtmlBase diagramIcon = HtmlUtils.MakeIconsForDiagrams(derived, "text-icon");
+                HtmlBase diagramIcon = HtmlUtils.MakeIconsForDiagrams(derived, "text-icon", true);
 
                 // Header
-                HtmlTr tr = new HtmlTr(
+                HtmlTr tr = new(
                     new HtmlTd(
                         new HtmlElement("span", link, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
@@ -121,8 +121,8 @@ namespace datamodel.datadict {
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
                             property.CanBeEmpty ? 
-                                HtmlUtils.MakeIcon(IconUtils.ON_OFF, null, "This attribute is OPTIONAL") : 
-                                HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute is REQUIRED"),
+                                HtmlUtils.MakeIcon(IconUtils.ON_OFF, null, "This attribute is OPTIONAL", true) : 
+                                HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute is REQUIRED", true),
 
                             new HtmlElement("span", property.HumanName).Class("heading3"),
                             new HtmlElement("span", "(" + property.DataType + ")").Class("faded gap-left"),
@@ -171,11 +171,13 @@ namespace datamodel.datadict {
         }
 
         private static string TypeToHtml(NamedType type) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             Model referenced = type.Type.ReferencedModel;
             if (referenced != null) {
-                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                string link = HtmlUtils.MakeLink(
+                    UrlService.Singleton.DocUrl(referenced, true), 
+                    referenced.HumanName).Text;
                 builder.Append(link);
             } else if (type.Type.Enum != null)
                 builder.Append(type.Type.Enum.Name);
@@ -197,7 +199,8 @@ namespace datamodel.datadict {
             foreach (Association assoc in Schema.Singleton.Associations.Where(x => x.OwnerSideModel == dbModel)) {
                 Model referenced = assoc.OtherSideModel;
                 Property property = assoc.RefProperty;
-                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced, true), 
+                    referenced.HumanName).Text;
                 string mainHtml = string.Format("{0} ({1})", property.HumanName, link);
                 bool isRequired = !property.CanBeEmpty;
 
@@ -215,7 +218,9 @@ namespace datamodel.datadict {
 
             foreach (Property property in orderedIncoming) {
                 Model referenced = property.Owner;
-                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced), referenced.HumanName).Text;
+                string link = HtmlUtils.MakeLink(
+                    UrlService.Singleton.DocUrl(referenced, true), 
+                    referenced.HumanName).Text;
                 string mainHtml = string.Format("{0}.{1}", link, property.HumanName);
 
                 AddRefPropertyInfo(table, property, property.Owner, mainHtml, null);
@@ -224,7 +229,7 @@ namespace datamodel.datadict {
 
         private static void AddRefPropertyInfo(HtmlTable table, Property property, Model other, string mainHtml, Multiplicity? multiplicity) {
             if (Schema.Singleton.IsInteresting(property)) {
-                HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon");
+                HtmlBase diagramIcon = other == null ? null : HtmlUtils.MakeIconsForDiagrams(other, "text-icon", true);
 
                 string multiplicityIcon = null;
                 string multiplicityToolTip = null;
@@ -246,7 +251,7 @@ namespace datamodel.datadict {
                 // Property Header
                 HtmlTr tr = new HtmlTr(
                     new HtmlTd(
-                        multiplicityIcon == null ? null : HtmlUtils.MakeIcon(multiplicityIcon, null, multiplicityToolTip),
+                        multiplicityIcon == null ? null : HtmlUtils.MakeIcon(multiplicityIcon, null, multiplicityToolTip, true),
                         new HtmlElement("span", mainHtml, true).Class("heading3"),
                         new HtmlElement("span").Class("gap-left"),
                         diagramIcon,

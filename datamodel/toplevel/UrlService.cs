@@ -8,17 +8,19 @@ using datamodel.metadata;
 namespace datamodel.toplevel {
     public class UrlService {
 
-        private Dictionary<Model, List<GraphDefinition>> _modelToGraphs = new Dictionary<Model, List<GraphDefinition>>();
+        private Dictionary<Model, List<GraphDefinition>> _modelToGraphs = new();
 
-        private static UrlService _service = new UrlService();
+        private static UrlService _service = new();
         public static UrlService Singleton { get { return _service; } }
 
         private UrlService() { }     // Hide constructor
 
-        public string DocUrl(Model model) {
+        public string DocUrl(Model model, bool fromNested) {
             if (model == null)
                 return null;
-            return UrlUtils.ToAbsolute(string.Format("{0}/{1}.html", model.GetLevel(0), model.SanitizedQualifiedName));
+            return UrlUtils.MakeUrl(
+                string.Format("{0}/{1}.html", model.GetLevel(0), model.SanitizedQualifiedName),
+                fromNested);
         }
 
         // Return a list of generated graphs which contain the given model as a Core Model

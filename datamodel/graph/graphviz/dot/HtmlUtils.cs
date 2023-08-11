@@ -14,8 +14,8 @@ namespace datamodel.graphviz.dot {
             return string.Format("<b>{0}</b>", text);
         }
 
-        public static string MakeImage(string imageName) {
-            string imageUrl = UrlUtils.ToImageUrl(imageName, true);
+        public static string MakeImage(string imageName, bool fromNested) {
+            string imageUrl = UrlUtils.ToImageUrl(imageName, fromNested);
             return string.Format("<IMG SRC=\"{0}\"/>", imageUrl);
         }
 

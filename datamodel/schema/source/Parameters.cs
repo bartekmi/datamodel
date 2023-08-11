@@ -36,9 +36,9 @@ namespace datamodel.schema.source {
             Text = text;
 
             if (IsMultiple) {
-                StringBuilder errorBuilder = new StringBuilder();
+                StringBuilder errorBuilder = new();
                 string[] pieces = text.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                List<object> values = new List<object>();
+                List<object> values = new();
                 Value = values;
 
                 foreach (string piece in pieces) {
@@ -83,8 +83,8 @@ namespace datamodel.schema.source {
         }
 
         public static string DownloadUrl(string url) {
-            using (WebClient client = new WebClient())
-                return client.DownloadString(url);
+            using WebClient client = new();
+            return client.DownloadString(url);
         }
 
         internal void SetDefaultIfNeeded() {
@@ -108,7 +108,7 @@ namespace datamodel.schema.source {
         internal override object ParseSingle(string path) {
             FileAttributes attr = File.GetAttributes(path);
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory) {
-                List<PathAndContent> files = new List<PathAndContent>();
+                List<PathAndContent> files = new();
                 ReadRecursively(files, path);
                 return new FileOrDir(true, files);
             } else
@@ -141,8 +141,7 @@ namespace datamodel.schema.source {
         private string _content;
         public string Content {
             get {
-                if (_content == null)
-                    _content = File.ReadAllText(Path);
+                _content ??= File.ReadAllText(Path);
                 return _content;
             }
             set { _content = value; }
@@ -163,7 +162,7 @@ namespace datamodel.schema.source {
 
     #region Parameters - Top-level command-line parameter parsing
     public class Parameters {
-        private Dictionary<string, Parameter> _params;
+        private readonly Dictionary<string, Parameter> _params;
 
         public const string GLOBAL_PARAM_TWEAKS = "tweaks";
         public const string GLOBAL_PARAM_NO_GRAPHVIZ = "nographviz";
@@ -204,7 +203,7 @@ namespace datamodel.schema.source {
 
         #region Parsing
         private void Parse(IEnumerable<string> commandLine) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             foreach (string paramAndValue in commandLine) {
                 int indexOfEqual = paramAndValue.IndexOf('=');
@@ -290,7 +289,7 @@ namespace datamodel.schema.source {
 
         public bool GetBool(string paramName) {
             object value = GetParamValue(paramName, ParamType.Bool);
-            return value is bool ? (bool)value : false;
+            return value is bool b && b;
         }
 
         public string GetFileContent(string paramName) {

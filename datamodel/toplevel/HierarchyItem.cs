@@ -24,8 +24,7 @@ namespace datamodel.toplevel {
         public bool IsLeaf { get { return Children.Count == 0; } }
         public bool IsTop { get { return Parent == null; } }
         public bool IsNonLeaf { get { return !IsLeaf; } }
-        public string SvgUrl { get { return Graph == null ? null : Graph.SvgUrl; } }
-        public bool HasDiagram { get { return SvgUrl != null; } }
+        public bool HasDiagram { get { return GetSvgUrl(false) != null; } }
         public int Level { get { return IsTop ? 0 : Parent.Level + 1; } }
         public IEnumerable<string> CumulativeName {
             get {
@@ -64,6 +63,10 @@ namespace datamodel.toplevel {
             Children = new List<HierarchyItem>();
             Parent = parent;
         }
+
+        public string GetSvgUrl(bool fromNested) { 
+            return Graph?.GetSvgUrl(fromNested); 
+        } 
 
         // Note that 'self' is considered a descendent of 'self'
         public bool IsDescendentOf(HierarchyItem other) {

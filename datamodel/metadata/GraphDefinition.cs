@@ -61,7 +61,9 @@ namespace datamodel.metadata {
                 return NameUtils.CompoundToSafe(NameComponents);
             }
         }
-        public string SvgUrl { get { return UrlUtils.ToAbsolute(string.Format("{0}.svg", FullyQualifiedName)); } }
+        public string GetSvgUrl(bool fromNested) { 
+            return UrlUtils.MakeUrl(string.Format("{0}.svg", FullyQualifiedName), fromNested); 
+        }
 
 
         public GraphDefinition() {
