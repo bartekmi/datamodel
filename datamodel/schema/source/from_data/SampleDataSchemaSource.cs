@@ -176,9 +176,6 @@ namespace datamodel.schema.source.from_data {
                     Owner = model,
                 };
 
-                if (element != null)
-                    property.AddLabel("Example", element.ToString());
-
                 model.AllProperties.Add(property);
                 _properties[property] = 0;
             } else {
@@ -190,6 +187,10 @@ namespace datamodel.schema.source.from_data {
                         dataType,
                         property.DataType);
             }
+
+            if (!property.HasLabel("Example") &&
+                !string.IsNullOrWhiteSpace(element?.Value))
+                    property.AddLabel("Example", element.ToString());
 
             _properties[property]++;
         }

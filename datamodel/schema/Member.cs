@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 using datamodel.utils;
@@ -24,5 +25,9 @@ namespace datamodel.schema {
         // Derived 
         [JsonIgnore]
         public string DocUrl { get { return string.Format("{0}#{1}", UrlService.Singleton.DocUrl(Owner, false), Name); } }
+
+        public bool HasLabel(string name) {
+            return Labels.Any(x => x.Name == name);
+        }
     }
 }
