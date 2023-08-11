@@ -26,7 +26,7 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "k8s", 
-        "dumpschema=k8s_schema.json",
+        // "dumpschema=k8s_schema.json",
         // "nographviz=true",
       ],
       "cwd": "${workspaceFolder}/datamodel",

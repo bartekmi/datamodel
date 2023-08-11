@@ -93,7 +93,6 @@ namespace datamodel {
             } catch (Exception e) {
                 // The stack trace still provides invaluable debug info, so let's print it.
                 Console.WriteLine(e);
-                // Console.WriteLine(BuildErrorMessage(e));
                 Environment.Exit(1);
             }
         }
@@ -105,13 +104,6 @@ namespace datamodel {
             // Copy static assets to output directory
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
                                         Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
-
-            // Graphviz MUST have access to images at the exact same path as it must ultimately
-            // generate in the svg file. Hence this unsavory solution...
-            // Commenting this out for now because...
-            // 1. On Ubuntu, we don't generally have free access to the root directory
-            // 2. With current version of Graphviz, warnings are generated, but things still work fine
-            // DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"), "/assets");
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             HierarchyItemInfo.AssignColors(topLevel);

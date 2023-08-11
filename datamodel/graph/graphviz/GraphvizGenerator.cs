@@ -44,11 +44,6 @@ namespace datamodel.graphviz {
 
         public Graph CreateGraph(IEnumerable<Model> models, IEnumerable<Association> associations, IEnumerable<Model> extraModels, List<PolymorphicInterface> interfaces) {
             Graph graph = new();
-            // Graphviz forces the images to be available on disk, even though they are not needed for SVG
-            // This means that the build path to the images has to be the same as the web deploy path, which is annoying
-            // I've left the following line commented out in case this ever actually works as it should.
-            //.SetAttrGraph("imagepath", IMAGE_PATH);
-
             IEnumerable<Model> allModels = models.Union(extraModels);
 
             foreach (Model model in models.Where(x => !x.HasPolymorphicInterfaces))
@@ -264,7 +259,7 @@ namespace datamodel.graphviz {
 
                                 row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DIAGRAM_SMALL, false))
                                    .SetAttrHtml("tooltip", graphToolTip)
-                                   .SetAttrHtml("href", graphDef.GetSvgUrl(true)));
+                                   .SetAttrHtml("href", graphDef.GetSvgUrl(false)));
                             }
 
                             row.AddTd(new HtmlTd(HtmlUtils.MakeImage(IconUtils.DOCS_SMALL, false))

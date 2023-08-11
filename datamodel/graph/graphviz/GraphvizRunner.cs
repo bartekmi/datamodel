@@ -13,7 +13,13 @@ namespace datamodel.graphviz {
         public static void Run(string input, string output, RenderingStyle style) {
             string exec = style.ToString().ToLower();
             string path = Path.Combine(Env.GRAPHVIZ_BIN_DIR, exec);
-            string commandLine = string.Format("-Tsvg -o{0} {1}", output, input);
+
+            // We set imagepath for the Graph - this assumes that we are running from project root of datamodel.
+            // Without this, dot spits out warnings that it can't find embedded images and strips the images
+            // out of the final svg file. Sweath, blood and tears have led me to this revelation.
+            // It would be more correct to use the REPO_ROOT Property of Env as that would remove the need 
+            // to run from the project root dir.
+            string commandLine = string.Format("-Tsvg -o{0} -Gimagepath=.. {1}", output, input);
 
             if (File.Exists(output))
                 File.Delete(output);
