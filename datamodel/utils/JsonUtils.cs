@@ -1,4 +1,4 @@
-using System.Text;
+using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 
@@ -24,6 +24,26 @@ namespace datamodel.utils {
         }
 
         public static IEnumerable<JObject> DeserializeMultipleObjects(string json) {
+            if (json.TrimStart().First() == '[')
+                return DeserializeFromArray(json);
+            else 
+                return DeserializeFromMultipleObjects(json);
+        }    
+
+        private static IEnumerable<JObject> DeserializeFromArray(string json) {
+            List<JObject> jObjects = new();
+
+            using JsonTextReader reader = new(new StringReader(json)); 
+                reader.SupportMultipleContent = true;
+
+            JArray list = (JArray)JToken.ReadFrom(reader);
+            foreach (JObject jObject in list)
+                jObjects.Add(jObject);
+
+            return jObjects;
+        }
+
+        private static IEnumerable<JObject> DeserializeFromMultipleObjects(string json) {
             List<JObject> jObjects = new();
             using JsonTextReader reader = new(new StringReader(json)); 
             reader.SupportMultipleContent = true;
@@ -35,6 +55,6 @@ namespace datamodel.utils {
             }
 
             return jObjects;
-        }    
+        }
     }
 }

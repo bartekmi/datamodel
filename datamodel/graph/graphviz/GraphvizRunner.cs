@@ -10,6 +10,16 @@ using datamodel.graphviz.dot;
 namespace datamodel.graphviz {
     public static class GraphvizRunner {
 
+        public static void CreateDotAndRun(Graph graph, string outDir, string baseName, RenderingStyle style) {
+            string dotPath = Path.Combine(outDir, baseName + ".dot");
+
+            using (TextWriter writer = new StreamWriter(dotPath))
+                graph.ToDot(writer);
+
+            string svgPath = Path.Combine(outDir, baseName + ".svg");
+            Run(dotPath, svgPath, style);
+        }
+
         public static void Run(string input, string output, RenderingStyle style) {
             string exec = style.ToString().ToLower();
             string path = Path.Combine(Env.GRAPHVIZ_BIN_DIR, exec);
@@ -34,16 +44,6 @@ namespace datamodel.graphviz {
                 Error.Log("{0} {1}", path, commandLine);
                 throw new Exception("File not created. Exit Code: " + process.ExitCode);
             }
-        }
-
-        public static void CreateDotAndRun(Graph graph, string baseName, RenderingStyle style) {
-            string dotPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".dot");
-
-            using (TextWriter writer = new StreamWriter(dotPath))
-                graph.ToDot(writer);
-
-            string svgPath = Path.Combine(Env.OUTPUT_ROOT_DIR, baseName + ".svg");
-            Run(dotPath, svgPath, style);
         }
     }
 }

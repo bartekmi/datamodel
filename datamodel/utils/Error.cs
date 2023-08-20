@@ -24,8 +24,8 @@ namespace datamodel {
         }
 
         public static void Log(Error error) {
-            if (!Directory.Exists(Env.OUTPUT_ROOT_DIR))
-                Directory.CreateDirectory(Env.OUTPUT_ROOT_DIR);
+            if (!Directory.Exists(Env.OUTPUT_LOG_DIR))
+                Directory.CreateDirectory(Env.OUTPUT_LOG_DIR);
                 
             using (TextWriter writer = new StreamWriter(ErrorLog(), true))
                 writer.WriteLine(error.ToString());
@@ -33,7 +33,7 @@ namespace datamodel {
         }
 
         private static string ErrorLog() {
-            string dir = Env.OUTPUT_ROOT_DIR ?? ".";
+            string dir = Env.OUTPUT_LOG_DIR ?? ".";
             return System.IO.Path.Combine(dir, "datamodel.log");
         }
 

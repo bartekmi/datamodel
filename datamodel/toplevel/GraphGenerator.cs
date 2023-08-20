@@ -26,7 +26,7 @@ namespace datamodel.toplevel {
             }
         }
 
-        internal static void Generate(HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
+        internal static void Generate(string outDir, HierarchyItem item, List<GraphDefinition> graphDefsFromMetadata) {
             HierarchyItem.Recurse(item, hierItem => {
                 // First, see if a GraphDef was specified explicitly in a visualization.yaml file...
                 IEnumerable<string> nameComponents = hierItem.CumulativeName.Skip(1);       // Skip the root node
@@ -37,11 +37,11 @@ namespace datamodel.toplevel {
                     graphDef = hierItem.Graph;
 
                 if (graphDef != null)
-                    Generate(graphDef);
+                    Generate(outDir, graphDef);
             });
         }
 
-        internal static void Generate(GraphDefinition graphDef) {
+        internal static void Generate(string outDir, GraphDefinition graphDef) {
 
             IEnumerable<Model> externalSuperclasses = graphDef.CoreModels
                 .Where(x => x.Superclass != null)
@@ -65,7 +65,7 @@ namespace datamodel.toplevel {
                             (tablesDict.ContainsKey(x.OwnerSide) || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.PolymorphicName)))
                 .ToList();
 
-            (new GraphvizGenerator()).GenerateGraph(
+            (new GraphvizGenerator(outDir)).GenerateGraph(
                 graphDef,
                 graphDef.CoreModels,
                 associations,

@@ -28,7 +28,7 @@ namespace datamodel.graphviz {
     public static class GraphvizIndexGenerator {
 
         #region Top Level
-        public static void GenerateIndex(HierarchyItem root) {
+        public static void GenerateIndex(string outDir, HierarchyItem root) {
 
             // HierarchyItem.DebugPrint(root);
 
@@ -43,7 +43,7 @@ namespace datamodel.graphviz {
 
 
             string baseName = "index";
-            GraphvizRunner.CreateDotAndRun(graph, baseName, RenderingStyle.Fdp);
+            GraphvizRunner.CreateDotAndRun(graph, outDir, baseName, RenderingStyle.Fdp);
         }
 
         private static void AddNodesRecursive(

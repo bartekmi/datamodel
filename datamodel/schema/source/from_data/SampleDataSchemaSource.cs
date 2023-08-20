@@ -182,13 +182,19 @@ namespace datamodel.schema.source.from_data {
                 _properties[property] = 0;
             } else {
                 string newDataType = GetDataType(element, isMany);
-                if (newDataType == UNKNOWN_DATA_TYPE) {
+                string newLower = newDataType.ToLower();
+                string oldLower = property.DataType.ToLower();
+
+                if (newDataType == UNKNOWN_DATA_TYPE ||
+                    newLower == "integer" && oldLower == "float") {
                     // Do nothing... No new informatin to contribute
-                } else if (property.DataType == UNKNOWN_DATA_TYPE)
+                } else if (
+                        property.DataType == UNKNOWN_DATA_TYPE ||
+                        oldLower == "integer" && newLower == "float")
                     property.DataType = newDataType;
                 else    // Both old and new had a data type and they don't match
                     if (newDataType != property.DataType)
-                        Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
+                        Error.Log("Type mismatch on {0}.{1}: New: {2} vs Previously found: {3}",
                             model.Name,
                             name,
                             newDataType,

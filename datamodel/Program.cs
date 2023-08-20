@@ -89,7 +89,7 @@ namespace datamodel {
                     GenerateGraphs();
 
                 // Data Dictionary
-                DataDictionaryGenerator.Generate(Env.OUTPUT_ROOT_DIR, Schema.Singleton.Models);
+                DataDictionaryGenerator.Generate(_parameters.OutDir, Schema.Singleton.Models);
             } catch (Exception e) {
                 // The stack trace still provides invaluable debug info, so let's print it.
                 Console.WriteLine(e);
@@ -103,17 +103,17 @@ namespace datamodel {
 
             // Copy static assets to output directory
             DirUtils.CopyDirRecursively(Path.Combine(Env.REPO_ROOT, "assets"),
-                                        Path.Combine(Env.OUTPUT_ROOT_DIR, "assets"));
+                                        Path.Combine(_parameters.OutDir, "assets"));
 
             HierarchyItem topLevel = HierarchyItem.CreateHierarchyTree();
             HierarchyItemInfo.AssignColors(topLevel);
             GraphGenerator.CreateGraphDefinitions(topLevel);
-            GraphGenerator.Generate(topLevel, graphDefsFromMetadata);
+            GraphGenerator.Generate(_parameters.OutDir, topLevel, graphDefsFromMetadata);
 
             // Since the SVG index is ***embedded*** within the HTML index file,
             // it must be generated first
-            GraphvizIndexGenerator.GenerateIndex(topLevel);
-            HtmlIndexGenerator.GenerateIndex(Env.OUTPUT_ROOT_DIR, topLevel);
+            GraphvizIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
+            HtmlIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
         }
     }
 }
