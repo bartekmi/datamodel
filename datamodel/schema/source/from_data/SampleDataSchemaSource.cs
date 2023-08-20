@@ -31,6 +31,8 @@ namespace datamodel.schema.source.from_data {
     // - How to treat same paths with (very) different properties - e.g representing inheritance
     public abstract class SampleDataSchemaSource : SchemaSource {
 
+        private const string UNKNOWN_DATA_TYPE = "unknown";
+
         protected abstract IEnumerable<SDSS_Element> GetRaw(PathAndContent file);
         protected Options TheOptions;
 
@@ -179,13 +181,18 @@ namespace datamodel.schema.source.from_data {
                 model.AllProperties.Add(property);
                 _properties[property] = 0;
             } else {
-                string dataType = GetDataType(element, isMany);
-                if (dataType != property.DataType)
-                    Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
-                        model.Name,
-                        name,
-                        dataType,
-                        property.DataType);
+                string newDataType = GetDataType(element, isMany);
+                if (newDataType == UNKNOWN_DATA_TYPE) {
+                    // Do nothing... No new informatin to contribute
+                } else if (property.DataType == UNKNOWN_DATA_TYPE)
+                    property.DataType = newDataType;
+                else    // Both old and new had a data type and they don't match
+                    if (newDataType != property.DataType)
+                        Error.Log("Type mismatch on {0}.{1}: {2} vs {3}",
+                            model.Name,
+                            name,
+                            newDataType,
+                            property.DataType);
             }
 
             if (!property.HasLabel("Example") &&
@@ -197,7 +204,7 @@ namespace datamodel.schema.source.from_data {
 
         private string GetDataType(SDSS_Element element, bool isMany) {
             string type = string.IsNullOrWhiteSpace(element?.DataType) ? 
-                "unknown" : element.DataType;
+                UNKNOWN_DATA_TYPE : element.DataType;
                 
             if (isMany)
                 type = "[]" + type;
