@@ -124,7 +124,8 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "xsd", 
-        "url=https://www.netchb.com/xml/entry/entry.xsd",
+        "url=https://www.netchb.com/xml/isf/isf.xsd",
+        // "url=https://www.netchb.com/xml/entry/entry.xsd",
         "dumpschema=../../tmp/xsd.out",
         "dropsuffix=Type"
       ],

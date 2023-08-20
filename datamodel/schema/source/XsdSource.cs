@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml;
 using System.Xml.Schema;
 using System.Linq;
 
@@ -106,17 +105,22 @@ namespace datamodel.schema.source {
             if (group == null)
                 throw new Exception("Null group at line " + cplxType.LineNumber);
 
-            foreach (XmlSchemaObject child in group.Items) {
-                if (child is XmlSchemaSimpleType simpleType) {
-                    throw new NotImplementedException();
-                } else if (child is XmlSchemaComplexType childCplxType) {
-                    throw new NotImplementedException();
-                } else if (child is XmlSchemaElement childElement) {
-                    ParseElement(model, childElement);
-                }
-            }
+            ParsePropertiesFromGroup(model, group);
 
             _models.Add(model);
+        }
+
+        private void ParsePropertiesFromGroup(Model model, XmlSchemaGroupBase group) {
+            foreach (XmlSchemaObject child in group.Items) {
+                if (child is XmlSchemaSimpleType simpleType)
+                    throw new NotImplementedException();
+                else if (child is XmlSchemaChoice choice)
+                    ParsePropertiesFromGroup(model, choice);
+                else if (child is XmlSchemaComplexType childCplxType)
+                    throw new NotImplementedException();
+                else if (child is XmlSchemaElement childElement)
+                    ParseElement(model, childElement);
+            }
         }
 
         #region Utilities
