@@ -13,12 +13,14 @@ namespace datamodel.schema.source {
         private const string PARAM_DROP_MODEL_SUFFIX = "dropsuffix";
 
         private XmlSchema _schema;
+        private string _title;
         private Dictionary<string, XmlSchemaType> _types;
         private List<Model> _models = new List<Model>();
         private List<Association> _associations = new List<Association>();
 
         public override void Initialize(Parameters parameters) {
             string urlData = parameters.GetUrlContent(PARAM_URL);
+            _title = parameters.GetRawText(PARAM_URL);
             using TextReader reader = new StringReader(urlData);
             _schema = XmlSchema.Read(reader, null);
 
@@ -222,7 +224,7 @@ namespace datamodel.schema.source {
         }
 
         public override string GetTitle() {
-            return _schema.TargetNamespace;
+            return _title;
         }
 
         public override IEnumerable<Model> GetModels() {

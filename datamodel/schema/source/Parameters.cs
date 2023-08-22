@@ -322,6 +322,8 @@ namespace datamodel.schema.source {
             return GetParamValue(paramName, ParamType.Regex) as Regex;
         }
 
+        // Retrieve raw string of parameter as it was passed on the command line.
+        // Useful for things like retrieving original URL, etc.
         public string GetRawText(string paramName) {
             return GetParameter(paramName).Text;
         }

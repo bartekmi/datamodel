@@ -48,6 +48,7 @@ namespace datamodel.schema.source.from_data {
             public bool SameNameIsSameModel;
             public int MinimumClusterOverlap;
             public Regex KeyIsDataRegex;
+            public bool DisableKeyIsDataCheck;
         }
 
         public const string PARAM_PATHS = "paths";
@@ -58,6 +59,7 @@ namespace datamodel.schema.source.from_data {
         public const string PARAM_SAME_NAME_IS_SAME_MODEL = "same-name-is-same-model";
         public const string PARAM_MINIMUM_CLUSTER_OVERLAP = "minimum-cluster-overlap";
         public const string PARAM_KEY_IS_DATA_REGEX = "key-is-data-regex";
+        public const string PARAM_DISABLE_KEY_IS_DATA = "disable-key-is-data-check";
 
         public override void Initialize(Parameters parameters) {
             TheOptions = new Options() {
@@ -66,6 +68,7 @@ namespace datamodel.schema.source.from_data {
                 SameNameIsSameModel = parameters.GetBool(PARAM_SAME_NAME_IS_SAME_MODEL),
                 MinimumClusterOverlap = parameters.GetInt(PARAM_MINIMUM_CLUSTER_OVERLAP).Value, // Safe due to default
                 KeyIsDataRegex = parameters.GetRegex(PARAM_KEY_IS_DATA_REGEX),
+                DisableKeyIsDataCheck = parameters.GetBool(PARAM_DISABLE_KEY_IS_DATA),
             };
 
             string raw = parameters.GetString(PARAM_RAW);
@@ -256,7 +259,8 @@ namespace datamodel.schema.source.from_data {
         //     Join the multiple clusters into one and add new members as above.
         // 3c. Zero overlaps => We've discovered a new cluster... add it to _source
         private void ProcessSample(List<TempSource> clusters, SDSS_Element root) {
-            SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
+            if (!TheOptions.DisableKeyIsDataCheck)
+                SampleDataKeyIsData.ConvertObjectsWhereKeyIsData(TheOptions, root);
 
             TempSource candidate = new();
             ParseObjectOrArray(candidate, root, SampleDataKeyIsData.ROOT_PATH);
@@ -457,6 +461,11 @@ namespace datamodel.schema.source.from_data {
                     Description = @"JSON paths to attributes where we know that the key represents a data field",
                     Type = ParamType.String,
                     IsMultiple = true,
+                },
+                new Parameter() {
+                    Name = PARAM_DISABLE_KEY_IS_DATA,
+                    Description = @"If true, disable checking whether object key may represent data",
+                    Type = ParamType.Bool,
                 },
                 new Parameter() {
                     Name = PARAM_SAME_NAME_IS_SAME_MODEL,
