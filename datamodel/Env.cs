@@ -40,7 +40,7 @@ namespace datamodel {
 
         #region Mac
         private static void ConfigureMac() {
-            OUTPUT_ROOT_DIR_DEFAULT = @"/tmp/datamodel/subdir";
+            OUTPUT_ROOT_DIR_DEFAULT = @"/tmp/datamodel";
             OUTPUT_LOG_DIR = @"/tmp/datamodel";
             REPO_ROOT = @"..";
             GRAPHVIZ_BIN_DIR = @"/opt/homebrew/bin";

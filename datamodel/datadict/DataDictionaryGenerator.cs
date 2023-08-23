@@ -201,8 +201,10 @@ namespace datamodel.datadict {
             foreach (Association assoc in Schema.Singleton.Associations.Where(x => x.OwnerSideModel == dbModel)) {
                 Model referenced = assoc.OtherSideModel;
                 Property property = assoc.RefProperty;
+                if (property == null)
+                    continue;
                 string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced, true), 
-                    referenced.HumanName).Text;
+                    referenced == null ? assoc.OtherSide : referenced.HumanName).Text;
                 string mainHtml = string.Format("{0} ({1})", property.HumanName, link);
                 bool isRequired = !property.CanBeEmpty;
 

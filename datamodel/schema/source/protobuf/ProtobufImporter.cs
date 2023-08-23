@@ -76,15 +76,24 @@ namespace datamodel.schema.source.protobuf {
             if (externalTypesOfInterest.Count > 0)
                 foreach (Import import in file.Imports) {
                     string importPath = Path.Join(_importBasePath, import.ImportPath);
-                    try {
-                        PathAndContent importPac = PathAndContent.Read(importPath);
-                        ProcessFile(bundle, importPac, externalTypesOfInterest); 
-                    } catch (Exception e) {
+                    string? errorMessage = null;
+
+                    if (File.Exists(importPath)) {
+                        try {
+                            PathAndContent importPac = PathAndContent.Read(importPath);
+                            ProcessFile(bundle, importPac, externalTypesOfInterest); 
+                        } catch (Exception e) {
+                            errorMessage = e.Message;
+                        }
+                    } else {
+                        errorMessage = "File does not exist";
+                    }
+
+                    if (errorMessage != null)
                         Console.WriteLine("WARNING: Error reading {0} imported from file {1}: {2}",
                             importPath,
                             file.Path,
-                            e.Message);
-                    }
+                            errorMessage);
                 }
         }
 

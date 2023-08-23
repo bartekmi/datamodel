@@ -110,8 +110,8 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "proto", 
-        "nographviz=true",
-        "paths=/Users/bartekm/tmp/proto",
+        "import-root=/Users/bmuszynski/flexport/protobuf",
+        "paths=/Users/bmuszynski/flexport/protobuf/flexport/inboundimportersecurityfiling,/Users/bmuszynski/flexport/protobuf/flexport/customsisfservice",
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",
