@@ -73,7 +73,7 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "json",
-        "paths=/Users/bmuszynski/Downloads/2023-08-22-3_07pm.csv",
+        "paths=/Users/bartekmu/workplace/EKSClusterScheduledEventsServiceCDK/src/EKSClusterScheduledEventsServiceCDK/build/pipeline-structure/Pipeline.json",
         //"paths=/Users/bmuszynski/customs_diagrams/data/candata",
         //"paths=/Users/bmuszynski/customs_diagrams/data/netchb",
         //"paths= ../../Downloads",

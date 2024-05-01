@@ -26,6 +26,7 @@ namespace datamodel {
         //********************************************************************************
         // Once files are generated, use this command to start local web server:
         //
+        //  cd /tmp/datamodel
         //  python3 -m http.server 8080
         //
         //********************************************************************************

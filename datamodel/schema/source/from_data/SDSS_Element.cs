@@ -69,8 +69,8 @@ namespace datamodel.schema.source.from_data {
             AddKeyAndValue(key, new SDSS_Element(value, "string"));
         }
 
-        // There are many cases where arrays masquarade as objects, where each
-        // key in the object is really just a field in the object that it contains.
+        // There are many cases where what logically are really arrays masquarade as objects, 
+        // where each key in the object is really just a field in the object that it points to.
         // This method re-converts such an object to the array that it really is.
         internal void ConvertObjectToArray(string keyProperty) {
             if (_type != ElementType.Object)
@@ -85,13 +85,14 @@ namespace datamodel.schema.source.from_data {
                 if (item.Type == ElementType.Object) {
                     item.AddKeyAndValue(keyProperty, key);
                     arrayItems.Add(item);
-                } else if (item.Type == ElementType.Array) {
-                    SDSS_Element intermediate = new SDSS_Element(ElementType.Object);
+                } else if (item.Type == ElementType.Array ||
+                           item.Type == ElementType.Primitive) {
+                    SDSS_Element intermediate = new(ElementType.Object);
                     intermediate.AddKeyAndValue(keyProperty, key);
-                    intermediate.AddKeyAndValue("Item", item);
+                    intermediate.AddKeyAndValue("Value", item);
                     arrayItems.Add(intermediate);
                 } else
-                    throw new NotImplementedException("How to handle primitive elements?");
+                    throw new NotImplementedException("Unexpected element type: " + item.Type);
             }
 
             _objectItems = null;
