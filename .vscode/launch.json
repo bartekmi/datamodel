@@ -42,7 +42,6 @@
       "args": [
         "json",
         "files=../datamodel_test2/schema/kubernetes_swagger.json",
-        "tweaks=../datamodel_test2/schema/swagger_json_tweaks.json",
         "paths-where-key-is-data=.definitions.properties",
         "same-name-is-same-model=true",
       ],
@@ -73,7 +72,7 @@
       "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
       "args": [
         "json",
-        "paths=/Users/bartekmu/workplace/EKSClusterScheduledEventsServiceCDK/src/EKSClusterScheduledEventsServiceCDK/build/pipeline-structure/Pipeline.json",
+        "paths=/Users/bartekmu/workplace/AWSWesleyClusterManagerNotificationTopicsCDK/src/AWSWesleyClusterManagerNotificationTopicsCDK/build/cdk.out",
         //"paths=/Users/bmuszynski/customs_diagrams/data/candata",
         //"paths=/Users/bmuszynski/customs_diagrams/data/netchb",
         //"paths= ../../Downloads",

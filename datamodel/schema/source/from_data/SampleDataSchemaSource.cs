@@ -102,8 +102,11 @@ namespace datamodel.schema.source.from_data {
                 }
             } else if (element.IsObject) {
                 ParseObject(source, element, path);
-            } else
-                throw new Exception("Expected Array or Object, but got: " + element.DataType);
+            } else {
+              // This can happen if an array has mixed elements, which we are not handling yet.
+              // If the array does NOT have mixed elements, this case would have been handled 
+              // by IsPossiblyNestedArrayOfPrimitives()
+            }
         }
 
         private Model MaybeCreateModel(TempSource source, string path, bool addInstanceCount) {
@@ -308,7 +311,6 @@ namespace datamodel.schema.source.from_data {
                     MergeSources(first, other);
                     clusters.Remove(other);
                 }
-                MergeSources(overlaps.Single(), candidate);
             } else {                                // 3c
                 clusters.Add(candidate);
             }
