@@ -45,7 +45,7 @@ namespace datamodel.schema {
         public static Schema CreateSchema(SchemaSource rawSource) {
             SchemaSource source = rawSource.ApplyPreHydrationTweaks();
 
-            HashSet<Model> models = new HashSet<Model>(source.GetModels());
+            HashSet<Model> models = new(source.GetModels());
             DiscardListSemanticModels(source, models);
 
             schema = new Schema() {

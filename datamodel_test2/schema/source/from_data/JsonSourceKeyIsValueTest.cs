@@ -66,7 +66,7 @@ namespace datamodel.schema.source.from_data {
                 }));
 
             string json = FromDataUtils.ToJasonNoQuotes(source, false);
-            Console.Write(json);
+            // Console.Write(json);
             
             AssertCollection(new string[] { 
                 "cluster1",

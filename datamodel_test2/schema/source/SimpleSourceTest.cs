@@ -1,16 +1,12 @@
-using System;
 using Xunit;
-
-using Newtonsoft.Json;
 
 namespace datamodel.schema.source {
     public class SimpleSourceTest {
         [Fact]
         public void Read() {
-            SimpleSource source = new SimpleSource();
+            SimpleSource source = new();
             source.Initialize(new Parameters(source, new string[] { "file=../../../schema/simple_schema.json" }));
-            Schema.CreateSchema(source);
-            Schema schema = Schema.Singleton;
+            Schema schema = Schema.CreateSchema(source);
 
             Assert.Equal(12, schema.Models.Count);
         }

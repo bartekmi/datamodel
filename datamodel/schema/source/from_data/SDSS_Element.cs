@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace datamodel.schema.source.from_data {
@@ -58,6 +59,8 @@ namespace datamodel.schema.source.from_data {
         public bool IsObject { get { return _type == ElementType.Object; } }
         [JsonIgnore]
         public bool IsArray { get { return _type == ElementType.Array; } }
+        [JsonIgnore]
+        public bool IsEmptyArray { get { return IsArray && !ArrayItems.Any(); } }
 
         public void AddKeyAndValue(string key, SDSS_Element element) {
             if (Type != ElementType.Object)

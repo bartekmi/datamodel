@@ -133,10 +133,9 @@ namespace datamodel.schema.source.from_data {
 
                 SDSS_Element element = item.Value;
                 if (element.IsArray) {
-                    // Array of primitive is treated like a primitive value
-                    SDSS_Element first = element.ArrayItems.FirstOrDefault();
-                    if (first != null && first.IsPrimitive) {
-                        MaybeAddAttribute(model, item.Key, first, true);
+                    // (Possibly nested) Array of primitive is treated like a primitive value
+                    if (IsPossiblyNestedArrayOfPrimitives(element, out SDSS_Element primitive, out int depth)) {
+                        MaybeAddAttribute(model, item.Key, primitive, depth);
                         continue;
                     }
 
@@ -146,11 +145,37 @@ namespace datamodel.schema.source.from_data {
                     ParseObjectOrArray(source, element, newPath);
                     MaybeAddAssociation(source, model, newPath, false);
                 } else {
-                    MaybeAddAttribute(model, item.Key, item.Value, false);
+                    MaybeAddAttribute(model, item.Key, item.Value, 0);
                 }
             }
 
             return model;
+        }
+
+        private bool IsPossiblyNestedArrayOfPrimitives(SDSS_Element array, out SDSS_Element primitive, out int depth) {
+          depth = 0;
+          primitive = null;
+
+          while (true) {
+            if (array.IsEmptyArray)
+              return false;
+
+            depth++;
+            SDSS_Element first = array.ArrayItems.First();
+
+            switch (first.Type) {
+              case ElementType.Primitive:
+                primitive = first;
+                return true;
+              case ElementType.Object:
+                return false;
+              case ElementType.Array:
+                array = first;
+                break;
+              default:
+                throw new Exception("Unexpected SDSS_Elemnt type: " + first.Type);
+            }
+          }
         }
 
         private void MaybeAddAssociation(TempSource source, Model model, string path, bool isMany) {
@@ -172,19 +197,19 @@ namespace datamodel.schema.source.from_data {
             _associations[assoc]++;
         }
 
-        private void MaybeAddAttribute(Model model, string name, SDSS_Element element, bool isMany) {
+        private void MaybeAddAttribute(Model model, string name, SDSS_Element element, int depth) {
             Property property = model.FindProperty(name);
             if (property == null) {
                 property = new Property() {
                     Name = name,
-                    DataType = GetDataType(element, isMany),
+                    DataType = GetDataType(element, depth),
                     Owner = model,
                 };
 
                 model.AllProperties.Add(property);
                 _properties[property] = 0;
             } else {
-                string newDataType = GetDataType(element, isMany);
+                string newDataType = GetDataType(element, depth);
                 string newLower = newDataType.ToLower();
                 string oldLower = property.DataType.ToLower();
 
@@ -211,12 +236,13 @@ namespace datamodel.schema.source.from_data {
             _properties[property]++;
         }
 
-        private string GetDataType(SDSS_Element element, bool isMany) {
+        private string GetDataType(SDSS_Element element, int arrayDepth) {
             string type = string.IsNullOrWhiteSpace(element?.DataType) ? 
                 UNKNOWN_DATA_TYPE : element.DataType;
                 
-            if (isMany)
+            for (int ii = 0; ii < arrayDepth; ii++)
                 type = "[]" + type;
+
             return type;
         }
         #endregion
@@ -315,7 +341,7 @@ namespace datamodel.schema.source.from_data {
             return cluster;
           if (name.StartsWith('.'))
             return cluster + name;
-            
+
           return string.Format("{0}.{1}", cluster, name);
         }
 
