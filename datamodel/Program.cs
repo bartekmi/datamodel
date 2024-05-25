@@ -111,9 +111,15 @@ namespace datamodel {
             GraphGenerator.CreateGraphDefinitions(topLevel);
             GraphGenerator.Generate(_parameters.OutDir, topLevel, graphDefsFromMetadata);
 
-            // Since the SVG index is ***embedded*** within the HTML index file,
-            // it must be generated first
-            GraphvizIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
+            try {
+              // Since the SVG index is ***embedded*** within the HTML index file,
+              // it must be generated first
+              GraphvizIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
+            } catch (Exception e) {
+              Error.Log("Non-fatal error when generating index graph: " + e.Message);
+            }
+            
+
             HtmlIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
         }
     }

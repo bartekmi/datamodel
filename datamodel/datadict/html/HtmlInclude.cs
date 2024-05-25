@@ -10,7 +10,12 @@ namespace datamodel.datadict.html {
         }
 
         public override void ToHtml(TextWriter writer, int indent) {
-            writer.WriteLine(File.ReadAllText(_includeFilePath));
+          if (!File.Exists(_includeFilePath)) {
+            Error.Log("Expected file does not exist " + _includeFilePath);
+            return;
+          }
+
+          writer.WriteLine(File.ReadAllText(_includeFilePath));
         }
     }
 }

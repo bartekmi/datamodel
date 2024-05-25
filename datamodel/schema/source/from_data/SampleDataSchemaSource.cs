@@ -225,6 +225,9 @@ namespace datamodel.schema.source.from_data {
                     property.DataType = newDataType;
                 else    // Both old and new had a data type and they don't match
                     if (newDataType != property.DataType)
+                        // TODO: Ideally, we should combine types e.g. "String, []String"...
+                        // but you'll need to split on comman, and then compare since we can have
+                        // multiple. Also consider making DataType a HashSet.
                         Error.Log("Type mismatch on {0}.{1}: New: {2} vs Previously found: {3}",
                             model.Name,
                             name,
