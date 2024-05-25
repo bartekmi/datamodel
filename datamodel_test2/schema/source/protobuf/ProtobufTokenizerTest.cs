@@ -26,7 +26,7 @@ namespace datamodel.schema.source.protobuf {
             TokenizeSingle("=");
         }
 
-        [Fact (Skip = "We don't need this until we care about options")]
+        [Fact(Skip = "We don't need this until we care about options")]
         public void TokenizeFloat() {
             TokenizeSingle("1234.567e10");
         }

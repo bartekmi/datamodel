@@ -150,9 +150,9 @@ namespace datamodel.schema.source.from_data {
         }
       ]
     },
-    cluster1.key_is_value.Item: {
-      Name: Item,
-      QualifiedName: cluster1.key_is_value.Item,
+    cluster1.key_is_value.Value: {
+      Name: Value,
+      QualifiedName: cluster1.key_is_value.Value,
       Levels: [
         cluster1
       ],
@@ -180,7 +180,7 @@ namespace datamodel.schema.source.from_data {
     {
       OwnerSide: cluster1.key_is_value,
       OwnerMultiplicity: Aggregation,
-      OtherSide: cluster1.key_is_value.Item,
+      OtherSide: cluster1.key_is_value.Value,
       OtherMultiplicity: Many
     }
   ]

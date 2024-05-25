@@ -6,27 +6,27 @@ using Xunit.Abstractions;
 using Newtonsoft.Json;
 
 namespace datamodel.schema.source.from_data {
-    public class JsonSourceTest {
+  public class JsonSourceTest {
+    private readonly ITestOutputHelper _output;
 
-        private readonly ITestOutputHelper _output;
-
-        public JsonSourceTest(ITestOutputHelper output) {
-            _output = output;
-        }
-
-        [Fact]
-        public void KeyIsValue() {
-            Env.Configure();
-
-            string text = @"{
-    key_is_value: {
-        one: {
-            z: 7
-        },
-        two: {
-            z: 8
-        }
+    public JsonSourceTest(ITestOutputHelper output) {
+      _output = output;
     }
+
+    [Fact]
+    public void KeyIsValue() {
+      Env.Configure();
+
+      string text = @"
+{
+  key_is_value: {
+    one: {
+      z: 7
+    },
+    two: {
+      z: 8
+    }
+  }
 }";
 
             JsonSource source = new JsonSource();
