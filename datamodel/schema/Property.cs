@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
 
 using datamodel.utils;
-using datamodel.toplevel;
 
 namespace datamodel.schema {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]

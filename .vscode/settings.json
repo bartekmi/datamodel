@@ -1,2 +1,7 @@
 {
+  "[csharp]": {
+    "editor.formatOnSave": true
+  },
+  "omnisharp.enableEditorConfigSupport": true,
+  "omnisharp.useModernNet": true
 }

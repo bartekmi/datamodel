@@ -1,0 +1,11 @@
+root = true
+
+[*.cs]
+
+# Use K&R style (braces on same line)
+csharp_new_line_before_open_brace = none:all
+
+# Ensure 'else', 'catch', and 'finally' stay on the same line as the closing brace
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false

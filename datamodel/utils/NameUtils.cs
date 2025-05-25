@@ -23,7 +23,7 @@ namespace datamodel.utils {
         public static string ToHuman(string nonHuman, bool dropSpaces = false) {
             if (nonHuman == null)
                 return null;
-                
+
             string human = null;
             if (nonHuman.Contains('_'))
                 human = SnakeCaseToHuman(nonHuman);
@@ -75,6 +75,16 @@ namespace datamodel.utils {
             if (singular.EndsWith("y"))     // Country => Countries
                 return singular[..^1] + "ies";
             return singular + "s";          // Cat => Cats
+        }
+
+        public static string Singluarize(string plural) {
+            if (plural.EndsWith("ses"))     // Bonuses => Bonus
+                return plural[..^2];
+            if (plural.EndsWith("ies"))     // Countries => Country
+                return plural[..^3] + "y";
+            if (plural.EndsWith("s"))
+                return plural[..^1];        // Cats => Cat
+            return plural;                  // Sheep => Sheep :)
         }
     }
 }

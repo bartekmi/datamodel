@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace datamodel.schema {
     public class Enum {
@@ -22,6 +22,12 @@ namespace datamodel.schema {
                 // be preserved.
                 return _values;
             }
+        }
+
+        public Enum() { }
+
+        public Enum(IEnumerable<string> values) {
+            _values = values.ToDictionary(x => x);
         }
 
         public void SetDescription(string value, string description) {

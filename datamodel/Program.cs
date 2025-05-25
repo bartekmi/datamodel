@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +9,7 @@ using datamodel.schema;
 using datamodel.schema.source;
 using datamodel.schema.source.from_data;
 using datamodel.schema.source.protobuf;
+using datamodel.schema.source.botocore;
 using datamodel.schema.tweaks;
 using datamodel.datadict;
 using datamodel.toplevel;
@@ -49,6 +49,7 @@ namespace datamodel {
                 Error.Clear();
 
                 Dictionary<string, SchemaSource> schemaSources = new() {
+                    { "boto", new BotoCoreSource() },
                     { "json", new JsonSource() },
                     { "k8s", new K8sSwaggerSource() },
                     { "proto", new ProtobufSource() },
@@ -69,7 +70,7 @@ namespace datamodel {
 
                 _parameters = new Parameters(source, args.Skip(1));
                 source.Initialize(_parameters);
-         
+
                 string[] tweakJsons = _parameters.GetFileContents(Parameters.GLOBAL_PARAM_TWEAKS);
                 if (tweakJsons.Length > 0)
                     TweakLoader.Load(source, tweakJsons);
@@ -112,13 +113,13 @@ namespace datamodel {
             GraphGenerator.Generate(_parameters.OutDir, topLevel, graphDefsFromMetadata);
 
             try {
-              // Since the SVG index is ***embedded*** within the HTML index file,
-              // it must be generated first
-              GraphvizIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
+                // Since the SVG index is ***embedded*** within the HTML index file,
+                // it must be generated first
+                GraphvizIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
             } catch (Exception e) {
-              Error.Log("Non-fatal error when generating index graph: " + e.Message);
+                Error.Log("Non-fatal error when generating index graph: " + e.Message);
             }
-            
+
 
             HtmlIndexGenerator.GenerateIndex(_parameters.OutDir, topLevel);
         }

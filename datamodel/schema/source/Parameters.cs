@@ -108,11 +108,11 @@ namespace datamodel.schema.source {
         internal override object ParseSingle(string path) {
             FileAttributes attr = File.GetAttributes(path);
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory) {
-                List<PathAndContent> files = new();
+                List<PathAndContent> files = [];
                 ReadRecursively(files, path);
                 return new FileOrDir(true, files);
             } else
-                return new FileOrDir(false, new List<PathAndContent>() { PathAndContent.Read(path, ReadContent)});
+                return new FileOrDir(false, [PathAndContent.Read(path, ReadContent)]);
         }
 
         private void ReadRecursively(List<PathAndContent> files, string dir) {
@@ -125,6 +125,9 @@ namespace datamodel.schema.source {
         public bool IsDir { get; private set; }
         // Guaranteed to be only one if IsDir is false
         public List<PathAndContent> Files { get; private set; }
+
+        // Derived
+        public bool IsFile => !IsDir;
 
         internal FileOrDir(bool isDir, List<PathAndContent> files) {
             IsDir = isDir;

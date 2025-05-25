@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "simple", 
         "file=../datamodel_test2/schema/simple_schema.json"
@@ -23,7 +23,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "k8s", 
         // "dumpschema=k8s_schema.json",
@@ -38,7 +38,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "json",
         "files=../datamodel_test2/schema/kubernetes_swagger.json",
@@ -54,7 +54,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "yaml", 
         "paths= ../../tmp/f1.yaml, ../../tmp/f2.yaml, ../../tmp/f3.yaml, ../../tmp/f4.yaml, ../../tmp/f5.yaml",
@@ -69,7 +69,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "json",
         "paths=/Users/bartekmu/workplace/AWSWesleyClusterManagerNotificationTopicsCDK/src/AWSWesleyClusterManagerNotificationTopicsCDK/build/cdk.out",
@@ -89,7 +89,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "proto", 
         "nographviz=true",
@@ -106,7 +106,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "proto", 
         "import-root=/Users/bmuszynski/flexport/protobuf",
@@ -121,13 +121,41 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/datamodel/bin/Debug/net7.0/datamodel.dll",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
         "xsd", 
         "url=https://www.netchb.com/xml/isf/isf.xsd",
         // "url=https://www.netchb.com/xml/entry/entry.xsd",
         "dumpschema=../../tmp/xsd.out",
         "dropsuffix=Type"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "boto-sm",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "boto", 
+        "filesOrDirs=/Users/bartek/github/botocore/botocore/data/socialmessaging/2024-01-01/service-2.json"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "boto-ec2",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "boto", 
+        "filesOrDirs=/Users/bartek/github/botocore/botocore/data/ec2/2016-11-15/service-2.json"
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",

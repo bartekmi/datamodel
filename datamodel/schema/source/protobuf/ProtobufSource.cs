@@ -19,7 +19,7 @@ namespace datamodel.schema.source.protobuf {
         private Dictionary<string, Enum> _enums = new Dictionary<string, Enum>();
 
         // 2nd (and final) stage of conversion
-        private Dictionary<string,Model> _models = new Dictionary<string, Model>();
+        private Dictionary<string, Model> _models = new Dictionary<string, Model>();
         private List<Association> _associations = new List<Association>();
 
         public const string PARAM_PATHS = "paths";
@@ -33,7 +33,6 @@ namespace datamodel.schema.source.protobuf {
         public override void Initialize(Parameters parameters) {
             FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);
             IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
-            string firstPath = files.FirstOrDefault()?.Path;
             _title = parameters.GetRawText(PARAM_PATHS);
             _urlPattern = parameters.GetString(PARAM_URL_PATTERN);
             _importRoot = parameters.GetString(PARAM_IMPORT_ROOT);
@@ -204,13 +203,13 @@ placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
         }
 
         private void AddAssociationForService(Model serviceModel, string otherSideQN) {
-                Association assoc = new Association() {
-                    OwnerSide = serviceModel.QualifiedName,
-                    OwnerMultiplicity = Multiplicity.Aggregation,
-                    OtherSide = otherSideQN,
-                    OtherMultiplicity = Multiplicity.One,
-                };
-                _associations.Add(assoc);
+            Association assoc = new Association() {
+                OwnerSide = serviceModel.QualifiedName,
+                OwnerMultiplicity = Multiplicity.Aggregation,
+                OtherSide = otherSideQN,
+                OtherMultiplicity = Multiplicity.One,
+            };
+            _associations.Add(assoc);
         }
 
         private string QualifiedName(PbType type) {
@@ -219,19 +218,18 @@ placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
             return typeName;
         }
 
-        private List<NamedType> NamedTypeList(string qualifiedName) {
-
-            return new List<NamedType>() {
-                new NamedType() {
+        private static List<NamedType> NamedTypeList(string qualifiedName) {
+            return [
+                new() {
                     Type = new DataType() {
                         Name = qualifiedName,
                     }
                 }
-            };
+            ];
         }
 
         private void PassTwoMessage(Message message) {
-            Model model = new Model() {
+            Model model = new() {
                 Name = message.Name,
                 QualifiedName = message.QualifiedName(),
                 Description = message.Comment,
@@ -286,7 +284,7 @@ placeholder - e.g. 'http://github.com/my/repo/blob/master/_FILE_#L_LINE+",
                 // Could collect these and spit out some warnings
                 // if (!_messages.TryGetValue(field.PbType.Name, out Message message))
                 //     throw new Exception("Unknown type for Field " + field);
-                
+
                 Association assoc = new Association() {
                     OwnerSide = model.QualifiedName,
                     OwnerMultiplicity = Multiplicity.Aggregation,

@@ -15,14 +15,14 @@ namespace datamodel.schema.source {
         }
 
         public override IEnumerable<Parameter> GetParameters() {
-            return new List<Parameter>() {
-                new Parameter() {
+            return [
+                new() {
                     Name = PARAM_FILE,
                     Description = "The name of the file which contains the SimpleSource JSON",
                     Type = ParamType.File,
                     IsMandatory = true,
                 }
-            };
+            ];
         }
 
         public override string GetTitle() {
@@ -30,12 +30,12 @@ namespace datamodel.schema.source {
         }
 
         public override IEnumerable<Model> GetModels() {
-            List<Model> models = new List<Model>();
+            List<Model> models = [];
             if (_schema.Models == null)
                 return models;
 
             foreach (SModel sModel in _schema.Models) {
-                Model model = new Model() {
+                Model model = new() {
                     Name = sModel.Name,
                     QualifiedName = sModel.Name,
                     Description = sModel.Description,
@@ -51,12 +51,12 @@ namespace datamodel.schema.source {
         }
 
         private List<Property> GetProperties(List<SProperty> sProperties) {
-            List<Property> properties = new List<Property>();
+            List<Property> properties = [];
             if (sProperties == null)
                 return properties;
 
             foreach (SProperty sProp in sProperties) {
-                Property property = new Property() {
+                Property property = new() {
                     Name = sProp.Name,
                     Description = sProp.Description,
                     DataType = sProp.Type,
