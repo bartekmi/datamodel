@@ -77,13 +77,24 @@ namespace datamodel {
 
                 // Create Schame
                 Schema schema = Schema.CreateSchema(source);
+
+                // Dump Schema (full and abridged formats)
                 string dumpSchemaFile = _parameters.GetString(Parameters.GLOBAL_PARAM_DUMP_SCHEMA);
                 if (dumpSchemaFile != null) {
-                    string schemaDump = JsonUtils.JsonPretty(schema);
+                    string schemaDump = JsonUtils.JsonPretty(schema, false);
                     if (dumpSchemaFile.ToLower() == "true")
                         Console.WriteLine(schemaDump);
                     else
                         File.WriteAllText(dumpSchemaFile, schemaDump);
+                }
+
+                string dumpSchemaSimpleFile = _parameters.GetString(Parameters.GLOBAL_PARAM_DUMP_SCHEMA_SIMPLE);
+                if (dumpSchemaSimpleFile != null) {
+                    string schemaDump = JsonUtils.JsonPretty(SchemaSimple.From(schema), false);
+                    if (dumpSchemaSimpleFile.ToLower() == "true")
+                        Console.WriteLine(schemaDump);
+                    else
+                        File.WriteAllText(dumpSchemaSimpleFile, schemaDump);
                 }
 
                 // Graph Graphviz output

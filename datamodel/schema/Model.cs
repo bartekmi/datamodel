@@ -11,6 +11,13 @@ namespace datamodel.schema {
         public string Name { get; set; }
         public string Value { get; set; }
         public bool IsUrl { get; set; }
+
+        public Label() { }
+
+        public Label(string name, string value) {
+            Name = name;
+            Value = value;
+        }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
@@ -43,7 +50,7 @@ namespace datamodel.schema {
 
         // These are used to group the models into a hierarchy
         private string[] _levels;
-        public string[] Levels { 
+        public string[] Levels {
             get { return _levels; }
             set {
                 _levels = value ?? new string[0];
@@ -64,11 +71,11 @@ namespace datamodel.schema {
         public List<Method> Methods { get; internal set; } = new List<Method>();
         public bool ShouldSerializeMethods() { return Methods != null && Methods.Count > 0; }
         // Arbitrary user-defined labels
-        public List<Label> Labels { get; set; }= new List<Label>();
+        public List<Label> Labels { get; set; } = [];
         public bool ShouldSerializeLabels() { return Labels != null && Labels.Count > 0; }
 
         [JsonIgnore]
-        public HierarchyItem LeafHierachyItem {get;set;}
+        public HierarchyItem LeafHierachyItem { get; set; }
 
         #region Re-Hydrated
         [JsonIgnore]
@@ -92,9 +99,9 @@ namespace datamodel.schema {
         [JsonIgnore]
         public bool HasPolymorphicInterfaces { get { return PolymorphicInterfaces.Any(); } }
         [JsonIgnore]
-        public bool HasRootLevel { get { return RootLevel != null; }}
+        public bool HasRootLevel { get { return RootLevel != null; } }
         [JsonIgnore]
-        public string RootLevel {get { return GetLevel(0); } }
+        public string RootLevel { get { return GetLevel(0); } }
 
         // Color String is assigned based on hierarchy
         private string _colorString;
@@ -103,7 +110,7 @@ namespace datamodel.schema {
             get { return ColorStringOverride ?? _colorString; }
             internal set { _colorString = value; }
         }
-        
+
         // ColorStringOverride can be set at any point, including by schema sources. This will override any color assignment due to
         // hierarchy grouping.
         [JsonIgnore]

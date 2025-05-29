@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -72,6 +73,7 @@ public class BotoShape {
 
   // General
   public string Documentation;
+  public Dictionary<string, string> Labels = [];  // Will be added to Model Labels
 
   // Not read from JSON but set for convenience
   public string ShapeName;
@@ -88,5 +90,12 @@ public class BotoShape {
 
   public override string ToString() {
     return ShapeName;
+  }
+
+  internal bool IsListOfPrimitive(Dictionary<string, BotoShape> mappings) {
+    if (!IsList)
+      return false;
+    BotoShape member = mappings[Member.Shape];
+    return member.IsPrimitive;
   }
 }

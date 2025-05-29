@@ -161,5 +161,20 @@
       "console": "integratedTerminal",
       "stopAtEntry": false
     },
+    {
+      "name": "boto-lambda",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "boto", 
+        "filesOrDirs=/Users/bartek/github/botocore/botocore/data/lambda/2015-03-31/service-2.json",
+        "dumpSchemaSimple=/Users/bartek/temp/lambda-dm-simple.json"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
   ]
 }

@@ -169,7 +169,8 @@ namespace datamodel.schema.source {
 
         public const string GLOBAL_PARAM_TWEAKS = "tweaks";
         public const string GLOBAL_PARAM_NO_GRAPHVIZ = "nographviz";
-        public const string GLOBAL_PARAM_DUMP_SCHEMA = "dumpschema";
+        public const string GLOBAL_PARAM_DUMP_SCHEMA = "dumpSchema";
+        public const string GLOBAL_PARAM_DUMP_SCHEMA_SIMPLE = "dumpSchemaSimple";
         public const string GLOBAL_PARAM_OUTPUT_DIR = "outdir";
 
         // Convenience Accessors
@@ -183,7 +184,7 @@ namespace datamodel.schema.source {
 
         #region Global Parameters
         private void AddGlobalParameters() {
-            Parameter[] globalParams = new Parameter[] {
+            Parameter[] globalParams = [
                 new Parameter() {
                     Name = GLOBAL_PARAM_TWEAKS,
                     Description = "Filename of JSON file which contains 'Tweaks' to the schema",
@@ -197,7 +198,12 @@ namespace datamodel.schema.source {
                 },
                 new Parameter() {
                     Name = GLOBAL_PARAM_DUMP_SCHEMA,
-                    Description = "Dump the schema to this file in internal JSON format.",
+                    Description = "Dump the schema to this file in internal JSON format. Set to 'true' to dump to stdout.",
+                    Type = ParamType.String,
+                },
+                new Parameter() {
+                    Name = GLOBAL_PARAM_DUMP_SCHEMA_SIMPLE,
+                    Description = "Dump A simpliefied version of the schema to this file in internal JSON format.. Set to 'true' to dump to stdout.",
                     Type = ParamType.String,
                 },
                 new Parameter() {
@@ -207,7 +213,7 @@ namespace datamodel.schema.source {
                     Default = Env.OUTPUT_ROOT_DIR_DEFAULT,
                 },
                 // Add other global parameters here
-            };
+            ];
 
             foreach (Parameter param in globalParams)
                 _params[param.Name] = param;
@@ -261,7 +267,7 @@ namespace datamodel.schema.source {
         #region Usage
         private void AppendUsage(StringBuilder builder) {
             foreach (Parameter parameter in _params.Values) {
-                builder.AppendLine(string.Format("'{0}' ({1}{2}) - {3}:", 
+                builder.AppendLine(string.Format("'{0}' ({1}{2}) - {3}:",
                     parameter.Name, parameter.IsMultiple ? "[]" : "", parameter.Type,
                     parameter.IsMandatory ? "Mandatory" : "Optional"));
                 builder.AppendLine("\t" + parameter.Description);
@@ -345,7 +351,7 @@ namespace datamodel.schema.source {
 
         private object GetParamValue(string paramName, ParamType type, bool isMultiple = false) {
             Parameter parameter = GetParameter(paramName);
-            
+
             if (isMultiple != parameter.IsMultiple)
                 throw new Exception("Inconsistent parameter multiplicity requested; fix your code: " + paramName);
             if (parameter.Type != type)

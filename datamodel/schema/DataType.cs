@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
 using Newtonsoft.Json;
-
-using datamodel.utils;
-using datamodel.toplevel;
 
 namespace datamodel.schema {
     // Represents a primitive, enum or reference data type. Used for

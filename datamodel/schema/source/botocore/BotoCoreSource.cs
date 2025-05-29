@@ -3,6 +3,9 @@ using System.Linq;
 using datamodel.utils;
 using Newtonsoft.Json;
 
+using datamodel.schema;
+using System;
+
 namespace datamodel.schema.source.botocore;
 
 public class BotoCoreSource : SchemaSource {
@@ -110,6 +113,8 @@ public class BotoCoreSource : SchemaSource {
         // Step 3 - Recursively process each operation to extract all its shapes
         Dictionary<string, BotoShape> namesToShapes = [];
         foreach (BotoOperation operation in operations) {
+            BotoShape outputShape = service.Shapes[operation.Output.Shape];
+            outputShape.Labels["Output For"] = operation.Name;
             RecursivelyExtractShapes(service, namesToShapes, operation.Output.Shape, 0);
         }
 
@@ -127,8 +132,10 @@ public class BotoCoreSource : SchemaSource {
 
         BotoShape shape = service.Shapes[shapeName];
         shape.ShapeName = shapeName;
-        if (level > 0)  // Avoid adding "Output" structures, which do not contribue to model
-            namesToShapes[shapeName] = shape;
+
+        // commented out because Lambda has direct output that are interesting
+        // if (level > 0)  // Avoid adding "Output" structures, which do not contribue to model
+        namesToShapes[shapeName] = shape;
 
         string[] nestedShapeNames = null;
         switch (shape.Type) {
@@ -139,7 +146,7 @@ public class BotoCoreSource : SchemaSource {
                 nestedShapeNames = [shape.Member.Shape];
                 break;
             case "map":
-                nestedShapeNames = [shape.Value.Shape];
+                nestedShapeNames = [shape.Key.Shape, shape.Value.Shape];
                 break;
         }
 
@@ -178,7 +185,7 @@ public class BotoCoreSource : SchemaSource {
             } else if (shape.IsMap) {
                 BotoShape valueShape = mappings[shape.Value.Shape];
 
-                if (valueShape.IsPrimitive)
+                if (valueShape.IsPrimitive || valueShape.IsListOfPrimitive(mappings))
                     // If map value type is primitive, just treat this is a primitive field
                     structure.Model.AllProperties.Add(new() {
                         Name = memberName,
@@ -187,12 +194,16 @@ public class BotoCoreSource : SchemaSource {
                         CanBeEmpty = !structure.IsRequired(memberName),
                     });
                 else {
+                    // TODO: There is an edge case where map values can be things other than structures 
+                    // - e.g. lists. In that case, valueShape.Model is null. We do not yet handle this case.
+                    if (valueShape.Model == null)
+                        throw new NotImplementedException();
+
                     // Otherwise, we have to make some assumptions (at least for now)...
                     // 1. The type of the key has meaningful semantics. We add this key as a member
                     //    of the "Value" Model
                     // 2. This key type is being used consistently throughout the service
                     // TODO: Write code to verify these assumptions
-
                     BotoShape keyType = mappings[shape.Key.Shape];
                     valueShape.Model.AllProperties.Add(new() {
                         Name = keyType.ShapeName,
@@ -245,6 +256,7 @@ public class BotoCoreSource : SchemaSource {
             AllProperties = GetProperties(structure, mappings, structure.Members)
         };
 
+        model.Labels.AddRange(structure.Labels.Select(x => new Label(x.Key, x.Value)));
         _models.Add(model);
         structure.Model = model;
 
