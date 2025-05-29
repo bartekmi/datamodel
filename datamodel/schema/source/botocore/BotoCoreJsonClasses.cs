@@ -25,6 +25,14 @@ public class BotoOperation {
   public List<BotoShapeReference> Errors;
   public string Documentation;
   public bool Idempotent;
+
+  // Derived
+  public bool IsListOp => Name.StartsWith("List");
+  public bool IsGetOp => Name.StartsWith("Get") || Name.StartsWith("Describe");
+
+  public override string ToString() {
+    return Name;
+  }
 }
 
 public class BotoHttp {

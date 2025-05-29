@@ -3,7 +3,6 @@ using System.Linq;
 using datamodel.utils;
 using Newtonsoft.Json;
 
-using datamodel.schema;
 using System;
 
 namespace datamodel.schema.source.botocore;
@@ -81,19 +80,16 @@ public class BotoCoreSource : SchemaSource {
     /**
     * There are many shapes in every service that do not contribute to the
     * data model. For example, shapes that only serve as data input.
-    * 
-    * The strategy is as follows...
-    * 1. Find all get/describe/list operations
-    * 2. Remove List operations for which get/describe ops exist
-    * 3. Recursively mark these shapes for inclusion in the model
     */
     private static Dictionary<string, BotoShape> FindInterestingShapes(BotoService service) {
-        // Step 1 - Find get/describe/list operations
-        string[] prefixes = ["Get", "Describe", "List"];
+        // Step 0 - Hydration / house-keeping
+        foreach (var shape in service.Shapes)
+            shape.Value.ShapeName = shape.Key;  // Set the shape name of BotoShape
 
+        // Step 1 - Find get/describe/list operations
         HashSet<BotoOperation> operations = service.Operations.Values
-            .Where(x => prefixes.Any(y => x.Name.StartsWith(y)))
-            .ToHashSet();
+        .Where(x => x.IsListOp || x.IsGetOp)
+        .ToHashSet();
 
         // Step 2 - remove list operations for which get/describe equivalents exist
         foreach (BotoOperation operation in operations.ToList()) {
@@ -113,9 +109,35 @@ public class BotoCoreSource : SchemaSource {
         // Step 3 - Recursively process each operation to extract all its shapes
         Dictionary<string, BotoShape> namesToShapes = [];
         foreach (BotoOperation operation in operations) {
-            BotoShape outputShape = service.Shapes[operation.Output.Shape];
+            string outputShapeName = operation.Output.Shape;
+            BotoShape outputShape = service.Shapes[outputShapeName];
+
+            // Sometimes, top-level structures are uninteresting, so ignore them
+            // Top level struct of List output are boring
+            if (operation.IsListOp) {
+                BotoShape singleNestedShape = null;
+                foreach (string nestedShapeName in outputShape.Members.Values.Select(x => x.Shape)) {
+                    BotoShape nestedShape = service.Shapes[nestedShapeName];
+                    if (nestedShape.IsList) {
+                        if (singleNestedShape != null)
+                            throw new NotImplementedException("How to deal with multiple lists at top level of List... operation?");
+                        singleNestedShape = nestedShape;
+                    }
+                }
+                if (singleNestedShape == null)
+                    continue;       // E.g. ListTags operation
+                outputShape = singleNestedShape;
+
+                // Get/Describe output if it only contains a single nested structure is boring
+            } else if (operation.IsGetOp && outputShape.Members.Count == 1) {
+                string singleMemberShapeName = outputShape.Members.Values.Single().Shape;
+                BotoShape singleMemberShape = service.Shapes[singleMemberShapeName];
+                if (singleMemberShape.IsStructure)
+                    outputShape = singleMemberShape;
+            }
+
             outputShape.Labels["Output For"] = operation.Name;
-            RecursivelyExtractShapes(service, namesToShapes, operation.Output.Shape, 0);
+            RecursivelyExtractShapes(service, namesToShapes, outputShape.ShapeName);
         }
 
         return namesToShapes;
@@ -124,17 +146,12 @@ public class BotoCoreSource : SchemaSource {
     private static void RecursivelyExtractShapes(
         BotoService service,
         Dictionary<string, BotoShape> namesToShapes,
-        string shapeName,
-        int level
+        string shapeName
     ) {
         if (namesToShapes.ContainsKey(shapeName))
             return; // Nothing new to process
 
         BotoShape shape = service.Shapes[shapeName];
-        shape.ShapeName = shapeName;
-
-        // commented out because Lambda has direct output that are interesting
-        // if (level > 0)  // Avoid adding "Output" structures, which do not contribue to model
         namesToShapes[shapeName] = shape;
 
         string[] nestedShapeNames = null;
@@ -152,7 +169,7 @@ public class BotoCoreSource : SchemaSource {
 
         if (nestedShapeNames != null)
             foreach (string nestedShapeName in nestedShapeNames)
-                RecursivelyExtractShapes(service, namesToShapes, nestedShapeName, level + 1);
+                RecursivelyExtractShapes(service, namesToShapes, nestedShapeName);
     }
 
     private void ExtractAssociations(
