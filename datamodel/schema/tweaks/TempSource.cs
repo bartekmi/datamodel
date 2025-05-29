@@ -19,7 +19,7 @@ namespace datamodel.schema.tweaks {
         public override IEnumerable<Parameter> GetParameters() {
             return new List<Parameter>();
         }
-        public override void Initialize(Parameters parameters) {}
+        public override void Initialize(Parameters parameters) { }
 
         // Derived
         [JsonIgnore]
@@ -87,14 +87,14 @@ namespace datamodel.schema.tweaks {
         }
 
         public void SetModels(IEnumerable<Model> models) {
-             IEnumerable<string> duplicateNames = models.Select(x => x.QualifiedName)
-                .GroupBy(x => x)
-                .Where(x => x.Count() > 1)
-                .Select(x => x.Key);
+            IEnumerable<string> duplicateNames = models.Select(x => x.QualifiedName)
+               .GroupBy(x => x)
+               .Where(x => x.Count() > 1)
+               .Select(x => x.Key);
 
             if (duplicateNames.Count() > 0)
                 throw new Exception("Duplicate Model qualified names: " + string.Join(", ", duplicateNames));
-            
+
             Models = models.ToDictionary(x => x.QualifiedName);
         }
 
@@ -104,15 +104,25 @@ namespace datamodel.schema.tweaks {
             Models[model.QualifiedName] = model;
         }
 
-        public void RenameModel(Model model, string newQualifiedName, string newName) {
+        public void RenameModel(Model model, string newName) {
+            // Calculate new qualified name
+            string newQualifiedName;
+            int lastDotIndex = model.QualifiedName.LastIndexOf('.');
+            if (lastDotIndex == -1)
+                newQualifiedName = newName;
+            else
+                newQualifiedName = model.QualifiedName.Substring(0, lastDotIndex + 1) + newName;
+
+            // Rename in associations
             foreach (Association assoc in Associations) {
                 if (assoc.OwnerSide == model.QualifiedName)
                     assoc.OwnerSide = newQualifiedName;
-                    
+
                 if (assoc.OtherSide == model.QualifiedName)
                     assoc.OtherSide = newQualifiedName;
             }
 
+            // Rename model itself
             model.QualifiedName = newQualifiedName;
             model.Name = newName;
 
@@ -145,7 +155,7 @@ namespace datamodel.schema.tweaks {
                     NullValueHandling = NullValueHandling.Ignore,
                     DefaultValueHandling = DefaultValueHandling.Ignore,
                     Formatting = Formatting.Indented,
-                    Converters = new List<JsonConverter>() { new StringEnumConverter()},
+                    Converters = new List<JsonConverter>() { new StringEnumConverter() },
                 });
 
             // Quotes are a pain because the make it hard to copy-and-paste results as the 

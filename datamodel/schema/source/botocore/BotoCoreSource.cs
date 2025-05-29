@@ -18,6 +18,7 @@ public class BotoCoreSource : SchemaSource {
     public BotoCoreSource() {
         Tweaks = [
             new RemoveLowValuesModels(),
+            new RenameModels(),
         ];
     }
 
