@@ -183,9 +183,9 @@
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
-        "plantuml", 
-        "paths=schema/source/plantuml/puml/vcf/global.puml",
-        "dumpSchema=true"
+        "plantuml"
+        ,"paths=schema/source/plantuml/puml/vcf"
+        // ,"dumpSchema=true"
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",

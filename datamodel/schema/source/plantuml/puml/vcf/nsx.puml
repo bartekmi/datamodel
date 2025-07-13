@@ -1,0 +1,64 @@
+@startuml nsx
+
+
+' An NSX Manager instance dedicated to a domain
+class nsx.NsxManager {
+  ' NSX Manager hostname
+  String fqdn
+
+  ' Version info
+  String version
+
+  ' Health or state indicator
+  String status
+}
+
+' NSX Transport Zone determines how traffic is carried
+class nsx.TransportZone {
+  ' Name of the transport zone
+  String Name
+
+  ' Type of zone (Overlay, VLAN)
+  String Type
+}
+
+' NSX Logical Segment (L2 broadcast domain)
+class nsx.Segment {
+  ' Name of the segment
+  String Name
+
+  ' CIDR range
+  String Cidr
+
+  ' Backing transport zone
+  String TransportZone
+}
+
+' Uplink profile (e.g., MTU, Teaming policy)
+class nsx.UplinkProfile {
+  ' Name of the profile
+  String Name
+
+  ' MTU size
+  Integer Mtu
+
+  ' Teaming policy (e.g., LoadBalanceSource)
+  String TeamingPolicy
+}
+
+' TEP (Tunnel Endpoint) for Geneve traffic
+class nsx.TunnelEndpoint {
+  ' IP address of the TEP
+  String Ip
+
+  ' Associated host ID
+  String HostId
+}
+
+' Associations
+nsx.NsxManager "1" --> "1..*" nsx.TransportZone : transportZones
+nsx.NsxManager "1" --> "1..*" nsx.Segment : segments
+nsx.NsxManager "1" --> "0..*" nsx.UplinkProfile : uplinkProfiles
+nsx.NsxManager "1" --> "0..*" nsx.TunnelEndpoint : tunnelEndpoints
+
+@enduml

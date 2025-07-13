@@ -1,0 +1,59 @@
+@startuml edge
+
+' NSX Edge Cluster backing a workload domain
+class edge.EdgeCluster {
+  ' Unique ID of the edge cluster
+  String Id
+
+  ' Display name for UI
+  String Name
+
+  ' Number of edge nodes in this cluster
+  Integer NodeCount
+}
+
+' Represents an individual NSX Edge Node
+class edge.EdgeNode {
+  ' UUID of the edge node
+  String Id
+
+  ' Display name of the node
+  String Name
+
+  ' Form factor (Small, Medium, Large)
+  String Size
+
+  ' Node status (e.g., UP, DOWN)
+  String Status
+}
+
+' Represents a network interface on an Edge Node
+class edge.EdgeInterface {
+  ' Interface name (e.g., eth0)
+  String Name
+
+  ' IP address of the interface
+  String IpAddress
+
+  ' Connected VLAN ID
+  Integer VlanId
+}
+
+' Logical Tier-1 Gateway for tenant routing
+class edge.Tier1Gateway {
+  ' Name of the Tier-1 gateway
+  String Name
+
+  ' Routing type (e.g., ECMP, SR)
+  String RoutingType
+
+  ' HA mode (Active-Active, Active-Standby)
+  String HaMode
+}
+
+' Relationships
+edge.EdgeCluster "1" --> "1..*" edge.EdgeNode : nodes
+edge.EdgeNode "1" --> "1..*" edge.EdgeInterface : interfaces
+edge.EdgeCluster "1" --> "0..*" edge.Tier1Gateway : tier1s
+
+@enduml

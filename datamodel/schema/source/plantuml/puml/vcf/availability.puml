@@ -1,0 +1,35 @@
+@startuml availability-zone
+
+' Availability Zone entity, typically used in stretched cluster configurations
+class availability.AvailabilityZone {
+  ' Unique identifier
+  String Id
+
+  ' Human-readable name
+  String Name
+
+  ' Region or site name (e.g., AZ1, AZ2)
+  String Region
+
+  ' Description of the zone’s purpose or characteristics
+  String Description
+}
+
+' Fault domain within an availability zone
+class availability.FaultDomain {
+  ' Identifier
+  String Id
+
+  ' Name of the fault domain
+  String Name
+
+  ' Optional notes or labels
+  String Notes
+}
+
+' Associations
+availability.AvailabilityZone "1" --> "0..*" availability.FaultDomain : faultDomains
+availability.FaultDomain "1" --> "1..*" host.Host : hosts
+cluster.Cluster "0..1" --> "2" availability.AvailabilityZone : availabilityZones
+
+@enduml

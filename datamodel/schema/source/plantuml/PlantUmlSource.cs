@@ -21,7 +21,6 @@ public class PlantUmlSource : SchemaSource {
     foreach (PathAndContent pac in files) {
       string[] lines = pac.Content.Split("\n");
       Parse(subclassToSuperclass, lines);
-
     }
 
     foreach (var mapping in subclassToSuperclass)
@@ -82,14 +81,19 @@ public class PlantUmlSource : SchemaSource {
       //   class ClassName {
       Match classDecl = Regex.Match(line, @"^class\s+([\w._]+)\s*(\{)?");
       if (classDecl.Success) {
-        string className = classDecl.Groups[1].Value;
+        string qualClassName = classDecl.Groups[1].Value;
+        string[] pieces = qualClassName.Split('.');
+        string className = pieces.Last();
+        string[] levels = pieces.Take(pieces.Count() - 1).ToArray();
+
         currentModel = new Model {
-          Name = className.Split('.').Last(),
-          QualifiedName = className,
+          Name = className,
+          QualifiedName = qualClassName,
+          Levels = levels,
           Description = getAndClearComments(),
           AllProperties = []
         };
-        _models[className] = currentModel;
+        _models[qualClassName] = currentModel;
 
         // For the case without a terminal {, there are no properties
         if (!line.EndsWith('{'))
@@ -174,14 +178,23 @@ public class PlantUmlSource : SchemaSource {
     }
   }
 
-  private Multiplicity ParseMultiplicity(string card) {
-    return card switch {
-      "1" => Multiplicity.One,
-      "0..1" => Multiplicity.ZeroOrOne,
-      "0..*" => Multiplicity.Many,
-      "1..*" => Multiplicity.Many,  // Future: we could have new type for this
-      "*" => Multiplicity.Many,
-      _ => Multiplicity.One
-    };
+  private static Multiplicity ParseMultiplicity(string card) {
+    if (int.TryParse(card, out int value) && value > 1)
+      return Multiplicity.Many;
+
+    switch (card) {
+      case "1":
+        return Multiplicity.One;
+      case "0..1":
+        return Multiplicity.ZeroOrOne;
+      case "0..*":
+      case "1..*":
+      case "*":
+        return Multiplicity.Many;
+      default:
+        Error.Log("Unexpected multiplicity: {0}", card);
+        return Multiplicity.One;  // Fallback
+    }
+    ;
   }
 }

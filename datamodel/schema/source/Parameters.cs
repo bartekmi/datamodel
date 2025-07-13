@@ -159,6 +159,10 @@ namespace datamodel.schema.source {
             string content = readContent ? File.ReadAllText(path) : null;
             return new PathAndContent(path, content);
         }
+
+        public override string ToString() {
+            return Path;
+        }
     }
     #endregion
     #endregion

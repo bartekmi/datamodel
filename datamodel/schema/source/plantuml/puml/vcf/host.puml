@@ -1,0 +1,70 @@
+@startuml host
+
+
+' A Host is a physical ESXi server within a Cluster.
+class host.Host {
+  ' FQDN or IP address of the host
+  String fqdn
+
+  ' Hardware vendor/model info
+  String vendor
+
+  ' Host status (CONNECTED, DISCONNECTED, etc.)
+  String status
+}
+
+' Host BIOS and system info
+class host.Bios {
+  ' BIOS vendor name
+  String Vendor
+
+  ' BIOS version string
+  String Version
+
+  ' BIOS release date
+  String ReleaseDate
+}
+
+' Host network configuration
+class host.NetworkConfig {
+  ' Hostname of the ESXi server
+  String Hostname
+
+  ' Management IP address
+  String ManagementIp
+
+  ' MAC address of management NIC
+  String MacAddress
+
+  ' VLAN ID for management traffic
+  Integer VlanId
+}
+
+' Host storage configuration
+class host.StorageConfig {
+  ' Type of storage (e.g., Local, vSAN, NFS)
+  String Type
+
+  ' Total storage capacity in GB
+  Integer TotalCapacityGb
+
+  ' Number of datastores configured
+  Integer DatastoreCount
+}
+
+' Optional tags assigned to hosts
+class host.Tag {
+  ' Tag name
+  String Name
+
+  ' Description of the tag
+  String Description
+}
+
+' Associations from host.Host
+host.Host "1" --> "0..1" host.Bios : bios
+host.Host "1" --> "1" host.NetworkConfig : network
+host.Host "1" --> "1" host.StorageConfig : storage
+host.Host "1" --> "0..*" host.Tag : tags
+
+@enduml

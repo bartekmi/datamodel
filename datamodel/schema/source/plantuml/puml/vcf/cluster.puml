@@ -1,0 +1,59 @@
+@startuml cluster
+
+' Cluster configuration components
+
+' A Cluster is a compute group associated with a Workload Domain.
+class cluster.Cluster {
+  ' Unique identifier for the cluster
+  String id
+
+  ' Name of the cluster
+  String name
+
+  ' Cluster type (e.g., MANAGEMENT, COMPUTE)
+  String type
+}
+
+
+' DRS Configuration — Distributed Resource Scheduler
+class cluster.DrsConfig {
+  ' Whether DRS is enabled
+  Boolean Enabled
+  
+  ' DRS automation level (e.g., Manual, PartiallyAutomated, FullyAutomated)
+  String AutomationLevel
+  
+  ' DRS migration threshold (1 to 5)
+  Integer MigrationThreshold
+}
+
+' HA Configuration — vSphere High Availability
+class cluster.HaConfig {
+  ' Whether HA is enabled
+  Boolean Enabled
+  
+  ' Admission control policy (e.g., Disabled, Enabled)
+  String AdmissionControlPolicy
+  
+  ' Host monitoring setting (e.g., Enabled/Disabled)
+  Boolean HostMonitoring
+}
+
+' VSAN Configuration — vSphere Storage Area Network
+class cluster.VsanConfig {
+  ' Whether vSAN is enabled
+  Boolean Enabled
+  
+  ' Deduplication and compression enabled
+  Boolean Deduplication
+  
+  ' vSAN storage policy
+  String StoragePolicy
+}
+
+' vSphere cluster configuration links
+cluster.Cluster "1" --> "1" cluster.DrsConfig : drs
+cluster.Cluster "1" --> "1" cluster.HaConfig : ha
+cluster.Cluster "1" --> "0..1" cluster.VsanConfig : vsan
+
+@enduml

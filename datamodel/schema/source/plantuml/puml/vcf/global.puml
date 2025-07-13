@@ -19,58 +19,13 @@ class global.WorkloadDomain {
   String status
 }
 
-' A Cluster is a compute group associated with a Workload Domain.
-class global.Cluster {
-  ' Unique identifier for the cluster
-  String id
-
-  ' Name of the cluster
-  String name
-
-  ' Cluster type (e.g., MANAGEMENT, COMPUTE)
-  String type
-}
-
-' A Host is a physical ESXi server within a Cluster.
-class global.Host {
-  ' FQDN or IP address of the host
-  String fqdn
-
-  ' Hardware vendor/model info
-  String vendor
-
-  ' Host status (CONNECTED, DISCONNECTED, etc.)
-  String status
-}
-
-' A vCenter is a vSphere management endpoint for a domain.
-class global.VCenter {
-  ' vCenter hostname or IP
-  String fqdn
-
-  ' Associated SSO domain
-  String ssoDomain
-
-  ' Certificate thumbprint for validation
-  String thumbprint
-}
-
-' An NSX Manager instance dedicated to a domain
-class global.NsxManager {
-  ' NSX Manager hostname
-  String fqdn
-
-  ' Version info
-  String version
-
-  ' Health or state indicator
-  String status
-}
-
 ' A vSAN Datastore backing clusters in the domain
 class global.Datastore {
   ' Name of the datastore
   String name
+
+  ' Type (e.g., VMFS, vSAN, NFS)
+  String Type
 
   ' Capacity in GB
   Integer capacityGb
@@ -79,26 +34,62 @@ class global.Datastore {
   Integer freeGb
 }
 
+' A Datacenter contains one or more clusters
+' Each cluster belongs to exactly one Datacenter
+global.Datacenter "1" --> "1..*" cluster.Cluster : clusters
 
-' A domain contains one or more clusters
-' Each cluster belongs to exactly one domain
-' Domain "1" --> "1..*" Cluster
-global.WorkloadDomain "1" --> "1..*" global.Cluster : clusters
 
 ' A cluster contains one or more hosts
 ' A host belongs to one cluster
-global.Cluster "1" --> "1..*" global.Host : hosts
-
-' A workload domain has exactly one vCenter
-' A vCenter serves one domain
-global.WorkloadDomain "1" --> "1" global.VCenter : vcenter
+cluster.Cluster "1" --> "1..*" host.Host : hosts
 
 ' A workload domain has one NSX Manager
 ' An NSX Manager serves one domain
-global.WorkloadDomain "1" --> "1" global.NsxManager : nsxManager
+global.WorkloadDomain "1" --> "1" nsx.NsxManager : nsxManager
 
 ' A cluster uses one datastore
 ' A datastore may be shared by multiple clusters (in rare cases)
-global.Cluster "1" --> "1..*" global.Datastore : datastores
+cluster.Cluster "1" --> "1..*" global.Datastore : datastores
+
+
+' Datacenter object in vCenter (container for clusters)
+class global.Datacenter {
+  ' Name of the datacenter
+  String Name
+}
+
+' Resource pool within a cluster
+class global.ResourcePool {
+  ' Name of the pool
+  String Name
+
+  ' CPU shares
+  String CpuShares
+
+  ' Memory shares
+  String MemoryShares
+}
+
+' Virtual Machine object
+class global.VirtualMachine {
+  ' Name of the VM
+  String Name
+
+  ' Power state (on/off)
+  String PowerState
+
+  ' Guest OS
+  String GuestOs
+
+  ' IP address (if available)
+  String IpAddress
+}
+
+global.WorkloadDomain "1" --> "1..*" global.Datacenter : datacenters
+cluster.Cluster "1" --> "0..*" global.ResourcePool : resourcePools
+global.ResourcePool "1" --> "0..*" global.VirtualMachine : virtualMachines
+global.VirtualMachine "0..1" --> "1" host.Host : hostedOn
+
+
 
 @enduml
