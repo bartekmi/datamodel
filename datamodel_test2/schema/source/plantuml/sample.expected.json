@@ -1,0 +1,111 @@
+{
+  Title: PlantUML Model,
+  Models: [
+    {
+      Name: FileSystemObject,
+      QualifiedName: FileSystemObject,
+      AllProperties: [
+        {
+          DataType: Integer,
+          Name: Id
+        },
+        {
+          DataType: String,
+          Name: Name
+        }
+      ]
+    },
+    {
+      Name: Directory,
+      QualifiedName: Directory,
+      AllProperties: [
+        {
+          DataType: ID,
+          Name: contents
+        }
+      ]
+    },
+    {
+      SuperClassName: FileSystemObject,
+      Name: File,
+      QualifiedName: File,
+      AllProperties: [
+        {
+          DataType: Bytes,
+          Name: Data
+        }
+      ]
+    },
+    {
+      SuperClassName: FileSystemObject,
+      Name: SymLink,
+      QualifiedName: SymLink,
+      AllProperties: [
+        {
+          DataType: String,
+          Name: Path
+        },
+        {
+          DataType: ID,
+          Name: target
+        }
+      ]
+    },
+    {
+      Name: Process,
+      QualifiedName: Process,
+      AllProperties: [
+        {
+          DataType: Integer,
+          Name: Pid
+        },
+        {
+          DataType: String,
+          Name: State
+        },
+        {
+          DataType: ID,
+          Name: threads
+        }
+      ]
+    },
+    {
+      Name: Thread,
+      QualifiedName: Thread,
+      AllProperties: [
+        {
+          DataType: Integer,
+          Name: Id
+        },
+        {
+          DataType: String,
+          Name: Name
+        }
+      ]
+    }
+  ],
+  Associations: [
+    {
+      OwnerSide: SymLink,
+      OwnerMultiplicity: ZeroOrOne,
+      OtherSide: FileSystemObject,
+      OtherRole: target,
+      OtherMultiplicity: Many
+    },
+    {
+      OwnerSide: Directory,
+      OwnerMultiplicity: One,
+      OtherSide: FileSystemObject,
+      OtherRole: contents,
+      OtherMultiplicity: Many
+    },
+    {
+      OwnerSide: Process,
+      OwnerMultiplicity: One,
+      OtherSide: Thread,
+      OtherRole: threads,
+      OtherMultiplicity: Many
+    }
+  ],
+  Interfaces: {}
+}

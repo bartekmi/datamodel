@@ -176,5 +176,19 @@
       "console": "integratedTerminal",
       "stopAtEntry": false
     },
+    {
+      "name": "plantuml",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "plantuml", 
+        "file=../datamodel_test2/schema/source/plantuml/sample.puml"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
   ]
 }

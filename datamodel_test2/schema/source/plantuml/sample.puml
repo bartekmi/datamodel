@@ -1,0 +1,44 @@
+@startuml
+
+' Simple abstract base class
+class FileSystemObject {
+  Integer Id
+  String Name
+}
+
+' Directory inherits from FileSystemObject
+class Directory
+Directory --|> FileSystemObject
+
+' File inherits from FileSystemObject
+class File {
+  Bytes Data
+}
+File --|> FileSystemObject
+
+' SymLink inherits from FileSystemObject and references another FileSystemObject
+class SymLink {
+  String Path
+}
+SymLink --|> FileSystemObject
+SymLink "0..1" --> "0..*" FileSystemObject : target
+
+' A Directory contains many FileSystemObjects
+Directory "1" --> "0..*" FileSystemObject : contents
+
+' Process class (new)
+class Process {
+  Integer Pid
+  String State
+}
+
+' Thread class (new)
+class Thread {
+  Integer Id
+  String Name
+}
+
+' Process has many threads (aggregation)
+Process "1" o-- "0..*" Thread : threads
+
+@enduml

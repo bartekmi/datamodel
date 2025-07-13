@@ -15,6 +15,7 @@ using datamodel.datadict;
 using datamodel.toplevel;
 using datamodel.utils;
 using datamodel.graphviz;
+using datamodel.schema.source.plantuml;
 
 [assembly: InternalsVisibleTo("datamodel_test2")]
 
@@ -49,6 +50,7 @@ namespace datamodel {
                 Error.Clear();
 
                 Dictionary<string, SchemaSource> schemaSources = new() {
+                    { "plantuml", new PlantUmlSource() },
                     { "boto", new BotoCoreSource() },
                     { "json", new JsonSource() },
                     { "k8s", new K8sSwaggerSource() },
