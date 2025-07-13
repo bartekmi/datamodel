@@ -18,7 +18,7 @@ public class PlantUmlSourceTest {
     [Fact]
     public void ParsePlanUml() {
         PlantUmlSource source = new();
-        source.Initialize(new Parameters(source, ["file=../../../schema/source/plantuml/sample.puml"]));
+        source.Initialize(new Parameters(source, ["paths=../../../schema/source/plantuml/sample.puml"]));
         Schema schema = Schema.CreateSchema(source);
 
         string schemaString = JsonUtils.JsonPretty(schema);

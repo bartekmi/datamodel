@@ -1,19 +1,28 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using YamlDotNet.Core.Events;
 
 namespace datamodel.schema.source.plantuml;
 
+// Parser for PlantUML language for Data Models.
+// Online display of raw PlanUML: https://www.plantuml.com
 public class PlantUmlSource : SchemaSource {
-  private const string PARAM_FILE = "file";
+  private const string PARAM_PATHS = "paths";
 
   private readonly Dictionary<string, Model> _models = [];
   private readonly List<Association> _associations = [];
 
   public override void Initialize(Parameters parameters) {
-    string[] lines = parameters.GetFileContent(PARAM_FILE).Split("\n");
-    Dictionary<string, string> subclassToSuperclass = Parse(lines);
+    FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_PATHS);
+    IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
+    Dictionary<string, string> subclassToSuperclass = [];
+
+    foreach (PathAndContent pac in files) {
+      string[] lines = pac.Content.Split("\n");
+      Parse(subclassToSuperclass, lines);
+
+    }
 
     foreach (var mapping in subclassToSuperclass)
       if (_models.TryGetValue(mapping.Key, out Model model))
@@ -22,12 +31,14 @@ public class PlantUmlSource : SchemaSource {
 
   public override IEnumerable<Parameter> GetParameters() {
     return [
-        new() {
-                Name = PARAM_FILE,
-                Description = "The name of the file which contains the PlantUML model",
-                Type = ParamType.File,
-                IsMandatory = true,
-            }
+      new ParameterFileOrDir() {
+          Name = PARAM_PATHS,
+          Description = "The name of the file or directoery which contains the root *.puml file(s). If directory, it is scanned recursively.",
+          IsMandatory = true,
+          IsMultiple = true,
+          FilePattern = "*.puml",
+          ReadContent = true,
+      },
     ];
   }
 
@@ -37,9 +48,8 @@ public class PlantUmlSource : SchemaSource {
 
   public override IEnumerable<Association> GetAssociations() => _associations;
 
-  private Dictionary<string, string> Parse(string[] lines) {
+  private void Parse(Dictionary<string, string> subclassToSuperclass, string[] lines) {
     Model currentModel = null;
-    Dictionary<string, string> subclassToSuperclass = [];
 
     foreach (string line in GetLogicalLines(lines)) {
       if (line == "}") {
@@ -67,13 +77,14 @@ public class PlantUmlSource : SchemaSource {
       }
 
       // class declaration. Matches...
+      //.  class namespece.ClassName
       //   class ClassName
       //   class ClassName {
-      Match classDecl = Regex.Match(line, @"^class\s+(\w+)\s*(\{)?");
+      Match classDecl = Regex.Match(line, @"^class\s+([\w._]+)\s*(\{)?");
       if (classDecl.Success) {
         string className = classDecl.Groups[1].Value;
         currentModel = new Model {
-          Name = className,
+          Name = className.Split('.').Last(),
           QualifiedName = className,
           Description = getAndClearComments(),
           AllProperties = []
@@ -83,11 +94,13 @@ public class PlantUmlSource : SchemaSource {
         // For the case without a terminal {, there are no properties
         if (!line.EndsWith('{'))
           currentModel = null;
+
+        continue;
       }
 
       // inheritance. Maatches...
       //  Employee --|> Person
-      Match inheritance = Regex.Match(line, @"^(\w+)\s+--\|>\s+(\w+)");
+      Match inheritance = Regex.Match(line, @"^([\w._]+)\s+--\|>\s+([\w._]+)");
       if (inheritance.Success) {
         string subClass = inheritance.Groups[1].Value;
         string superClass = inheritance.Groups[2].Value;
@@ -99,7 +112,7 @@ public class PlantUmlSource : SchemaSource {
       //  Person "1" --> "0..*" Address : livesAt
       //  Order "1" o-- "0..*" Item : contains
       //  House "1" *-- "1..3" Room
-      Match association = Regex.Match(line, @"^(\w+)\s+""([^""]+)""\s+([<o*]*[-.]+[->o]*)\s+""([^""]+)""\s+(\w+)(\s*:\s*(.+))?");
+      Match association = Regex.Match(line, @"^([\w._]+)\s+""([^""]+)""\s+([<o*]*[-.]+[->o]*)\s+""([^""]+)""\s+([\w._]+)(\s*:\s*(.+))?");
       if (association.Success) {
         string aModel = association.Groups[1].Value;
         string aCard = association.Groups[2].Value;
@@ -121,10 +134,12 @@ public class PlantUmlSource : SchemaSource {
           assoc.OwnerMultiplicity = Multiplicity.Aggregation;
 
         _associations.Add(assoc);
+        continue;
       }
-    }
 
-    return subclassToSuperclass;
+      // If we got this far, we did not understand the line. Output an error
+      Error.Log("Did not understand PlantUML line: {0}", line);
+    }
   }
 
   private readonly StringBuilder _commentsBuilder = new();
@@ -147,7 +162,12 @@ public class PlantUmlSource : SchemaSource {
         continue;
       }
 
-      if (string.IsNullOrWhiteSpace(line) || line.StartsWith("@"))
+      if (line.StartsWith('@')) {
+        getAndClearComments();  // This allows for comments before @startuml
+        continue;
+      }
+
+      if (string.IsNullOrWhiteSpace(line))  // Ignore blank lines
         continue;
 
       yield return line;
