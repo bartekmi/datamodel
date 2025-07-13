@@ -4,6 +4,7 @@
     {
       Name: FileSystemObject,
       QualifiedName: FileSystemObject,
+      Description: Simple abstract base class,
       AllProperties: [
         {
           DataType: Integer,
@@ -19,10 +20,12 @@
       SuperClassName: FileSystemObject,
       Name: Directory,
       QualifiedName: Directory,
+      Description: Directory inherits from FileSystemObject,
       AllProperties: [
         {
           DataType: ID,
-          Name: contents
+          Name: contents,
+          Description: A Directory contains many FileSystemObjects
         }
       ]
     },
@@ -30,6 +33,7 @@
       SuperClassName: FileSystemObject,
       Name: File,
       QualifiedName: File,
+      Description: File inherits from FileSystemObject,
       AllProperties: [
         {
           DataType: Bytes,
@@ -41,6 +45,7 @@
       SuperClassName: FileSystemObject,
       Name: SymLink,
       QualifiedName: SymLink,
+      Description: SymLink inherits from FileSystemObject and references another FileSystemObject,
       AllProperties: [
         {
           DataType: String,
@@ -55,6 +60,7 @@
     {
       Name: Process,
       QualifiedName: Process,
+      Description: Process class (new),
       AllProperties: [
         {
           DataType: Integer,
@@ -66,13 +72,15 @@
         },
         {
           DataType: ID,
-          Name: threads
+          Name: threads,
+          Description: Process has many threads (aggregation)
         }
       ]
     },
     {
       Name: Thread,
       QualifiedName: Thread,
+      Description: Thread class (new),
       AllProperties: [
         {
           DataType: Integer,
@@ -88,24 +96,26 @@
   Associations: [
     {
       OwnerSide: SymLink,
-      OwnerMultiplicity: ZeroOrOne,
+      OwnerMultiplicity: Many,
       OtherSide: FileSystemObject,
       OtherRole: target,
-      OtherMultiplicity: Many
+      OtherMultiplicity: One
     },
     {
       OwnerSide: Directory,
       OwnerMultiplicity: One,
       OtherSide: FileSystemObject,
       OtherRole: contents,
-      OtherMultiplicity: Many
+      OtherMultiplicity: Many,
+      Description: A Directory contains many FileSystemObjects
     },
     {
       OwnerSide: Process,
       OwnerMultiplicity: Aggregation,
       OtherSide: Thread,
       OtherRole: threads,
-      OtherMultiplicity: Many
+      OtherMultiplicity: Many,
+      Description: Process has many threads (aggregation)
     }
   ],
   Interfaces: {}

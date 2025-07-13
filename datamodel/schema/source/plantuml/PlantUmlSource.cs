@@ -1,20 +1,23 @@
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
+using YamlDotNet.Core.Events;
 
 namespace datamodel.schema.source.plantuml;
 
 public class PlantUmlSource : SchemaSource {
   private const string PARAM_FILE = "file";
 
-  private readonly List<Model> _models = [];
+  private readonly Dictionary<string, Model> _models = [];
   private readonly List<Association> _associations = [];
 
   public override void Initialize(Parameters parameters) {
     string[] lines = parameters.GetFileContent(PARAM_FILE).Split("\n");
-    Dictionary<string, Model> modelMap = [];
+    Dictionary<string, string> subclassToSuperclass = Parse(lines);
 
-    ParseModels(lines, modelMap);
-    ParseRelationships(lines, modelMap);
+    foreach (var mapping in subclassToSuperclass)
+      if (_models.TryGetValue(mapping.Key, out Model model))
+        model.SuperClassName = mapping.Value;
   }
 
   public override IEnumerable<Parameter> GetParameters() {
@@ -30,16 +33,18 @@ public class PlantUmlSource : SchemaSource {
 
   public override string GetTitle() => "PlantUML Model";
 
-  public override IEnumerable<Model> GetModels() => _models;
+  public override IEnumerable<Model> GetModels() => _models.Values;
 
   public override IEnumerable<Association> GetAssociations() => _associations;
 
-  private void ParseModels(string[] lines, Dictionary<string, Model> modelMap) {
+  private Dictionary<string, string> Parse(string[] lines) {
     Model currentModel = null;
+    Dictionary<string, string> subclassToSuperclass = [];
 
     foreach (string line in GetLogicalLines(lines)) {
       if (line == "}") {
         currentModel = null;
+        getAndClearComments();    // Prevent stray comments from leaking into next definition
         continue;
       }
 
@@ -54,7 +59,8 @@ public class PlantUmlSource : SchemaSource {
 
           currentModel.AllProperties.Add(new Property {
             Name = name,
-            DataType = type
+            DataType = type,
+            Description = getAndClearComments(),
           });
         }
         continue;
@@ -69,29 +75,23 @@ public class PlantUmlSource : SchemaSource {
         currentModel = new Model {
           Name = className,
           QualifiedName = className,
+          Description = getAndClearComments(),
           AllProperties = []
         };
-        _models.Add(currentModel);
-        modelMap[className] = currentModel;
+        _models[className] = currentModel;
 
         // For the case without a terminal {, there are no properties
         if (!line.EndsWith('{'))
           currentModel = null;
       }
-    }
-  }
 
-  private void ParseRelationships(string[] lines, Dictionary<string, Model> modelMap) {
-    foreach (string line in GetLogicalLines(lines)) {
       // inheritance. Maatches...
       //  Employee --|> Person
       Match inheritance = Regex.Match(line, @"^(\w+)\s+--\|>\s+(\w+)");
       if (inheritance.Success) {
         string subClass = inheritance.Groups[1].Value;
         string superClass = inheritance.Groups[2].Value;
-        if (modelMap.TryGetValue(subClass, out var subModel)) {
-          subModel.SuperClassName = superClass;
-        }
+        subclassToSuperclass[subClass] = superClass;
         continue;
       }
 
@@ -113,7 +113,8 @@ public class PlantUmlSource : SchemaSource {
           OwnerMultiplicity = ParseMultiplicity(aCard),
           OtherSide = bModel,
           OtherMultiplicity = ParseMultiplicity(bCard),
-          OtherRole = role
+          OtherRole = role,
+          Description = getAndClearComments(),
         };
 
         if (arrow == "o--")
@@ -122,13 +123,33 @@ public class PlantUmlSource : SchemaSource {
         _associations.Add(assoc);
       }
     }
+
+    return subclassToSuperclass;
   }
 
-  private static IEnumerable<string> GetLogicalLines(string[] lines) {
+  private readonly StringBuilder _commentsBuilder = new();
+  private string getAndClearComments() {
+    if (_commentsBuilder.Length == 0)
+      return null;
+
+    string comments = _commentsBuilder.ToString().Trim();
+    _commentsBuilder.Clear();
+    return comments;
+  }
+
+  private IEnumerable<string> GetLogicalLines(string[] lines) {
     foreach (string rawLine in lines) {
       string line = rawLine.Trim();
-      if (string.IsNullOrWhiteSpace(line) || line.StartsWith("@") || line.StartsWith("'"))
+
+      if (line.StartsWith("'")) {
+        _commentsBuilder.Append(line[1..].Trim());
+        _commentsBuilder.AppendLine();
         continue;
+      }
+
+      if (string.IsNullOrWhiteSpace(line) || line.StartsWith("@"))
+        continue;
+
       yield return line;
     }
   }

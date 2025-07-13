@@ -21,7 +21,7 @@ class SymLink {
   String Path
 }
 SymLink --|> FileSystemObject
-SymLink "0..1" --> "0..*" FileSystemObject : target
+SymLink "0..*" --> "1" FileSystemObject : target
 
 ' A Directory contains many FileSystemObjects
 Directory "1" --> "0..*" FileSystemObject : contents
