@@ -19,6 +19,7 @@ public class BotoCoreSource : SchemaSource {
         Tweaks = [
             new RemoveLowValuesModels(),
             new RenameModels(),
+            new ReadAiAssociationFiles(),
         ];
     }
 
@@ -127,7 +128,7 @@ public class BotoCoreSource : SchemaSource {
                 }
                 if (singleNestedShape == null)
                     continue;       // E.g. ListTags operation
-                outputShape = singleNestedShape;
+                outputShape = service.Shapes[singleNestedShape.Member.Shape];   // The "Member" (i.e. Type) of the List
 
                 // Get/Describe output if it only contains a single nested structure is boring
             } else if (operation.IsGetOp && outputShape.Members.Count == 1) {
@@ -137,18 +138,39 @@ public class BotoCoreSource : SchemaSource {
                     outputShape = singleMemberShape;
             }
 
-            outputShape.Labels["Output For"] = operation.Name;
+            outputShape.Labels.Add(new Label(SchemaSimple.LABEL_RETURNED_FOR_OPERATION,
+                string.Format("{0}({1})", operation.Name, GetInputParametersAsString(service, operation))));
+
+            outputShape.Labels.Add(new() {
+                Name = "Online Documentation",
+                Value = string.Format("https://awscli.amazonaws.com/v2/documentation/api/latest/reference/{0}/{1}.html",
+                    service.Metadata.EndpointPrefix,
+                    NameUtils.MixedCaseToKebabCase(operation.Name)),
+                IsUrl = true
+            });
+
             RecursivelyExtractShapes(service, namesToShapes, outputShape.ShapeName);
         }
 
         return namesToShapes;
     }
 
+    private static string GetInputParametersAsString(BotoService service, BotoOperation operation) {
+        BotoShape input = service.Shapes[operation.Input.Shape];
+        List<string> parameters = [];
+        foreach (var kvp in input.Members) {
+            BotoShape parameter = service.Shapes[kvp.Value.Shape];
+            parameters.Add(string.Format("{0} {1}", parameter.Type, kvp.Key));
+        }
+
+        return string.Join(", ", parameters);
+    }
+
     private static void RecursivelyExtractShapes(
-        BotoService service,
-        Dictionary<string, BotoShape> namesToShapes,
-        string shapeName
-    ) {
+          BotoService service,
+          Dictionary<string, BotoShape> namesToShapes,
+          string shapeName
+      ) {
         if (namesToShapes.ContainsKey(shapeName))
             return; // Nothing new to process
 
@@ -274,7 +296,7 @@ public class BotoCoreSource : SchemaSource {
             AllProperties = GetProperties(structure, mappings, structure.Members)
         };
 
-        model.Labels.AddRange(structure.Labels.Select(x => new Label(x.Key, x.Value)));
+        model.Labels.AddRange(structure.Labels);
         _models.Add(model);
         structure.Model = model;
 

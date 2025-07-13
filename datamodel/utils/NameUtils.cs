@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
@@ -46,6 +45,10 @@ namespace datamodel.utils {
         private static string SnakeCaseToHuman(string snake_case, char splitChar = '_') {
             string[] pieces = snake_case.Split(splitChar);
             return string.Join(" ", pieces.Select(x => Capitalize(x)));
+        }
+
+        public static string MixedCaseToKebabCase(string mixedCase) {
+            return MixedCaseToHuman(mixedCase).Replace(' ', '-').ToLower();
         }
 
         private static string MixedCaseToHuman(string text) {

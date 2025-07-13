@@ -18,6 +18,10 @@ namespace datamodel.schema {
             Name = name;
             Value = value;
         }
+
+        public override string ToString() {
+            return string.Format("{0}: {1}", Name, Value);
+        }
     }
 
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
@@ -166,6 +170,10 @@ namespace datamodel.schema {
                 Name = name,
                 Value = value,
             });
+        }
+
+        public IEnumerable<Label> FindLabels(string name) {
+            return Labels.Where(x => x.Name == name);
         }
 
         public void AddUrl(string name, string url) {

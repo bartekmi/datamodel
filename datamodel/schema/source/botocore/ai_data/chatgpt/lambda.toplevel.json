@@ -1,0 +1,88 @@
+[
+  {
+    "Entity": "lambda.AccountSettings",
+    "TopLevel": true
+  },
+  {
+    "Entity": "lambda.AliasConfiguration",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "many"
+  },
+  {
+    "Entity": "lambda.CodeSigningConfig",
+    "TopLevel": true
+  },
+  {
+    "Entity": "lambda.EventSourceMappingConfiguration",
+    "TopLevel": true
+  },
+  {
+    "Entity": "lambda.Function",
+    "TopLevel": true
+  },
+  {
+    "Entity": "lambda.FunctionVersion",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "many"
+  },
+  {
+    "Entity": "lambda.FunctionCodeSigningConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.FunctionConcurrency",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.FunctionEventInvokeConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.FunctionRecursionConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.FunctionUrlConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.LayerVersion",
+    "TopLevel": true
+  },
+  {
+    "Entity": "lambda.LayerVersionPolicy",
+    "TopLevel": false,
+    "OwnedBy": "lambda.LayerVersion",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.Policy",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.ProvisionedConcurrencyConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  },
+  {
+    "Entity": "lambda.RuntimeManagementConfig",
+    "TopLevel": false,
+    "OwnedBy": "lambda.Function",
+    "ChildEntityCardinality": "zero-or-one"
+  }
+]

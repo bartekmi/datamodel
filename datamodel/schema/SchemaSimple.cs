@@ -1,16 +1,38 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace datamodel.schema;
 
 public class SchemaSimple {
+  public const string LABEL_RETURNED_FOR_OPERATION = "Retruned for Operation";
+
   public Dictionary<string, SSModel> Entities = [];
+  public Dictionary<string, SSModelInfo> TopLevelEntities = [];
 
   internal static SchemaSimple From(Schema schema) {
     SchemaSimple ss = new();
-    foreach (Model model in schema.Models)
-      ss.Entities[model.Name] = SSModel.From(model);
+    foreach (Model model in schema.Models) {
+      ss.Entities[model.QualifiedName] = SSModel.From(model);
+
+      IEnumerable<Label> forOperations = model.FindLabels(LABEL_RETURNED_FOR_OPERATION);
+      if (forOperations.Any())
+        ss.TopLevelEntities[model.QualifiedName] = SSModelInfo.From(model, forOperations);
+    }
 
     return ss;
+  }
+}
+
+public class SSModelInfo {
+  public string Documentation;
+  public string[] ReturnedForOperations;
+
+  internal static SSModelInfo From(Model model, IEnumerable<Label> forOperations) {
+    return new() {
+      Documentation = model.Description,
+      ReturnedForOperations = forOperations.Select(x => x.Value).ToArray(),
+    };
   }
 }
 

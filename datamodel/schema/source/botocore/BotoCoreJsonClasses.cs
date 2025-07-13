@@ -81,7 +81,7 @@ public class BotoShape {
 
   // General
   public string Documentation;
-  public Dictionary<string, string> Labels = [];  // Will be added to Model Labels
+  public List<Label> Labels = [];  // Will be added to Model Labels
 
   // Not read from JSON but set for convenience
   public string ShapeName;

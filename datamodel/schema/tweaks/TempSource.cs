@@ -113,6 +113,12 @@ namespace datamodel.schema.tweaks {
             else
                 newQualifiedName = model.QualifiedName.Substring(0, lastDotIndex + 1) + newName;
 
+            // Prevent duplicate qualified names
+            if (Models.ContainsKey(newQualifiedName)) {
+                newQualifiedName += "2";
+                newName += "2";
+            }
+
             // Rename in associations
             foreach (Association assoc in Associations) {
                 if (assoc.OwnerSide == model.QualifiedName)
@@ -128,7 +134,6 @@ namespace datamodel.schema.tweaks {
 
             Models.Remove(model.QualifiedName);
             AddModel(model);
-
         }
 
         public void RemoveModel(Model model) {
