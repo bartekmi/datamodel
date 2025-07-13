@@ -16,7 +16,7 @@ public class PlantUmlSourceTest {
     }
 
     [Fact]
-    public void Read() {
+    public void ParsePlanUml() {
         PlantUmlSource source = new();
         source.Initialize(new Parameters(source, ["file=../../../schema/source/plantuml/sample.puml"]));
         Schema schema = Schema.CreateSchema(source);

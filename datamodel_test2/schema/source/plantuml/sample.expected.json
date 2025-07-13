@@ -16,6 +16,7 @@
       ]
     },
     {
+      SuperClassName: FileSystemObject,
       Name: Directory,
       QualifiedName: Directory,
       AllProperties: [
@@ -101,7 +102,7 @@
     },
     {
       OwnerSide: Process,
-      OwnerMultiplicity: One,
+      OwnerMultiplicity: Aggregation,
       OtherSide: Thread,
       OtherRole: threads,
       OtherMultiplicity: Many

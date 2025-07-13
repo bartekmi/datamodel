@@ -11,7 +11,10 @@ public class PlantUmlSource : SchemaSource {
 
   public override void Initialize(Parameters parameters) {
     string[] lines = parameters.GetFileContent(PARAM_FILE).Split("\n");
-    Parse(lines);
+    Dictionary<string, Model> modelMap = [];
+
+    ParseModels(lines, modelMap);
+    ParseRelationships(lines, modelMap);
   }
 
   public override IEnumerable<Parameter> GetParameters() {
@@ -31,17 +34,31 @@ public class PlantUmlSource : SchemaSource {
 
   public override IEnumerable<Association> GetAssociations() => _associations;
 
-  private void Parse(string[] lines) {
-    Dictionary<string, Model> modelMap = [];
+  private void ParseModels(string[] lines, Dictionary<string, Model> modelMap) {
     Model currentModel = null;
 
-    foreach (string rawLine in lines) {
-      string line = rawLine.Trim();
-
-      if (string.IsNullOrWhiteSpace(line) ||
-          line.StartsWith("@") ||     // @startuml, @enduml
-          line.StartsWith("'"))       // Comment
+    foreach (string line in GetLogicalLines(lines)) {
+      if (line == "}") {
+        currentModel = null;
         continue;
+      }
+
+      if (currentModel != null) {
+        // field inside class. Matches...
+        //   Type Name
+        //   ~ Type Name
+        Match fieldDecl = Regex.Match(line, @"^([+#\-~])?\s*(\w+)\s+(\w+)");
+        if (fieldDecl.Success) {
+          string type = fieldDecl.Groups[2].Value;
+          string name = fieldDecl.Groups[3].Value;
+
+          currentModel.AllProperties.Add(new Property {
+            Name = name,
+            DataType = type
+          });
+        }
+        continue;
+      }
 
       // class declaration. Matches...
       //   class ClassName
@@ -56,40 +73,25 @@ public class PlantUmlSource : SchemaSource {
         };
         _models.Add(currentModel);
         modelMap[className] = currentModel;
-        continue;
+
+        // For the case without a terminal {, there are no properties
+        if (!line.EndsWith('{'))
+          currentModel = null;
       }
+    }
+  }
 
-      // end of class body
-      if (line == "}" && currentModel != null) {
-        currentModel = null;
-        continue;
-      }
-
-      // field inside class. Matches...
-      //   Type Name
-      //   ~ Type Name 
-      if (currentModel != null) {
-        Match fieldDecl = Regex.Match(line, @"^([+#\-~])?\s*(\w+)\s+(\w+)");
-        if (fieldDecl.Success) {
-          string type = fieldDecl.Groups[2].Value;
-          string name = fieldDecl.Groups[3].Value;
-
-          currentModel.AllProperties.Add(new Property {
-            Name = name,
-            DataType = type
-          });
-        }
-        continue;
-      }
-
+  private void ParseRelationships(string[] lines, Dictionary<string, Model> modelMap) {
+    foreach (string line in GetLogicalLines(lines)) {
       // inheritance. Maatches...
       //  Employee --|> Person
       Match inheritance = Regex.Match(line, @"^(\w+)\s+--\|>\s+(\w+)");
       if (inheritance.Success) {
         string subClass = inheritance.Groups[1].Value;
         string superClass = inheritance.Groups[2].Value;
-        if (modelMap.TryGetValue(subClass, out var subModel))
+        if (modelMap.TryGetValue(subClass, out var subModel)) {
           subModel.SuperClassName = superClass;
+        }
         continue;
       }
 
@@ -114,9 +116,20 @@ public class PlantUmlSource : SchemaSource {
           OtherRole = role
         };
 
+        if (arrow == "o--")
+          assoc.OwnerMultiplicity = Multiplicity.Aggregation;
+
         _associations.Add(assoc);
-        continue;
       }
+    }
+  }
+
+  private static IEnumerable<string> GetLogicalLines(string[] lines) {
+    foreach (string rawLine in lines) {
+      string line = rawLine.Trim();
+      if (string.IsNullOrWhiteSpace(line) || line.StartsWith("@") || line.StartsWith("'"))
+        continue;
+      yield return line;
     }
   }
 
@@ -125,9 +138,8 @@ public class PlantUmlSource : SchemaSource {
       "1" => Multiplicity.One,
       "0..1" => Multiplicity.ZeroOrOne,
       "0..*" => Multiplicity.Many,
+      "1..*" => Multiplicity.Many,  // Future: we could have new type for this
       "*" => Multiplicity.Many,
-      "Many" => Multiplicity.Many,
-      "Aggregation" => Multiplicity.Aggregation,
       _ => Multiplicity.One
     };
   }
