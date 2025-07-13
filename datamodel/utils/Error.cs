@@ -23,13 +23,16 @@ namespace datamodel {
             Log(new Error() { Message = message });
         }
 
+        public static Action<string> ExtraLogger;
         public static void Log(Error error) {
             if (!Directory.Exists(Env.OUTPUT_LOG_DIR))
                 Directory.CreateDirectory(Env.OUTPUT_LOG_DIR);
-                
+
             using (TextWriter writer = new StreamWriter(ErrorLog(), true))
                 writer.WriteLine(error.ToString());
             Console.WriteLine(error);
+
+            ExtraLogger?.Invoke(error.ToString());
         }
 
         private static string ErrorLog() {

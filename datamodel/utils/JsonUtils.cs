@@ -14,7 +14,7 @@ namespace datamodel.utils {
                     NullValueHandling = NullValueHandling.Ignore,
                     DefaultValueHandling = DefaultValueHandling.Ignore,
                     Formatting = Formatting.Indented,
-                    Converters = new List<JsonConverter>() { new StringEnumConverter() },
+                    Converters = [new StringEnumConverter()],
                 }).Trim();
 
             if (stripQuotes)

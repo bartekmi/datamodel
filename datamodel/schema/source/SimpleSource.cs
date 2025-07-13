@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using Newtonsoft.Json;
 
@@ -63,7 +62,7 @@ namespace datamodel.schema.source {
                     CanBeEmpty = sProp.CanBeEmpty,
                     Enum = GetEnum(sProp.Enum),
                 };
-                
+
                 if (property.DataType == null && property.Enum != null)
                     property.DataType = "Enum";
 
@@ -78,7 +77,7 @@ namespace datamodel.schema.source {
                 return null;
 
             Enum theEnum = new Enum();
-            
+
             foreach (var entry in sEnum)
                 theEnum.Add(entry.Key, entry.Value);
 
