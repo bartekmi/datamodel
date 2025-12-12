@@ -25,9 +25,14 @@ namespace datamodel {
         private static Parameters _parameters;
 
         //********************************************************************************
-        // Once files are generated, use this command to start local web server:
+        // Once files are generated, use one of these methods to view:
         //
         //  python3 -m http.server 8080 --directory /tmp/datamodel
+        //  # Then navigate to localhost:8080
+        //
+        //      OR...
+        //
+        //  open -a "Google Chrome" /tmp/datamodel/index.html
         //
         //********************************************************************************
 
