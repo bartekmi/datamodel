@@ -4,15 +4,16 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using System;
 using System.Linq;
+using System.IO;
 
 namespace datamodel.schema.source {
 
     public class GeYamlSource : SchemaSource {
         #region Members / Abstract 
         private readonly List<GeYamlSchema> _schemas = [];
-
         private readonly List<Model> _models = [];
-        protected readonly List<Association> _associations = [];
+        private readonly List<Association> _associations = [];
+        private string _currentFilename = "";
 
         public const string PARAM_DIR = "dir";
 
@@ -28,6 +29,7 @@ namespace datamodel.schema.source {
             foreach (PathAndContent pac in files) {
                 Console.WriteLine("Processing GE YAML schema file: {0}", pac.Path);
                 GeYamlSchema schema = deserializer.Deserialize<GeYamlSchema>(pac.Content);
+                schema.SourceFilename = Path.GetFileName(pac.Path);
                 _schemas.Add(schema);
             }
 
@@ -64,6 +66,7 @@ namespace datamodel.schema.source {
         #region Parsing / Extraction
         private void ParseDefinitions() {
             foreach (var schema in _schemas) {
+                _currentFilename = schema.SourceFilename;
                 Model model = ParseDefinition(schema);
                 _models.Add(model);
             }
@@ -77,6 +80,7 @@ namespace datamodel.schema.source {
                 Version = schema.version,
                 Description = schema.description
             };
+            model.AddLabel("Filename", _currentFilename);
 
             // Parse fields into Properties
             if (schema.model.fields != null)
@@ -142,6 +146,7 @@ namespace datamodel.schema.source {
                 Description = field.GetDescription(),
                 Version = owner.Version
             };
+            child.AddLabel("Filename", _currentFilename);
             _models.Add(child);
 
             // Recurse to populate child's properties / nested models
@@ -194,6 +199,9 @@ namespace datamodel.schema.source {
             public string version;
             public string description;
             public GeModel model;
+
+            // For my own purpose
+            public string SourceFilename;
         }
 
         public class GeModel {
