@@ -19,7 +19,7 @@ namespace datamodel.schema.source {
             FileOrDir[] fileOrDirs = parameters.GetFileOrDirs(PARAM_DIR);
             IEnumerable<PathAndContent> files = FileOrDir.Combine(fileOrDirs);
 
-            var deserializer = new DeserializerBuilder()
+            IDeserializer deserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
                 .IgnoreUnmatchedProperties()
                 .Build();
@@ -83,31 +83,32 @@ namespace datamodel.schema.source {
             }
 
             // Convert metadata.joins into Associations
-            if (schema.model.metadata != null && schema.model.metadata.joins != null) {
+            if (schema.model!.metadata!.joins != null)
                 foreach (var join in schema.model.metadata.joins) {
                     if (join.targetModel == null)
                         continue;
 
+                    if (join.targetModel == model.Name)
+                        continue;   // Skip these as they seem to represent static queries on the model to get lists
+
                     Association assoc = new() {
                         OwnerSide = model.QualifiedName,
-                        OwnerRole = join.sourceField,
-                        OwnerMultiplicity = Multiplicity.Many,
                         OtherSide = join.targetModel,
-                        OtherRole = join.targetField ?? join.sourceField,
                         Description = join.description,
                     };
 
                     string rettype = join.returns.type.ToLower();
-                    if (rettype == "list")
+                    if (rettype == "list") {
                         assoc.OtherMultiplicity = Multiplicity.Many;
-                    else if (rettype == "object")
-                        assoc.OtherMultiplicity = Multiplicity.One;
-                    else
+                        assoc.OwnerMultiplicity = Multiplicity.One;
+                    } else if (rettype == "object") {
+                        assoc.OwnerMultiplicity = Multiplicity.One;
+                        assoc.OtherMultiplicity = Multiplicity.Many;
+                    } else
                         throw new NotImplementedException($"Unhandled join return type '{rettype}' in model '{model.Name}'");
 
                     _associations.Add(assoc);
                 }
-            }
 
             return model;
         }
@@ -196,8 +197,8 @@ namespace datamodel.schema.source {
 
         public class GeMetadata {
             public string resolver;
-            public List<GeJoin> joins;
-            public List<GeKey> keys;
+            public List<GeJoin> joins = [];
+            public List<GeKey> keys = [];
         }
 
         public class GeJoin {
