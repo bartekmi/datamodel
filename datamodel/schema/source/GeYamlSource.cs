@@ -5,6 +5,7 @@ using YamlDotNet.Serialization.NamingConventions;
 using System;
 using System.Linq;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 namespace datamodel.schema.source {
 
@@ -87,7 +88,7 @@ namespace datamodel.schema.source {
                 ParseFields(model, model.Name, schema.model.fields);
 
             // Convert metadata.joins into Associations
-            if (schema.model!.metadata!.joins != null)
+            if (schema.model?.metadata?.joins != null)
                 foreach (var join in schema.model.metadata.joins) {
                     if (join.targetModel == null)
                         continue;
@@ -125,6 +126,9 @@ namespace datamodel.schema.source {
         }
 
         private void ParseFields(Model owner, string ownerQualifiedName, Dictionary<string, GeField> fields) {
+            int scalarFieldCount = 0;
+            Dictionary<string, int> sourceToCount = [];
+
             foreach (var kvp in fields) {
                 string name = kvp.Key;
                 GeField field = kvp.Value;
@@ -132,8 +136,21 @@ namespace datamodel.schema.source {
 
                 if (type == "object" || type == "array" || type == "list")
                     ParseNestedField(owner, ownerQualifiedName, name, field, type);
-                else
-                    ParseScalarField(owner, name, field);
+                else {
+                    scalarFieldCount++;
+                    string source = ParseScalarField(owner, name, field);
+                    if (source != null) {
+                        if (sourceToCount.TryGetValue(source, out int count))
+                            sourceToCount[source] = count + 1;
+                        else
+                            sourceToCount[source] = 1;
+                    }
+                }
+            }
+
+            if (sourceToCount.Count > 0) {
+                owner.AddLabel("Sources", string.Join(", ", sourceToCount
+                    .Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
             }
         }
 
@@ -172,21 +189,46 @@ namespace datamodel.schema.source {
             _associations.Add(assoc);
         }
 
-        private void ParseScalarField(Model model, string propName, GeField field) {
-            Property prop = new();
-            prop.Name = propName;
-            prop.Description = field.GetDescription();
-            prop.CanBeEmpty = field.optional;
-            prop.DataType = field.type.ToLower();
+        private string ParseScalarField(Model model, string propName, GeField field) {
+            Property prop = new() {
+                Name = propName,
+                Description = field.GetDescription(),
+                CanBeEmpty = field.optional,
+                DataType = field.type.ToLower(),
+            };
 
+            string source = null;
             if (field?.metadata != null) {
-                if (!string.IsNullOrEmpty(field.metadata.resolver))
-                    prop.AddLabel("resolver", field.metadata.resolver);
-                if (!string.IsNullOrEmpty(field.metadata.example))
-                    prop.AddLabel("example", field.metadata.example);
+                GeFieldMetadata meta = field.metadata;
+                if (!string.IsNullOrWhiteSpace(meta.resolver))
+                    prop.AddLabel("Resolver", meta.resolver);
+
+                string example = meta.example;
+
+                GeSourcing sourcing = meta.sourcing?.FirstOrDefault();
+                if (sourcing != null) {
+                    // Sourcing label at Property level
+                    string[] pieces = [sourcing.type, sourcing.source, sourcing.expression];
+                    string sourcingTxt = string.Join('.', pieces.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    if (!string.IsNullOrWhiteSpace(sourcingTxt))
+                        prop.AddLabel("Sourcing", sourcingTxt);
+
+                    if (string.IsNullOrWhiteSpace(example))
+                        example = sourcing.example;
+
+                    // Sourcing label at Model level
+                    string[] piecesForModel = [sourcing.type, sourcing.source];
+                    string sourcingTxtForModel = string.Join('.', piecesForModel.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    if (!string.IsNullOrWhiteSpace(sourcingTxtForModel))
+                        source = sourcingTxtForModel;
+                }
+
+                if (!string.IsNullOrWhiteSpace(example))
+                    prop.AddLabel("Example", example);
             }
 
             model.AllProperties.Add(prop);
+            return source;
         }
         #endregion
 
@@ -249,6 +291,7 @@ namespace datamodel.schema.source {
             public string source;
             public string expression;
             public string description;
+            public string example;
         }
 
         // Generic representation for a field definition. Many fields are simple scalars,
@@ -263,7 +306,7 @@ namespace datamodel.schema.source {
 
             internal string GetDescription() {
                 // Both of these could contain useful info, but either one could be missing.
-                string[] descriptions = [metadata!.description, description];
+                string[] descriptions = [metadata?.description, description];
                 return string.Join("\n\n", descriptions.Where(x => !string.IsNullOrWhiteSpace(x)));
             }
         }
