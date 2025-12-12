@@ -20,14 +20,14 @@ namespace datamodel.schema {
     public class Association {
         public string OwnerSide { get; set; }
         public string OwnerRole { get; set; }
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]        
-        [JsonConverter(typeof(StringEnumConverter))]        
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
+        [JsonConverter(typeof(StringEnumConverter))]
         public Multiplicity OwnerMultiplicity { get; set; }
 
         public string OtherSide { get; set; }
         public string OtherRole { get; set; }
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]        
-        [JsonConverter(typeof(StringEnumConverter))]        
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
+        [JsonConverter(typeof(StringEnumConverter))]
         public Multiplicity OtherMultiplicity { get; set; }
 
         public string Description { get; set; }
@@ -75,6 +75,29 @@ namespace datamodel.schema {
                 // At this time, there is no use-case for Polymorphic Associations
                 return null;
             }
+        }
+
+        public Association ReverseSides() {
+            return new Association() {
+                OtherSide = OwnerSide,
+                OtherMultiplicity = OwnerMultiplicity,
+                OtherRole = OwnerRole,
+                OtherSideModel = OwnerSideModel,
+
+                OwnerSide = OtherSide,
+                OwnerMultiplicity = OtherMultiplicity,
+                OwnerRole = OtherRole,
+                OwnerSideModel = OtherSideModel,
+            };
+        }
+
+        public bool IsRoughlyTheSame(Association other) {
+            return
+                OwnerSide == other.OwnerSide &&
+                OwnerMultiplicity == other.OwnerMultiplicity &&
+
+                OtherSide == other.OtherSide &&
+                OtherMultiplicity == other.OtherMultiplicity;
         }
 
 

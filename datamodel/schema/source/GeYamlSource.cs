@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using System;
+using System.Linq;
 
 namespace datamodel.schema.source {
 
@@ -78,9 +79,8 @@ namespace datamodel.schema.source {
             };
 
             // Parse fields into Properties
-            if (schema.model.fields != null) {
-                ProcessFields(model, model.Name, schema.model.fields);
-            }
+            if (schema.model.fields != null)
+                ParseFields(model, model.Name, schema.model.fields);
 
             // Convert metadata.joins into Associations
             if (schema.model!.metadata!.joins != null)
@@ -102,32 +102,38 @@ namespace datamodel.schema.source {
                         assoc.OtherMultiplicity = Multiplicity.Many;
                         assoc.OwnerMultiplicity = Multiplicity.One;
                     } else if (rettype == "object") {
-                        assoc.OwnerMultiplicity = Multiplicity.One;
-                        assoc.OtherMultiplicity = Multiplicity.Many;
+                        assoc.OtherMultiplicity = Multiplicity.One;
+                        assoc.OwnerMultiplicity = Multiplicity.Many;
                     } else
                         throw new NotImplementedException($"Unhandled join return type '{rettype}' in model '{model.Name}'");
 
-                    _associations.Add(assoc);
+                    // The same associations are sometimes covered twice via Join from both
+                    // sids of a 1:n relationship. This ensures we don't end up with duplicates.
+                    if (!AssociationExists(assoc))
+                        _associations.Add(assoc);
                 }
 
             return model;
         }
 
-        private void ProcessFields(Model owner, string ownerQualifiedName, Dictionary<string, GeField> fields) {
+        private bool AssociationExists(Association candidate) {
+            return _associations.Any(x => x.ReverseSides().IsRoughlyTheSame(candidate));
+        }
+
+        private void ParseFields(Model owner, string ownerQualifiedName, Dictionary<string, GeField> fields) {
             foreach (var kvp in fields) {
                 string name = kvp.Key;
                 GeField field = kvp.Value;
                 string type = field.type.ToLower();
 
-                if (type == "object" || type == "array" || type == "list") {
-                    HandleNestedField(owner, ownerQualifiedName, name, field, type);
-                } else {
-                    HandleScalarField(owner, name, field);
-                }
+                if (type == "object" || type == "array" || type == "list")
+                    ParseNestedField(owner, ownerQualifiedName, name, field, type);
+                else
+                    ParseScalarField(owner, name, field);
             }
         }
 
-        private void HandleNestedField(Model owner, string ownerQualifiedName, string propName, GeField field, string fieldTypeLower) {
+        private void ParseNestedField(Model owner, string ownerQualifiedName, string propName, GeField field, string fieldTypeLower) {
             string childQualified = (ownerQualifiedName ?? owner.Name) + "." + propName;
 
             Model child = new() {
@@ -139,7 +145,7 @@ namespace datamodel.schema.source {
             _models.Add(child);
 
             // Recurse to populate child's properties / nested models
-            ProcessFields(child, childQualified, field.fields);
+            ParseFields(child, childQualified, field.fields);
 
             // Create association from owner -> child
             Association assoc = new Association() {
@@ -161,7 +167,7 @@ namespace datamodel.schema.source {
             _associations.Add(assoc);
         }
 
-        private void HandleScalarField(Model model, string propName, GeField field) {
+        private void ParseScalarField(Model model, string propName, GeField field) {
             Property prop = new();
             prop.Name = propName;
             prop.Description = field.GetDescription();
