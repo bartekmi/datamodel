@@ -207,20 +207,18 @@ namespace datamodel.schema.source {
 
                 GeSourcing sourcing = meta.sourcing?.FirstOrDefault();
                 if (sourcing != null) {
-                    // Sourcing label at Property level
-                    string[] pieces = [sourcing.type, sourcing.source, sourcing.expression];
-                    string sourcingTxt = string.Join('.', pieces.Where(x => !string.IsNullOrWhiteSpace(x)));
-                    if (!string.IsNullOrWhiteSpace(sourcingTxt))
-                        prop.AddLabel("Sourcing", sourcingTxt);
-
                     if (string.IsNullOrWhiteSpace(example))
                         example = sourcing.example;
 
-                    // Sourcing label at Model level
-                    string[] piecesForModel = [sourcing.type, sourcing.source];
-                    string sourcingTxtForModel = string.Join('.', piecesForModel.Where(x => !string.IsNullOrWhiteSpace(x)));
-                    if (!string.IsNullOrWhiteSpace(sourcingTxtForModel))
-                        source = sourcingTxtForModel;
+                    string[] pieces = [sourcing.type, sourcing.source];
+                    string sourcingTxt = string.Join('.', pieces.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    if (!string.IsNullOrWhiteSpace(sourcingTxt)) {
+                        source = sourcingTxt;
+                        prop.AddLabel("Sourcing", sourcingTxt);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(sourcing.expression))
+                        prop.AddLabel("Expression", sourcing.expression);
                 }
 
                 if (!string.IsNullOrWhiteSpace(example))
