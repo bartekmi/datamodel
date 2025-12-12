@@ -262,9 +262,9 @@ namespace datamodel.schema.source {
             public Dictionary<string, GeField> fields;    // For embedded objects/arrays
 
             internal string GetDescription() {
-                if (metadata != null && !string.IsNullOrEmpty(metadata.description))
-                    return metadata.description;
-                return description;
+                // Both of these could contain useful info, but either one could be missing.
+                string[] descriptions = [metadata!.description, description];
+                return string.Join("\n\n", descriptions.Where(x => !string.IsNullOrWhiteSpace(x)));
             }
         }
 
