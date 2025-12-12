@@ -130,7 +130,7 @@ namespace datamodel.schema {
         }
 
         override public string ToString() {
-            return string.Format("{0} to {1} {2}", OwnerSide, OtherSide, IsPolymorphic ? "(Polymorphic)" : "");
+            return string.Format("{0}=>{1}", OwnerSide, OtherSide);
         }
     }
 }

@@ -95,10 +95,10 @@ namespace datamodel.schema {
         private void CreateRefProperties() {
             foreach (Association assoc in Associations) {
                 if (!_byQualifiedName.TryGetValue(assoc.OwnerSide, out Model refModel))
-                    Error.Log("Association refers to unknown model: {0}", assoc.OwnerSide);
+                    Error.Log("Association {0} refers to unknown model: {1}", assoc, assoc.OwnerSide);
 
                 if (!_byQualifiedName.TryGetValue(assoc.OtherSide, out Model otherModel))
-                    Error.Log("Association refers to unknown model: {0}", assoc.OtherSide);
+                    Error.Log("Association {0} refers to unknown model: {1}", assoc, assoc.OtherSide);
 
                 if (refModel == null || otherModel == null)
                     continue;
