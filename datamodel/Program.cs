@@ -27,8 +27,7 @@ namespace datamodel {
         //********************************************************************************
         // Once files are generated, use this command to start local web server:
         //
-        //  cd /tmp/datamodel
-        //  python3 -m http.server 8080
+        //  python3 -m http.server 8080 --directory /tmp/datamodel
         //
         //********************************************************************************
 
@@ -59,6 +58,7 @@ namespace datamodel {
                     { "swagger", new SwaggerSource() },
                     { "yaml", new YamlSource() },
                     { "xsd", new XsdSource() },
+                    { "ge", new GeYamlSource() },
                 };
 
                 if (args.Length < 1)

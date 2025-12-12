@@ -191,5 +191,20 @@
       "console": "integratedTerminal",
       "stopAtEntry": false
     },
+    {
+      "name": "ge",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "ge"
+        ,"dir=/Users/250023731/gitlab/docs-site/models/specification"
+        // ,"dumpSchema=true"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
   ]
 }

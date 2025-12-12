@@ -57,7 +57,7 @@ namespace datamodel.schema {
             schema._byQualifiedName = schema.Models.ToDictionary(x => x.QualifiedName);
             schema.CreateRefProperties();
             schema.Rehydrate();
-            
+
             rawSource.ApplyPostHydrationTweaks();
 
             return schema;
@@ -67,6 +67,11 @@ namespace datamodel.schema {
         // The models which merely represent a list just pollute the diagrams.
         // TODO: This should be a "Tweak"
         private static void DiscardListSemanticModels(SchemaSource source, HashSet<Model> models) {
+            IEnumerable<Association> associations = source.GetAssociations();
+            IEnumerable<Association> badAssocs = associations.Where(x => x.OtherSide == null);
+            if (badAssocs.Any())
+                throw new NotImplementedException("Encountered association with null OtherSide: " + string.Join(", ", badAssocs));
+
             var assocs = source.GetAssociations()
                 .GroupBy(x => x.OtherSide)
                 .ToDictionary(x => x.Key, x => (IEnumerable<Association>)x);
