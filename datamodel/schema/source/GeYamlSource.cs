@@ -79,7 +79,8 @@ namespace datamodel.schema.source {
                 Name = schema.name,
                 QualifiedName = schema.name,
                 Version = schema.version,
-                Description = schema.description
+                Description = schema.description,
+                Levels = [schema.group],
             };
             model.AddLabel("Filename", _currentFilename);
 
@@ -161,7 +162,8 @@ namespace datamodel.schema.source {
                 Name = propName,
                 QualifiedName = childQualified,
                 Description = field.GetDescription(),
-                Version = owner.Version
+                Version = owner.Version,
+                Levels = owner.Levels,
             };
             child.AddLabel("Filename", _currentFilename);
             _models.Add(child);
@@ -237,6 +239,7 @@ namespace datamodel.schema.source {
         public class GeYamlSchema {
             public string name;
             public string version;
+            public string group;
             public string description;
             public GeModel model;
 

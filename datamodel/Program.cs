@@ -25,7 +25,13 @@ namespace datamodel {
         private static Parameters _parameters;
 
         //********************************************************************************
-        // Once files are generated, use one of these methods to view:
+        // ### To share files:
+        //
+        // cd /tmp
+        // zip -r datamode.zip datamodel
+        // # Send the file via email
+        //
+        // ### To view files:
         //
         //  python3 -m http.server 8080 --directory /tmp/datamodel
         //  # Then navigate to localhost:8080
