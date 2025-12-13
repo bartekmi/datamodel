@@ -224,7 +224,7 @@ namespace datamodel.graphviz {
         }
 
         private void CreateLabelProperties(IEnumerable<Model> models, Model model, HtmlTable table) {
-            HashSet<datamodel.schema.Enum> usedEnums = new();
+            HashSet<schema.Enum> usedEnums = [];
 
             foreach (Property property in model.AllProperties) {
                 if (Schema.Singleton.IsInteresting(property) &&
@@ -389,7 +389,7 @@ namespace datamodel.graphviz {
             return edge;
         }
 
-        private string ToEdgeToolTip(Association association) {
+        private static string ToEdgeToolTip(Association association) {
             StringBuilder builder = new();
 
             builder.AppendLine(association.ToString());
