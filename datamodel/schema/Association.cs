@@ -130,7 +130,8 @@ namespace datamodel.schema {
         }
 
         override public string ToString() {
-            return string.Format("{0}=>{1}", OwnerSide, OtherSide);
+            return string.Format("{0} ({1}) ==> {2} ({3})",
+                OwnerSide, OwnerMultiplicity, OtherSide, OtherMultiplicity);
         }
     }
 }

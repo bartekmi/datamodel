@@ -205,7 +205,7 @@ namespace datamodel.graphviz {
         }
 
         private void CreateLabelMethods(Model dbModel, HtmlTable table) {
-        foreach (Method method in dbModel.Methods) {
+            foreach (Method method in dbModel.Methods) {
                 HtmlTr row = new();
 
                 HtmlTd propertyNameTd = new() {
@@ -285,7 +285,7 @@ namespace datamodel.graphviz {
                     datamodel.schema.Enum theEnum = property.Enum;
                     propertyNameTd
                         .SetAttrHtml("align", "left")
-                        .SetAttrHtml("tooltip", CreateMemberToolTip(property, 
+                        .SetAttrHtml("tooltip", CreateMemberToolTip(property,
                             usedEnums.Contains(theEnum) ? null : theEnum))
                         .SetAttrHtml("href", property.DocUrl);
 
@@ -299,7 +299,7 @@ namespace datamodel.graphviz {
         private static string CreateMemberToolTip(IDbElement property, datamodel.schema.Enum theEnum) {
             StringBuilder builder = new();
 
-            if (!string.IsNullOrEmpty(property.Description)) 
+            if (!string.IsNullOrEmpty(property.Description))
                 builder.AppendLine(property.DescriptionParagraphs().First());
 
             if (theEnum != null) {
@@ -310,7 +310,7 @@ namespace datamodel.graphviz {
                         value.Key,
                         value.Value));
                 }
-                
+
                 if (theEnum.Values.Count() > MAX_ENUM_ITEMS)
                     builder.AppendLine(HtmlUtils.LINE_BREAK + "... (Truncated)");
             }
@@ -392,7 +392,8 @@ namespace datamodel.graphviz {
         private string ToEdgeToolTip(Association association) {
             StringBuilder builder = new();
 
-            builder.AppendLine(string.Format("{0}.{1}", association.OwnerSideModel.HumanName, association.RefProperty.HumanName));
+            builder.AppendLine(association.ToString());
+            builder.AppendLine();
             builder.Append(association.Description);
 
             return builder.ToString();

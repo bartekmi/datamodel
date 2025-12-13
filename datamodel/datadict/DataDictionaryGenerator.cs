@@ -45,7 +45,7 @@ namespace datamodel.datadict {
 
             table.Add(new HtmlElement("tr",
                  new HtmlElement("th",
-                    new HtmlElement("span", HtmlUtils.MakeLink("..", "Index").Text, true).Class("heading1"),
+                    new HtmlElement("span", HtmlUtils.MakeLink("../index.html", "Index").Text, true).Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
                     new HtmlElement("span", "|").Class("heading1"),
                     new HtmlElement("span").Class("gap-left-large"),
@@ -120,8 +120,8 @@ namespace datamodel.datadict {
                     // Property Header
                     table.AddTr(new HtmlTr(
                         new HtmlTd(
-                            property.CanBeEmpty ? 
-                                HtmlUtils.MakeIcon(IconUtils.ON_OFF, null, "This attribute is OPTIONAL", true) : 
+                            property.CanBeEmpty ?
+                                HtmlUtils.MakeIcon(IconUtils.ON_OFF, null, "This attribute is OPTIONAL", true) :
                                 HtmlUtils.MakeIcon(IconUtils.CHECKMARK, null, "This attribute is REQUIRED", true),
 
                             new HtmlElement("span", property.HumanName).Class("heading3"),
@@ -178,7 +178,7 @@ namespace datamodel.datadict {
             Model referenced = type.Type.ReferencedModel;
             if (referenced != null) {
                 string link = HtmlUtils.MakeLink(
-                    UrlService.Singleton.DocUrl(referenced, true), 
+                    UrlService.Singleton.DocUrl(referenced, true),
                     referenced.HumanName).Text;
                 builder.Append(link);
             } else if (type.Type.Enum != null)
@@ -203,7 +203,7 @@ namespace datamodel.datadict {
                 Property property = assoc.RefProperty;
                 if (property == null)
                     continue;
-                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced, true), 
+                string link = HtmlUtils.MakeLink(UrlService.Singleton.DocUrl(referenced, true),
                     referenced == null ? assoc.OtherSide : referenced.HumanName).Text;
                 string mainHtml = string.Format("{0} ({1})", property.HumanName, link);
                 bool isRequired = !property.CanBeEmpty;
@@ -223,7 +223,7 @@ namespace datamodel.datadict {
             foreach (Property property in orderedIncoming) {
                 Model referenced = property.Owner;
                 string link = HtmlUtils.MakeLink(
-                    UrlService.Singleton.DocUrl(referenced, true), 
+                    UrlService.Singleton.DocUrl(referenced, true),
                     referenced.HumanName).Text;
                 string mainHtml = string.Format("{0}.{1}", link, property.HumanName);
 

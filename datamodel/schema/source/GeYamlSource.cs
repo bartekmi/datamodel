@@ -5,10 +5,10 @@ using YamlDotNet.Serialization.NamingConventions;
 using System;
 using System.Linq;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 
 namespace datamodel.schema.source {
-
+    // To run this in Bartek's account:
+    // dotnet run ge dir=/Users/250023731/gitlab/docs-site/models/specification
     public class GeYamlSource : SchemaSource {
         #region Members / Abstract 
         private readonly List<GeYamlSchema> _schemas = [];
