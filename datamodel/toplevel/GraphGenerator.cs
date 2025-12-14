@@ -42,18 +42,27 @@ namespace datamodel.toplevel {
         }
 
         internal static void Generate(string outDir, GraphDefinition graphDef) {
-
+            // Extra Models... Models which do not directly appear in this graph, but should be included for the sake of clarity
             IEnumerable<Model> externalSuperclasses = graphDef.CoreModels
                 .Where(x => x.Superclass != null)
                 .Select(x => x.Superclass)
                 .Distinct()
                 .Where(x => !graphDef.CoreModels.Contains(x));
 
+            IEnumerable<Model> externalAssociationModels = graphDef.CoreModels
+                .SelectMany(x => x.RefAssociations)
+                .SelectMany(x => new[] { x.OwnerSideModel, x.OtherSideModel })
+                .Distinct()
+                .Where(x => x != null)
+                .Except(graphDef.CoreModels);
+
             IEnumerable<Model> externalModels = graphDef.ExtraModels
                 .Concat(externalSuperclasses)
+                .Concat(externalAssociationModels)
                 .Distinct();
 
-            IEnumerable<Model> allModels = graphDef.CoreModels.Union(graphDef.ExtraModels);
+            // Calculate Associations to show in the Graph
+            IEnumerable<Model> allModels = graphDef.CoreModels.Union(externalModels);
             Dictionary<string, Model> tablesDict = allModels.ToDictionary(x => x.QualifiedName);
 
             Dictionary<string, PolymorphicInterface> polymorphicInterfaces = Schema.Singleton.Interfaces.Values
@@ -61,10 +70,11 @@ namespace datamodel.toplevel {
                 .ToDictionary(x => x.Name);
 
             List<Association> associations = Schema.Singleton.Associations
-                .Where(x => tablesDict.ContainsKey(x.OtherSide) &&
-                            (tablesDict.ContainsKey(x.OwnerSide) || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.PolymorphicName)))
+                .Where(x => tablesDict.ContainsKey(x.OtherSide) && (tablesDict.ContainsKey(x.OwnerSide)
+                    || x.IsPolymorphic && polymorphicInterfaces.ContainsKey(x.PolymorphicName)))
                 .ToList();
 
+            // Generate the Graph
             (new GraphvizGenerator(outDir)).GenerateGraph(
                 graphDef,
                 graphDef.CoreModels,

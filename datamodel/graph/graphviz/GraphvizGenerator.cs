@@ -168,9 +168,11 @@ namespace datamodel.graphviz {
                 Name = ModelToNodeId(model),
             };
 
-            node.SetAttrGraph("shape", "Mrecord")
+            node.SetAttrGraph("style", "filled")
+                .SetAttrGraph("fillcolor", model.ColorString)
+                .SetAttrGraph("shape", "Mrecord")
                 .SetAttrGraph("fontname", "Helvetica")      // Does not have effect at graph level, though it should
-                .SetAttrGraph("height", 1.0)                // Minimum height in inches... Allows for more connections
+                .SetAttrGraph("height", 1.0)                // Minimum height in inches... Allows for more connections without clutter
                 .SetAttrGraph("label", CreateLabel(models, model, false));
 
             return node;
