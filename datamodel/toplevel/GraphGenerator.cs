@@ -50,7 +50,7 @@ namespace datamodel.toplevel {
                 .Where(x => !graphDef.CoreModels.Contains(x));
 
             IEnumerable<Model> externalAssociationModels = graphDef.CoreModels
-                .SelectMany(x => x.RefAssociations)
+                .SelectMany(x => x.AllAssociations)
                 .SelectMany(x => new[] { x.OwnerSideModel, x.OtherSideModel })
                 .Distinct()
                 .Where(x => x != null)

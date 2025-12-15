@@ -22,6 +22,7 @@ namespace datamodel.schema {
         private Dictionary<string, Model> _byQualifiedName;
         private Dictionary<Model, List<Property>> _incomingRefProperties;
         private Dictionary<Model, List<Association>> _refAssociationsForModel;
+        private Dictionary<Model, HashSet<Association>> _allAssociationsForModel = [];
         private Dictionary<Model, List<PolymorphicInterface>> _interfacesForModel;
         private Dictionary<PolymorphicInterface, List<Association>> _polymorphicAssociations;
 
@@ -131,6 +132,7 @@ namespace datamodel.schema {
             RehydratePolymorphicRefProperties();
             RehydratePolymorphicAssociations();
             RehydrateRefAssociationsForModels();
+            RehydrateAllAssociationsForModels();
         }
 
         private void RehydrateMemberOwner() {
@@ -212,6 +214,18 @@ namespace datamodel.schema {
                 .Where(x => x.OwnerSideModel != null)
                 .GroupBy(x => x.OwnerSideModel)
                 .ToDictionary(x => x.Key, x => x.ToList());
+        }
+
+        private void RehydrateAllAssociationsForModels() {
+            foreach (Model model in Models)
+                _allAssociationsForModel[model] = [];
+
+            foreach (Association assoc in Associations) {
+                if (assoc.OwnerSideModel != null)
+                    _allAssociationsForModel[assoc.OwnerSideModel].Add(assoc);
+                if (assoc.OtherSideModel != null)
+                    _allAssociationsForModel[assoc.OtherSideModel].Add(assoc);
+            }
         }
 
         private void RehydrateIncomingAssociations() {
@@ -312,6 +326,12 @@ namespace datamodel.schema {
             if (_refAssociationsForModel.TryGetValue(model, out List<Association> refAssociations))
                 return refAssociations;
             return new List<Association>();
+        }
+
+        public HashSet<Association> AllAssociationsForModel(Model model) {
+            if (_allAssociationsForModel.TryGetValue(model, out HashSet<Association> refAssociations))
+                return refAssociations;
+            return new HashSet<Association>();
         }
 
         public IEnumerable<Association> PolymorphicAssociationsForInterface(PolymorphicInterface _interface) {

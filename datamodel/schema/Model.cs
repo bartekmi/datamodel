@@ -131,6 +131,11 @@ namespace datamodel.schema {
         }
 
         [JsonIgnore]
+        public HashSet<Association> AllAssociations {
+            get { return Schema.Singleton.AllAssociationsForModel(this); }
+        }
+
+        [JsonIgnore]
         public IEnumerable<PolymorphicInterface> PolymorphicInterfaces {
             get { return Schema.Singleton.InterfacesForModel(this); }
         }
