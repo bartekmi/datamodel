@@ -112,8 +112,10 @@ namespace datamodel.schema.source {
             };
             model.AddLabel("Filename", _currentFilename);
 
-            // Parse fields into Properties
-            if (schema.model.fields != null)
+            // Parse keys and fields into Properties
+            if (schema.model?.metadata?.keys != null)
+                ParseKeys(model, model.Name, schema.model.metadata.keys);
+            if (schema.model?.fields != null)
                 ParseFields(model, model.Name, schema.model.fields);
 
             // Convert metadata.joins into Associations
@@ -193,6 +195,25 @@ namespace datamodel.schema.source {
             }
         }
 
+        private void ParseKeys(Model model, string name, List<GeKey> keys) {
+            foreach (GeKey key in keys) {
+                Property prop = new() {
+                    Name = key.name,
+                    CanBeEmpty = false,
+                    DataType = "string",
+                };
+
+                prop.AddLabel("Key Type", key.type);
+
+                if (!string.IsNullOrWhiteSpace(key.example))
+                    prop.AddLabel("Example", key.example);
+
+                ParseSourcing(prop, key.sourcing);
+
+                model.AllProperties.Add(prop);
+            }
+        }
+
         private void ParseNestedField(Model owner, string ownerQualifiedName, string propName, GeField field, string fieldTypeLower) {
             string childQualified = (ownerQualifiedName ?? owner.Name) + "." + propName;
 
@@ -229,7 +250,7 @@ namespace datamodel.schema.source {
             _associations.Add(assoc);
         }
 
-        private string ParseScalarField(Model model, string propName, GeField field) {
+        private static string ParseScalarField(Model model, string propName, GeField field) {
             Property prop = new() {
                 Name = propName,
                 Description = field.GetDescription(),
@@ -243,31 +264,40 @@ namespace datamodel.schema.source {
                 if (!string.IsNullOrWhiteSpace(meta.resolver))
                     prop.AddLabel("Resolver", meta.resolver);
 
-                string example = meta.example;
+                source = ParseSourcing(prop, meta.sourcing);
 
-                GeSourcing sourcing = meta.sourcing?.FirstOrDefault();
-                if (sourcing != null) {
-                    if (string.IsNullOrWhiteSpace(example))
-                        example = sourcing.example;
-
-                    string[] pieces = [sourcing.type, sourcing.source];
-                    string sourcingTxt = string.Join('.', pieces.Where(x => !string.IsNullOrWhiteSpace(x)));
-                    if (!string.IsNullOrWhiteSpace(sourcingTxt)) {
-                        source = sourcingTxt;
-                        prop.AddLabel("Sourcing", sourcingTxt);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(sourcing.expression))
-                        prop.AddLabel("Expression", sourcing.expression);
-                }
-
-                if (!string.IsNullOrWhiteSpace(example))
-                    prop.AddLabel("Example", example);
+                if (!string.IsNullOrWhiteSpace(meta.example))
+                    prop.AddLabel("Example", meta.example);
             }
 
             model.AllProperties.Add(prop);
             return source;
         }
+
+        private static string ParseSourcing(Property prop, List<GeSourcing> sourcingList) {
+            GeSourcing source = sourcingList?.FirstOrDefault();
+            string sourceTxt = null;
+
+            if (source != null) {
+                string[] pieces = [source.type, source.source];
+                sourceTxt = string.Join('.', pieces.Where(x => !string.IsNullOrWhiteSpace(x)));
+                if (string.IsNullOrWhiteSpace(sourceTxt))
+                    sourceTxt = null;
+                else
+                    prop.AddLabel("Sourcing", sourceTxt);
+
+                if (!string.IsNullOrWhiteSpace(source.expression))
+                    prop.AddLabel("Expression", source.expression);
+
+                if (!string.IsNullOrWhiteSpace(source.example))
+                    prop.AddLabel("Example", source.example);
+
+                if (string.IsNullOrEmpty(prop.Description) && !string.IsNullOrEmpty(source.description))
+                    prop.Description = source.description;
+            }
+            return sourceTxt;
+        }
+
         #endregion
 
         #region Model Classes for YAML Schema
