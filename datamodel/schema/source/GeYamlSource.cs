@@ -52,7 +52,7 @@ namespace datamodel.schema.source {
 
 
         public override string GetTitle() {
-            return "CC Data Fabric Schema";
+            return "CI4Ops Data Fabric Schema";
         }
 
         public override IEnumerable<Model> GetModels() {
@@ -79,7 +79,7 @@ namespace datamodel.schema.source {
                 Name = schema.name,
                 QualifiedName = schema.name,
                 Version = schema.version,
-                Description = schema.description,
+                Description = schema.GetDescription(),
                 Levels = [schema.group],
             };
             model.AddLabel("Filename", _currentFilename);
@@ -94,8 +94,10 @@ namespace datamodel.schema.source {
                     if (join.targetModel == null)
                         continue;
 
-                    if (join.targetModel == model.Name)
+                    if (join.targetModel == model.Name) {
+                        Console.WriteLine("WARNING: Skipping self-referencing Join on {0}: {1}", join.targetModel, join.description);
                         continue;   // Skip these as they seem to represent static queries on the model to get lists
+                    }
 
                     Association assoc = new() {
                         OwnerSide = model.QualifiedName,
@@ -245,6 +247,12 @@ namespace datamodel.schema.source {
 
             // For my own purpose
             public string SourceFilename;
+
+            public string GetDescription() {
+                // Both of these could contain useful info, but either one could be missing.
+                string[] descriptions = [description, model?.metadata?.instructions];
+                return string.Join("\n\n", descriptions.Where(x => !string.IsNullOrWhiteSpace(x)));
+            }
         }
 
         public class GeModel {
@@ -255,6 +263,7 @@ namespace datamodel.schema.source {
         public class GeMetadata {
             public string resolver;
             public List<GeJoin> joins = [];
+            public string instructions;
             public List<GeKey> keys = [];
         }
 
@@ -290,8 +299,8 @@ namespace datamodel.schema.source {
         public class GeSourcing {
             public string type;
             public string source;
-            public string expression;
             public string description;
+            public string expression;
             public string example;
         }
 
@@ -307,7 +316,7 @@ namespace datamodel.schema.source {
 
             internal string GetDescription() {
                 // Both of these could contain useful info, but either one could be missing.
-                string[] descriptions = [metadata?.description, description];
+                string[] descriptions = [description, metadata?.description, metadata?.sourcing?.FirstOrDefault()?.description];
                 return string.Join("\n\n", descriptions.Where(x => !string.IsNullOrWhiteSpace(x)));
             }
         }

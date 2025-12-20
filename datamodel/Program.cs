@@ -28,8 +28,8 @@ namespace datamodel {
         // ### To share files:
         //
         // cd /tmp
-        // zip -r datamode.zip datamodel
-        // # Send the file via email
+        // zip -r datamodel.zip datamodel
+        // # Send the file via email or upload to Box or similar
         //
         // ### To view files:
         //
@@ -39,6 +39,10 @@ namespace datamodel {
         //      OR...
         //
         //  open -a "Google Chrome" /tmp/datamodel/index.html
+        //
+        //      OR...
+        //
+        //  Simply open index.html in Finder or Windows Explorer
         //
         //********************************************************************************
 

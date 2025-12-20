@@ -200,7 +200,7 @@
       "args": [
         "ge"
         ,"dir=/Users/250023731/gitlab/docs-site/models/specification"
-        ,"dumpSchema=true"
+        // ,"dumpSchema=true"
       ],
       "cwd": "${workspaceFolder}/datamodel",
       "console": "integratedTerminal",
