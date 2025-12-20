@@ -7,10 +7,38 @@ using System.Linq;
 using System.IO;
 
 namespace datamodel.schema.source {
+    // Questions for Makis:
+    // 0. General Questions
+    //      a) In general, it is not possible to deduce what many of the models actually represent. Recommend
+    //          discovery session where models can be better documented.
+    //.     b) All enum-style values are strings. Can these be enumerated, or is there no consistency among hospitals. Can such fields be
+    //          mapped to FHIR fields which do have defined values? What about case sensitivity?
+    //      c) I have found several cases where YAML contains things that the code does not - e.g. Pli.Disposition, Pli.LDAOrders - why?
+    //.  
+    // 1. The concept of "Schedule" seems to be missing
+    // 2. Are hospital personnel entities even used?
+    // 3. Is "Facility" and "Department" synonymous - see DivertStatus: GetActiveDivert(departmentId) / facilitySourceId
+    // 4. What exactly is FacilitiesLocationMaster? It has no associations and seems to contain bed info (see Hierarchy)
+    //      Similar question for UnitsLocationMaster.
+
+
     // To run this in Bartek's account:
     // dotnet run ge dir=/Users/250023731/gitlab/docs-site/models/specification
     public class GeYamlSource : SchemaSource {
         #region Members / Abstract 
+
+        // Mapping of "targetField" key name to Entity name
+        // Used to create associations from "Joins" where targetModel is same as the model 
+        private Dictionary<string, string> _keyToEntity = new() {
+            ["patientId"] = "Patient",
+            ["mrn"] = "Patient",
+            ["patientMRN"] = "Patient",
+            ["visitID"] = "PatientVisit",
+            ["visitNumber"] = "PatientVisit",
+            ["encounterId"] = "PatientVisit",
+            ["patientCSN"] = "PatientVisit",
+        };
+
         private readonly List<GeYamlSchema> _schemas = [];
         private readonly List<Model> _models = [];
         private readonly List<Association> _associations = [];
@@ -94,13 +122,19 @@ namespace datamodel.schema.source {
                     if (join.targetModel == null)
                         continue;
 
+                    string ownerSideModelName = model.QualifiedName;
                     if (join.targetModel == model.Name) {
-                        Console.WriteLine("WARNING: Skipping self-referencing Join on {0}: {1}", join.targetModel, join.description);
-                        continue;   // Skip these as they seem to represent static queries on the model to get lists
+                        if (_keyToEntity.TryGetValue(join.sourceField, out string entityName)) {
+                            ownerSideModelName = entityName;
+                        } else {
+                            Console.WriteLine("WARNING: Skipping self-referencing Join on {0}: {1}. Unknown Source Field: {2}",
+                                join.targetModel, join.resolver, join.sourceField);
+                            continue;   // Skip these as they seem to represent static queries on the model to get lists
+                        }
                     }
 
                     Association assoc = new() {
-                        OwnerSide = model.QualifiedName,
+                        OwnerSide = ownerSideModelName,
                         OtherSide = join.targetModel,
                         Description = join.description,
                     };
@@ -125,7 +159,9 @@ namespace datamodel.schema.source {
         }
 
         private bool AssociationExists(Association candidate) {
-            return _associations.Any(x => x.ReverseSides().IsRoughlyTheSame(candidate));
+            return
+                _associations.Any(x => x.IsRoughlyTheSame(candidate)) ||
+                _associations.Any(x => x.ReverseSides().IsRoughlyTheSame(candidate));
         }
 
         private void ParseFields(Model owner, string ownerQualifiedName, Dictionary<string, GeField> fields) {
