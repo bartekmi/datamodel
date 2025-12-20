@@ -294,6 +294,11 @@ namespace datamodel.schema.source {
 
                 if (string.IsNullOrEmpty(prop.Description) && !string.IsNullOrEmpty(source.description))
                     prop.Description = source.description;
+
+                if (source.type?.ToUpper() == "FHIR" && !string.IsNullOrEmpty(source.source)) {
+                    string fhirUrl = string.Format("https://www.hl7.org/fhir/{0}.html", source.source.ToLower());
+                    prop.AddUrl("FHIR Link", fhirUrl);
+                }
             }
             return sourceTxt;
         }
