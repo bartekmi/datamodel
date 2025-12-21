@@ -1,19 +1,19 @@
 
 package com.gehealthcare.dpsa;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
+import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
 import com.github.javaparser.javadoc.Javadoc;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,8 +52,10 @@ public class JavaClassIntrospector {
 
         // Serialize to YAML
         ObjectMapper yaml = new ObjectMapper(new YAMLFactory()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
-        yaml.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
+                .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
+        );
+        yaml.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         String yamlText = yaml.writerWithDefaultPrettyPrinter().writeValueAsString(extraction);
 
         // Write file and echo summary
@@ -100,11 +102,11 @@ public class JavaClassIntrospector {
     public static ClassInfo parseSingleClassFile(Path file) throws IOException {
         String source = Files.readString(file);
 
-        ParserConfiguration config = new ParserConfiguration()
-                .setAttributeComments(false)
-                .setDoNotAssignCommentsPrecedingEmptyLines(false);
+//        ParserConfiguration config = new ParserConfiguration()
+//                .setAttributeComments(false)
+//                .setDoNotAssignCommentsPrecedingEmptyLines(false);
 
-        JavaParser parser = new JavaParser(config);
+        JavaParser parser = new JavaParser();
         CompilationUnit cu = parser.parse(source).getResult()
                 .orElseThrow(() -> new IllegalArgumentException("Unable to parse " + file));
 
@@ -124,10 +126,17 @@ public class JavaClassIntrospector {
         // Private fields (properties)
         for (FieldDeclaration fd : clazz.getFields()) {
             if (fd.isPrivate()) {
-                String javadoc = fd.getJavadoc().map(Javadoc::toText).orElse(null);
+
+//                List<AnnotationInfo> declAnns = fd.getAnnotations().stream()
+//                        .map(JavaClassIntrospector::toAnnotationInfo)
+//                        .toList();
+//                System.out.println(declAnns);
+
                 String type = fd.getElementType().asString();
                 for (VariableDeclarator var : fd.getVariables()) {
-                    r.privateFields.add(new FieldInfo(var.getNameAsString(), type, javadoc));
+                    FieldInfo fi = new FieldInfo(var.getNameAsString(), type, null);
+                    enrichWithDocsAndAnnotations(fi, fd);
+                    r.privateFields.add(fi);
                 }
             }
         }
@@ -158,6 +167,7 @@ public class JavaClassIntrospector {
 
     public static class JavaEntityBase {
         public String javaDoc;
+        public List<String> annotations = new ArrayList<>();
         public JavaEntityBase(String javaDoc) {
             this.javaDoc = javaDoc;
         }
@@ -197,5 +207,24 @@ public class JavaClassIntrospector {
             this.returnType = returnType;
             this.parameterTypes = parameterTypes;
         }
+    }
+
+    // Utilities
+    private static <T extends NodeWithJavadoc<?>> void enrichWithDocsAndAnnotations(JavaEntityBase target, T node) {
+        // Javadoc
+        target.javaDoc = getJavadoc(node);
+
+        // Annotations (class, field, method all implement NodeWithAnnotations)
+        if (node instanceof NodeWithAnnotations<?> nwa) {
+            for (var ann : nwa.getAnnotations()) {
+                target.annotations.add(ann.toString());
+            }
+        }
+    }
+
+    private static <T extends NodeWithJavadoc<?>> String getJavadoc(T node) {
+            return node.getJavadoc()
+                    .map(j -> j.getDescription().toText())
+                    .orElse(null);
     }
 }
