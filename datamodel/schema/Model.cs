@@ -57,7 +57,7 @@ namespace datamodel.schema {
         public string[] Levels {
             get { return _levels; }
             set {
-                _levels = value ?? new string[0];
+                _levels = value ?? [];
             }
         }
         public bool ShouldSerializeLevels() { return _levels != null && _levels.Length > 0; }
@@ -70,9 +70,9 @@ namespace datamodel.schema {
         public bool Deprecated { get; set; }
 
         // Associations
-        public List<Property> AllProperties { get; internal set; } = new List<Property>();
+        public List<Property> AllProperties { get; internal set; } = [];
         public bool ShouldSerializeAllProperties() { return AllProperties != null && AllProperties.Count > 0; }
-        public List<Method> Methods { get; internal set; } = new List<Method>();
+        public List<Method> Methods { get; internal set; } = [];
         public bool ShouldSerializeMethods() { return Methods != null && Methods.Count > 0; }
         // Arbitrary user-defined labels
         public List<Label> Labels { get; set; } = [];

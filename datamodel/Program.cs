@@ -10,6 +10,7 @@ using datamodel.schema.source;
 using datamodel.schema.source.from_data;
 using datamodel.schema.source.protobuf;
 using datamodel.schema.source.botocore;
+using datamodel.schema.source.ge;
 using datamodel.schema.tweaks;
 using datamodel.datadict;
 using datamodel.toplevel;

@@ -122,3 +122,4 @@ FakesAssemblies/
 bartek_raw.txt
 models/
 /customs_models
+.DS_Store
