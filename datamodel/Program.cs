@@ -74,7 +74,8 @@ namespace datamodel {
                     { "swagger", new SwaggerSource() },
                     { "yaml", new YamlSource() },
                     { "xsd", new XsdSource() },
-                    { "ge", new GeYamlSource() },
+                    { "ge-yaml", new GeYamlSource() },
+                    { "ge-java", new GeJavaSource() },
                 };
 
                 if (args.Length < 1)

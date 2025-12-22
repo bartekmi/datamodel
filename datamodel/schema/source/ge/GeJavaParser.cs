@@ -9,23 +9,26 @@ namespace datamodel.schema.source.ge;
 
 // This class assumes you've extracted Java information using the ge_extract project
 public static class GeJavaParser {
-    public const string MODEL_FILES_EXTRACTION = "/tmp/datamodel/from_java_models.yaml";
+    public const string MODEL_FILES_EXTRACTION = "/tmp/datamodel/java_models.yaml";
 
     public static void AddInfoFromJava(GeYamlSource yamlSource) {
+        Extraction extraction = LoadExtraction(MODEL_FILES_EXTRACTION);
+        AddNewProperties(yamlSource, extraction);
+    }
+
+    public static Extraction LoadExtraction(string path) {
         IDeserializer deserializer = new DeserializerBuilder()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .IgnoreUnmatchedProperties()
             .Build();
 
-        string yaml = File.ReadAllText(MODEL_FILES_EXTRACTION);
-        Extraction extraction = deserializer.Deserialize<Extraction>(yaml);
-
-        AddNewProperties(yamlSource, extraction);
+        string yaml = File.ReadAllText(path);
+        return deserializer.Deserialize<Extraction>(yaml);
     }
 
     private static void AddNewProperties(GeYamlSource yamlSource, Extraction extraction) {
         string suffix = "Model";
-        foreach (Result result in extraction.results) {
+        foreach (ClassInfo result in extraction.classInfos) {
             if (result.className == "BaseModel")
                 continue;
 
@@ -55,32 +58,35 @@ public static class GeJavaParser {
         }
     }
 
-    #region Java Model Classes
-
-    public class Extraction {
-        public string directory;
-        public List<Result> results;
-    }
-
-    public class Result {
-        public string sourceFile;
-        public string className;
-        public List<FieldInfo> privateFields;
-        public List<MethodInfo> publicStaticMethods;
-    }
-
-    public class FieldInfo {
-        public string name;
-        public string type;
-        public string javadoc;
-    }
-
-    public class MethodInfo {
-        public string name;
-        public string returnType;
-        public List<string> parameterTypes;
-        public string javadoc;
-    }
-
-    #endregion
 }
+
+#region Java Model Classes
+
+public class Extraction {
+    public string directory;
+    public List<ClassInfo> classInfos;
+}
+
+public class ClassInfo {
+    public string sourceFile;
+    public string className;
+    public string javaDoc;
+    public List<FieldInfo> privateFields;
+    public List<MethodInfo> publicStaticMethods;
+}
+
+public class FieldInfo {
+    public string name;
+    public string type;
+    public string javaDoc;
+    public bool isArray;
+}
+
+public class MethodInfo {
+    public string name;
+    public string returnType;
+    public List<string> parameterTypes;
+    public string javaDoc;
+}
+
+#endregion

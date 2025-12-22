@@ -192,14 +192,28 @@
       "stopAtEntry": false
     },
     {
-      "name": "ge",
+      "name": "ge-yaml",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
       "args": [
-        "ge"
+        "ge-yaml"
         ,"dir=/Users/250023731/gitlab/docs-site/models/specification"
+        // ,"dumpSchema=true"
+      ],
+      "cwd": "${workspaceFolder}/datamodel",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "ge-java",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/datamodel/bin/Debug/net8.0/datamodel.dll",
+      "args": [
+        "ge-java"
         // ,"dumpSchema=true"
       ],
       "cwd": "${workspaceFolder}/datamodel",

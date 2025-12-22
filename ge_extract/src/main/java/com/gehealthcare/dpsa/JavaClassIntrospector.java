@@ -13,14 +13,13 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.nodeTypes.NodeWithAnnotations;
 import com.github.javaparser.ast.nodeTypes.NodeWithJavadoc;
-import com.github.javaparser.javadoc.Javadoc;
+import com.github.javaparser.ast.type.Type;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JavaClassIntrospector {
@@ -56,6 +55,7 @@ public class JavaClassIntrospector {
                 .enable(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE)
         );
         yaml.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        yaml.setSerializationInclusion(JsonInclude.Include.NON_DEFAULT);
         String yamlText = yaml.writerWithDefaultPrettyPrinter().writeValueAsString(extraction);
 
         // Write file and echo summary
@@ -71,7 +71,6 @@ public class JavaClassIntrospector {
         List<ClassInfo> classInfos = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(dir)) {
-            // Only regular files ending in .java
             List<Path> javaFiles = files
                     .filter(Files::isRegularFile)
                     .filter(p -> p.getFileName().toString().endsWith(".java"))
@@ -82,7 +81,6 @@ public class JavaClassIntrospector {
                     ClassInfo r = parseSingleClassFile(file);
                     classInfos.add(r);
                 } catch (Exception ex) {
-                    // Skip problematic files but log a concise message
                     System.err.println("[WARN] Skipping " + file.getFileName() + ": " + ex.getMessage());
                 }
             }
@@ -102,10 +100,6 @@ public class JavaClassIntrospector {
     public static ClassInfo parseSingleClassFile(Path file) throws IOException {
         String source = Files.readString(file);
 
-//        ParserConfiguration config = new ParserConfiguration()
-//                .setAttributeComments(false)
-//                .setDoNotAssignCommentsPrecedingEmptyLines(false);
-
         JavaParser parser = new JavaParser();
         CompilationUnit cu = parser.parse(source).getResult()
                 .orElseThrow(() -> new IllegalArgumentException("Unable to parse " + file));
@@ -119,42 +113,36 @@ public class JavaClassIntrospector {
             throw new IllegalStateException("Expected exactly one top-level class, found: " + classes.size());
         }
 
-        ClassOrInterfaceDeclaration clazz = classes.getFirst();
-        String javaDoc = clazz.getJavadoc().map(Javadoc::toText).orElse(null);
-        ClassInfo r = new ClassInfo(file.toString(), clazz.getNameAsString(), javaDoc);
+        ClassOrInterfaceDeclaration jpClass = classes.getFirst();
+        ClassInfo classInfo = new ClassInfo(file.toString(), jpClass.getNameAsString());
+        enrichWithDocsAndAnnotations(classInfo, jpClass);
 
         // Private fields (properties)
-        for (FieldDeclaration fd : clazz.getFields()) {
-            if (fd.isPrivate()) {
+        for (FieldDeclaration jpField : jpClass.getFields()) {
+            if (jpField.isPrivate()) {
 
-//                List<AnnotationInfo> declAnns = fd.getAnnotations().stream()
-//                        .map(JavaClassIntrospector::toAnnotationInfo)
-//                        .toList();
-//                System.out.println(declAnns);
-
-                String type = fd.getElementType().asString();
-                for (VariableDeclarator var : fd.getVariables()) {
-                    FieldInfo fi = new FieldInfo(var.getNameAsString(), type, null);
-                    enrichWithDocsAndAnnotations(fi, fd);
-                    r.privateFields.add(fi);
+                String type = jpField.getElementType().asString();
+                for (VariableDeclarator jpVar : jpField.getVariables()) {
+                    Type jpType = jpVar.getType();
+                    FieldInfo fieldInfo = new FieldInfo(jpVar.getNameAsString(), type, jpType.isArrayType());
+                    enrichWithDocsAndAnnotations(fieldInfo, jpField);
+                    classInfo.privateFields.add(fieldInfo);
                 }
             }
         }
 
         // Public static methods
-        for (MethodDeclaration m : clazz.getMethods()) {
+        for (MethodDeclaration m : jpClass.getMethods()) {
             if (m.isPublic() && m.isStatic()) {
-                String javadoc = m.getJavadoc().map(Javadoc::toText).orElse(null);
                 List<String> paramTypes = m.getParameters().stream()
                         .map(p -> p.getType().asString())
-                        .collect(Collectors.toList());
-                r.publicStaticMethods.add(
-                        new MethodInfo(m.getNameAsString(), m.getType().asString(), paramTypes, javadoc)
-                );
+                        .toList();
+                MethodInfo methodInfo = new MethodInfo(m.getNameAsString(), m.getType().asString(), paramTypes);
+                classInfo.publicStaticMethods.add(methodInfo);
             }
         }
 
-        return r;
+        return classInfo;
     }
 
     // --- data holders for YAML output ---
@@ -168,9 +156,6 @@ public class JavaClassIntrospector {
     public static class JavaEntityBase {
         public String javaDoc;
         public List<String> annotations = new ArrayList<>();
-        public JavaEntityBase(String javaDoc) {
-            this.javaDoc = javaDoc;
-        }
     }
 
     /** Per-class extraction result. */
@@ -180,8 +165,7 @@ public class JavaClassIntrospector {
         public List<FieldInfo> privateFields = new ArrayList<>();
         public List<MethodInfo> publicStaticMethods = new ArrayList<>();
 
-        public ClassInfo(String sourceFile, String className, String javadoc) {
-            super(javadoc);
+        public ClassInfo(String sourceFile, String className) {
             this.sourceFile = sourceFile;
             this.className = className;
         }
@@ -190,10 +174,11 @@ public class JavaClassIntrospector {
     public static class FieldInfo extends JavaEntityBase {
         public final String name;
         public final String type;
-        public FieldInfo(String name, String type, String javadoc) {
-            super(javadoc);
+        public final boolean isArray;
+        public FieldInfo(String name, String type, boolean isArray) {
             this.name = name;
             this.type = type;;
+            this.isArray = isArray;
         }
     }
 
@@ -201,8 +186,7 @@ public class JavaClassIntrospector {
         public final String name;
         public final String returnType;
         public final List<String> parameterTypes;
-        public MethodInfo(String name, String returnType, List<String> parameterTypes, String javadoc) {
-            super(javadoc);
+        public MethodInfo(String name, String returnType, List<String> parameterTypes) {
             this.name = name;
             this.returnType = returnType;
             this.parameterTypes = parameterTypes;
