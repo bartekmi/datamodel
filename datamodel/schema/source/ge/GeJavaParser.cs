@@ -80,12 +80,18 @@ public class FieldInfo {
     public string type;
     public string javaDoc;
     public bool isArray;
+    public List<string> annotations = [];
+}
+
+public class ParameterInfo {
+    public string name;
+    public string type;
 }
 
 public class MethodInfo {
     public string name;
     public string returnType;
-    public List<string> parameterTypes;
+    public List<ParameterInfo> parameters;
     public string javaDoc;
 }
 

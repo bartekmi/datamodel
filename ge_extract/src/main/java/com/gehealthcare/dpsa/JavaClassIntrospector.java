@@ -134,10 +134,10 @@ public class JavaClassIntrospector {
         // Public static methods
         for (MethodDeclaration m : jpClass.getMethods()) {
             if (m.isPublic() && m.isStatic()) {
-                List<String> paramTypes = m.getParameters().stream()
-                        .map(p -> p.getType().asString())
+                List<ParameterInfo> params = m.getParameters().stream()
+                        .map(p -> new ParameterInfo(p.getNameAsString(), p.getType().asString()))
                         .toList();
-                MethodInfo methodInfo = new MethodInfo(m.getNameAsString(), m.getType().asString(), paramTypes);
+                MethodInfo methodInfo = new MethodInfo(m.getNameAsString(), m.getType().asString(), params);
                 classInfo.publicStaticMethods.add(methodInfo);
             }
         }
@@ -185,11 +185,21 @@ public class JavaClassIntrospector {
     public static class MethodInfo extends JavaEntityBase {
         public final String name;
         public final String returnType;
-        public final List<String> parameterTypes;
-        public MethodInfo(String name, String returnType, List<String> parameterTypes) {
+        public final List<ParameterInfo> parameters;
+        public MethodInfo(String name, String returnType, List<ParameterInfo> parameters) {
             this.name = name;
             this.returnType = returnType;
-            this.parameterTypes = parameterTypes;
+            this.parameters = parameters;
+        }
+    }
+
+    public static class ParameterInfo {
+        public final String name;
+        public final String type;
+
+        public ParameterInfo(String name, String type) {
+            this.name = name;
+            this.type = type;
         }
     }
 
