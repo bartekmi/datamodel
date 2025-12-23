@@ -28,6 +28,9 @@ public class GeJavaSource : SchemaSource {
         ["appointmentid"] = "Appointment",
     };
 
+    // These groupsing will do two things...
+    // 1) Determine how "root" entities (and their children) are placed into Data Model diagrams
+    // 2) Assign a unique color to each group
     private readonly Dictionary<string, List<string>> GROUP_TO_MODELS = new() {
         ["appointment"] = ["Appointment"],
         ["patient-visit"] = ["AvoidableNights", "DepartureLounge", "Device", "DischargeMilestones", "EmrFlags", "InfectiousDisease", "Patient", "PatientVisit", "PostAcute"],
@@ -146,6 +149,13 @@ public class GeJavaSource : SchemaSource {
         }
     }
 
+    private static string GetMethodString(ClassInfo classInfo, MethodInfo method) {
+        int paramCount = method.parameters.Count;
+        string methodParams = string.Join(", ", method.parameters.Take(paramCount - 1).Select(x => x.name));
+        return string.Format("{0} {1}.{2}({3}, ...)",
+            method.returnType, classInfo.className, method.name, methodParams);
+    }
+
     private void ConvertGetMethodsToAssociations(ClassInfo classInfo, string modelName) {
         foreach (MethodInfo method in classInfo.publicStaticMethods) {
             if (!method.name.StartsWith("get"))
@@ -153,8 +163,9 @@ public class GeJavaSource : SchemaSource {
 
             int paramCount = method.parameters.Count;
             if (paramCount != 2) {
-                Console.WriteLine("INFO: {0}.{1}() has {2} parameters. Skipping for now.",
-                    classInfo.className, method.name, paramCount);
+                string methodParams = string.Join(", ", method.parameters.Take(paramCount - 1).Select(x => x.name));
+                Console.WriteLine("INFO: {0} has {1} parameters. Skipping for now.",
+                    GetMethodString(classInfo, method), paramCount);
                 continue;
             }
 
@@ -166,8 +177,8 @@ public class GeJavaSource : SchemaSource {
             }
 
             if (!KEY_TO_ENTITY.TryGetValue(firstParam.name.ToLower(), out string paramModelName)) {
-                Console.WriteLine("INFO: {0}.{1}() first parameter {2} - no entity found. Skipping for now.",
-                    classInfo.className, method.name, firstParam.name);
+                Console.WriteLine("INFO: {0} first parameter {1} - no entity found. Skipping for now.",
+                    GetMethodString(classInfo, method), firstParam.name);
                 continue;
             }
 
@@ -175,8 +186,8 @@ public class GeJavaSource : SchemaSource {
             string returnModelName = CladdToModelName(returnClass);
 
             if (!_javaModels.ContainsKey(returnModelName)) {
-                Console.WriteLine("INFO: {0}.{1}() return type {2} is not a known model. Skipping for now.",
-                    classInfo.className, method.name, returnModelName);
+                Console.WriteLine("INFO: {0} return type {1} is not a known model. Skipping for now.",
+                    GetMethodString(classInfo, method), returnModelName);
                 continue;
             }
 
