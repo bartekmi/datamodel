@@ -26,6 +26,15 @@ public class GeJavaSource : SchemaSource {
         ["csn"] = "PatientVisit",
 
         ["appointmentid"] = "Appointment",
+
+        ["facility"] = "FacilitiesLocationMaster",
+        ["facilityid"] = "FacilitiesLocationMaster",
+        ["facilitycode"] = "FacilitiesLocationMaster",
+        ["unit"] = "UnitsLocationMaster",
+        ["unitid"] = "UnitsLocationMaster",
+        ["bed"] = "BedsLocationMaster",
+        ["bedid"] = "BedsLocationMaster",
+
     };
 
     // These groupsing will do two things...
@@ -162,23 +171,24 @@ public class GeJavaSource : SchemaSource {
                 continue;
 
             int paramCount = method.parameters.Count;
-            if (paramCount != 2) {
+            if (paramCount < 2) {
                 string methodParams = string.Join(", ", method.parameters.Take(paramCount - 1).Select(x => x.name));
-                Console.WriteLine("INFO: {0} has {1} parameters. Skipping for now.",
+                Console.WriteLine("INFO: {0} has only {1} parameters. Skipping.",
                     GetMethodString(classInfo, method), paramCount);
                 continue;
             }
 
-            ParameterInfo firstParam = method.parameters.First();
-            if (firstParam.type.ToLower() != "string") {
-                Console.WriteLine("INFO: {0}.{1}() first parameter is {2}. Skipping for now.",
-                    classInfo.className, method.name, firstParam.type);
+            // The second-last parameter determines the association, if any
+            ParameterInfo secondLastParam = method.parameters.AsEnumerable().Reverse().Skip(1).First();
+            if (secondLastParam.type.ToLower() != "string") {
+                Console.WriteLine("INFO: {0} - {1} is  of type {2}. Skipping.",
+                    GetMethodString(classInfo, method), secondLastParam.name, secondLastParam.type);
                 continue;
             }
 
-            if (!KEY_TO_ENTITY.TryGetValue(firstParam.name.ToLower(), out string paramModelName)) {
-                Console.WriteLine("INFO: {0} first parameter {1} - no entity found. Skipping for now.",
-                    GetMethodString(classInfo, method), firstParam.name);
+            if (!KEY_TO_ENTITY.TryGetValue(secondLastParam.name.ToLower(), out string paramModelName)) {
+                Console.WriteLine("INFO: {0} - no Entity found for {1}. Skipping.",
+                    GetMethodString(classInfo, method), secondLastParam.name);
                 continue;
             }
 
@@ -186,7 +196,7 @@ public class GeJavaSource : SchemaSource {
             string returnModelName = CladdToModelName(returnClass);
 
             if (!_javaModels.ContainsKey(returnModelName)) {
-                Console.WriteLine("INFO: {0} return type {1} is not a known model. Skipping for now.",
+                Console.WriteLine("INFO: {0} - return type {1} is not a known Model. Skipping.",
                     GetMethodString(classInfo, method), returnModelName);
                 continue;
             }
@@ -204,7 +214,7 @@ public class GeJavaSource : SchemaSource {
             };
 
             association.Description = string.Format("Created from method: {0} {1}.{2}({3}, ...)",
-                method.returnType, classInfo.className, method.name, firstParam.name);
+                method.returnType, classInfo.className, method.name, secondLastParam.name);
 
             if (!string.IsNullOrEmpty(method.javaDoc))
                 association.Description += "\n\n" + method.javaDoc;
