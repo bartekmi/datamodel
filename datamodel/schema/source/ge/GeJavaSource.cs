@@ -213,8 +213,8 @@ public class GeJavaSource : SchemaSource {
                 OtherMultiplicity = isList ? Multiplicity.Many : Multiplicity.One,
             };
 
-            association.Description = string.Format("Created from method: {0} {1}.{2}({3}, ...)",
-                method.returnType, classInfo.className, method.name, secondLastParam.name);
+            association.Description = string.Format("Created from method: {0}",
+                GetMethodString(classInfo, method));
 
             if (!string.IsNullOrEmpty(method.javaDoc))
                 association.Description += "\n\n" + method.javaDoc;
@@ -262,7 +262,7 @@ public class GeJavaSource : SchemaSource {
             };
 
             if (field.annotations.Count > 0)
-                property.AddLabel("Annotations", string.Join(", ", field.annotations));
+                property.AddLabel("Annotations", string.Join("\n", field.annotations));
 
             model.AllProperties.Add(property);
         }

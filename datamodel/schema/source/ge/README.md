@@ -6,8 +6,11 @@
     c. I have found several cases where YAML contains things that the code does not - e.g. Pli.Disposition, Pli.LDAOrders - why?
 
 1. The concept of "Schedule" seems to be missing
-2. Are hospital personnel entities even used?
+2. Are hospital personnel entities even used? The methods around this seem to be backwards.
 3. Is "Facility" and "Department" synonymous - see DivertStatus: GetActiveDivert(departmentId) / facilitySourceId
 4. What exactly is FacilitiesLocationMaster? UnitsLocationMaster?
 5. Why is there no "RoomsLocationMaster"?
+6. Is the semanitcs of TransportInternalModel.getOriginatingInternalTransportByLocation()...
+     "For the specified bed, return the active (as opposed to historical) TIM where the TIM originates
+      from this Bed", and null if there is not active TIM?
 
