@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 
 using datamodel.utils;
+using System.Collections.Generic;
 
 namespace datamodel.schema {
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
@@ -9,7 +10,7 @@ namespace datamodel.schema {
         private DataType _dataType = new DataType();
         [JsonIgnore]
         public DataType DataTypeObj => _dataType;
-        
+
 
         // Derived 
         [JsonIgnore]
@@ -18,16 +19,16 @@ namespace datamodel.schema {
         public bool IsRef { get { return ReferencedModel != null; } }
 
         // DataType wrappers
-        public string DataType { 
+        public string DataType {
             get { return _dataType.Name; }
             set { _dataType.Name = value; }
         }
-        public Enum Enum { 
+        public Enum Enum {
             get { return _dataType.Enum; }
             set { _dataType.Enum = value; }
         }
         [JsonIgnore]
-        public Model ReferencedModel { 
+        public Model ReferencedModel {
             get { return _dataType.ReferencedModel; }
             set { _dataType.ReferencedModel = value; }
         }
@@ -57,5 +58,9 @@ namespace datamodel.schema {
             });
         }
 
+        public void AddLabels(Dictionary<string, string> labels) {
+            foreach (var kvp in labels)
+                AddLabel(kvp.Key, kvp.Value);
+        }
     }
 }

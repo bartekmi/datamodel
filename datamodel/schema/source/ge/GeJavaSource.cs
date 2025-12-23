@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace datamodel.schema.source.ge;
 
@@ -254,12 +255,16 @@ public class GeJavaSource : SchemaSource {
             if (type.ToLower() == "list<string>")
                 type = "String[]";
 
+            Dictionary<string, string> labels = ParseFieldJavadoc(field.javaDoc, out string extraText);
+
             Property property = new() {
                 Name = field.name,
-                Description = field.javaDoc,
+                Description = extraText,
                 DataType = type,
                 CanBeEmpty = true,
             };
+
+            property.AddLabels(labels);
 
             if (field.annotations.Count > 0)
                 property.AddLabel("Annotations", string.Join("\n", field.annotations));
@@ -306,5 +311,39 @@ public class GeJavaSource : SchemaSource {
         return _associations;
     }
     #endregion
+
+    public static Dictionary<string, string> ParseFieldJavadoc(
+        string input,
+        out string trailingText
+        ) {
+        trailingText = null;
+        var result = new Dictionary<string, string>();
+
+        if (string.IsNullOrEmpty(input))
+            return result;
+
+        var builder = new StringBuilder();
+
+        var lines = input.Split('\n');
+
+        foreach (var line in lines) {
+            int index = line.IndexOf(':');
+            if (index == -1)
+                builder.AppendLine(line.Trim());
+            else {
+                string left = line.Substring(0, index).Trim();
+                if (left.StartsWith('-'))
+                    left = left.TrimStart('-').Trim();
+                string right = line.Substring(index + 1).Trim();
+
+                if (left == "" || right == "")
+                    continue;
+                result[left] = right;
+            }
+        }
+
+        trailingText = string.IsNullOrEmpty(builder.ToString()) ? null : builder.ToString().Trim();
+        return result;
+    }
 }
 
