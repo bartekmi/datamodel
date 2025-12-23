@@ -15,6 +15,7 @@ public class GeJavaSource : SchemaSource {
     // Used to create associations from "Joins" where targetModel is same as the model 
     private readonly Dictionary<string, string> KEY_TO_ENTITY = new() {
         ["patientid"] = "Patient",
+        ["patientidentifier"] = "Patient",
         ["mrn"] = "Patient",
         ["patientmrn"] = "Patient",
 
@@ -22,6 +23,7 @@ public class GeJavaSource : SchemaSource {
         ["visitnumber"] = "PatientVisit",
         ["encounterid"] = "PatientVisit",
         ["patientcsn"] = "PatientVisit",
+        ["csn"] = "PatientVisit",
 
         ["appointmentid"] = "Appointment",
     };
