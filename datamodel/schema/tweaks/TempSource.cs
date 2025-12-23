@@ -77,11 +77,11 @@ namespace datamodel.schema.tweaks {
         }
 
         internal static TempSource CloneFromSource(SchemaSource source) {
-            TempSource clone = new TempSource();
-
-            clone.Title = source.GetTitle();
+            TempSource clone = new() {
+                Title = source.GetTitle()
+            };
             clone.SetModels(source.GetModels());
-            clone.Associations = new List<Association>(source.GetAssociations());
+            clone.Associations = new(source.GetAssociations());
 
             return clone;
         }

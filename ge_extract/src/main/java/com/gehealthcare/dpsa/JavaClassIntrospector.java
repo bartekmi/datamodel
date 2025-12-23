@@ -23,17 +23,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class JavaClassIntrospector {
-
-    /**
-     * Usage:
-     *   java -jar .../javaparser-minimal.jar /path/to/dir [output.yaml]
-     *
-     * Behavior:
-     *   - Iterates ONLY the immediate files in the provided directory (no recursion).
-     *   - Parses each .java file that contains exactly one top-level class (non-interface).
-     *   - Extracts private fields and public static methods (with Javadoc).
-     *   - Writes a YAML file. If output path is omitted, writes "extraction.yaml" in CWD.
-     */
     public static void main(String[] args) throws Exception {
         if (args.length != 2) {
             System.err.println("Usage: JavaClassIntrospector <source-dir> <output-yaml>");

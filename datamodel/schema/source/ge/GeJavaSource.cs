@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using System;
 using System.Linq;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
 
 namespace datamodel.schema.source.ge;
 
@@ -17,7 +13,7 @@ public class GeJavaSource : SchemaSource {
 
     // Mapping of "targetField" key name to Entity name
     // Used to create associations from "Joins" where targetModel is same as the model 
-    private readonly Dictionary<string, string> _keyToEntity = new() {
+    private readonly Dictionary<string, string> KEY_TO_ENTITY = new() {
         ["patientid"] = "Patient",
         ["mrn"] = "Patient",
         ["patientmrn"] = "Patient",
@@ -26,9 +22,11 @@ public class GeJavaSource : SchemaSource {
         ["visitnumber"] = "PatientVisit",
         ["encounterid"] = "PatientVisit",
         ["patientcsn"] = "PatientVisit",
+
+        ["appointmentid"] = "Appointment",
     };
 
-    private readonly Dictionary<string, List<string>> _groupToModels = new() {
+    private readonly Dictionary<string, List<string>> GROUP_TO_MODELS = new() {
         ["appointment"] = ["Appointment"],
         ["patient-visit"] = ["AvoidableNights", "DepartureLounge", "Device", "DischargeMilestones", "EmrFlags", "InfectiousDisease", "Patient", "PatientVisit", "PostAcute"],
         ["transfer"] = ["BedRequest", "TransferRequest", "TransportExternal", "TransportInternal"],
@@ -45,35 +43,67 @@ public class GeJavaSource : SchemaSource {
     private readonly List<Association> _associations = [];
 
     public override void Initialize(Parameters parameters) {
+        // Load Models and Entitie4s
         _javaModels = GeJavaParser.LoadExtraction("/tmp/datamodel/java_models.yaml").classInfos
-            .ToDictionary(x => StripSuffix(x.className, "Model"), x => x);
+            .ToDictionary(x => CladdToModelName(x.className), x => x);
         _javaEntities = GeJavaParser.LoadExtraction("/tmp/datamodel/java_entities.yaml").classInfos
-            .ToDictionary(x => StripSuffix(x.className, "Entity"), x => x);
+            .ToDictionary(x => CladdToModelName(x.className), x => x);
 
-        _javaModels.Remove("Base");
+        // Just a bit lazy - did not make the model parsing recursive in ge_extract.
+        Dictionary<string, ClassInfo> locationModels = GeJavaParser.LoadExtraction("/tmp/datamodel/java_model_location.yaml").classInfos
+            .ToDictionary(x => CladdToModelName(x.className), x => x);
+        _javaModels = new(_javaModels.Concat(locationModels));
+
+        // Filter out anything that doesn't have the "@Data" annotation
+        _javaModels = new(_javaModels.Where(x => x.Value.annotations.Any(x => x == "@Data")));
+
+        // If a model does not have a corresponding Enity, use the model directly
+        foreach (var kvp in _javaModels)
+            if (!_javaEntities.ContainsKey(kvp.Key))
+                _javaEntities[kvp.Key] = kvp.Value;
 
         foreach (var kvp in _javaModels) {
             string modelName = kvp.Key;
-            if (!_javaEntities.TryGetValue(modelName, out ClassInfo entity)) {
-                Console.WriteLine("WARNING: Model {0} does not have a matching Entity. Skipping.",
-                    modelName);
-                continue;
-            }
+            ClassInfo jpModel = kvp.Value;
+            ClassInfo jpEntity = _javaEntities[modelName];
 
             string group = FindGroup(modelName);
 
             Model model = new() {
                 Name = modelName,
                 QualifiedName = modelName,
-                Description = entity.javaDoc,
+                Description = jpEntity.javaDoc,
                 Levels = [group],
             };
 
-            SetModelProperties(entity, model);
-            CreateModelsForNestedChildren(kvp.Value, modelName, group);
-            ConvertGetMethodsToAssociations(kvp.Value, modelName);
+            SetModelProperties(jpEntity, model);
+            CreateModelsForNestedChildren(jpModel, modelName, group);
+            ConvertGetMethodsToAssociations(jpModel, modelName);
 
             _models.Add(model);
+        }
+
+        ColorModels();
+    }
+
+    private void ColorModels() {
+        Dictionary<string, string> modelToParent = [];
+        Dictionary<string, Model> nameToModel = _models.ToDictionary(x => x.QualifiedName, x => x);
+
+        foreach (Association assoc in _associations)
+            if (assoc.OwnerMultiplicity == Multiplicity.Aggregation)
+                modelToParent[assoc.OtherSide] = assoc.OwnerSide;
+
+        foreach (Model model in _models) {
+            string rootModel = model.QualifiedName;
+            while (true) {
+                if (modelToParent.TryGetValue(rootModel, out string parentModelName))
+                    rootModel = parentModelName;
+                else
+                    break;
+            }
+
+            model.Levels = [FindGroup(rootModel)];
         }
     }
 
@@ -82,7 +112,7 @@ public class GeJavaSource : SchemaSource {
             if (IsPrimitive(field.type))
                 continue;
 
-            string childName = StripSuffix(field.type, "Entity");
+            string childName = CladdToModelName(field.type);
             if (!_javaEntities.TryGetValue(childName, out ClassInfo childEntity)) {
                 Console.WriteLine("WARNING: Property {0}.{1} does not have a matching Entity. Skipping.",
                     modelName, childName);
@@ -90,14 +120,20 @@ public class GeJavaSource : SchemaSource {
             }
 
 
-            Model childModel = new() {
-                Name = childName,
-                QualifiedName = childName,
-                Description = field.javaDoc,
-                Levels = [group],
-            };
+            // Only create a child model if it does not exist in _javaModels; otherwise, it would be created twice
+            if (!_javaModels.ContainsKey(childName)) {
+                Model childModel = new() {
+                    Name = childName,
+                    QualifiedName = childName,
+                    Description = field.javaDoc,
+                    Levels = [group],
+                };
 
-            SetModelProperties(childEntity, childModel);
+                SetModelProperties(childEntity, childModel);
+                _models.Add(childModel);
+            }
+
+            // Add an Aggregation association to the child Model
             _associations.Add(new Association() {
                 OwnerSide = modelName,
                 OwnerMultiplicity = Multiplicity.Aggregation,
@@ -105,7 +141,6 @@ public class GeJavaSource : SchemaSource {
                 OtherMultiplicity = field.isArray ? Multiplicity.Many : Multiplicity.ZeroOrOne,
             });
 
-            _models.Add(childModel);
         }
     }
 
@@ -128,14 +163,14 @@ public class GeJavaSource : SchemaSource {
                 continue;
             }
 
-            if (!_keyToEntity.TryGetValue(firstParam.name.ToLower(), out string paramModelName)) {
+            if (!KEY_TO_ENTITY.TryGetValue(firstParam.name.ToLower(), out string paramModelName)) {
                 Console.WriteLine("INFO: {0}.{1}() first parameter {2} - no entity found. Skipping for now.",
                     classInfo.className, method.name, firstParam.name);
                 continue;
             }
 
             string returnClass = ExtractReturnType(method.returnType, out bool isList);
-            string returnModelName = StripSuffix(returnClass, "Model");
+            string returnModelName = CladdToModelName(returnClass);
 
             if (!_javaModels.ContainsKey(returnModelName)) {
                 Console.WriteLine("INFO: {0}.{1}() return type {2} is not a known model. Skipping for now.",
@@ -181,7 +216,7 @@ public class GeJavaSource : SchemaSource {
     }
 
     private string FindGroup(string modelName) {
-        foreach (var kvp in _groupToModels)
+        foreach (var kvp in GROUP_TO_MODELS)
             if (kvp.Value.Contains(modelName))
                 return kvp.Key;
         return "unclassified";
@@ -190,6 +225,9 @@ public class GeJavaSource : SchemaSource {
     private static void SetModelProperties(ClassInfo entity, Model model) {
         foreach (FieldInfo field in entity.privateFields) {
             string type = field.type;
+
+            // This is a bit of a hack... The graphviz SVG tooltips do not do well if they have things with angled brackets
+            // This should be handled in the SVG generator, not ad-hoc here.
             if (type.ToLower() == "list<string>")
                 type = "String[]";
 
@@ -220,10 +258,13 @@ public class GeJavaSource : SchemaSource {
         return PRIMITIVE_TYPES.Contains(type);
     }
 
+    private static string CladdToModelName(string s) {
+        return StripSuffix(StripSuffix(s, "Entity"), "Model");
+    }
+
     private static string StripSuffix(string s, string suffix) {
         return s.EndsWith(suffix) ?
             s.Substring(0, s.Length - suffix.Length) : s;
-
     }
 
     public override IEnumerable<Parameter> GetParameters() {

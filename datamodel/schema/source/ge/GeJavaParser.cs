@@ -71,8 +71,9 @@ public class ClassInfo {
     public string sourceFile;
     public string className;
     public string javaDoc;
-    public List<FieldInfo> privateFields;
-    public List<MethodInfo> publicStaticMethods;
+    public List<string> annotations = [];
+    public List<FieldInfo> privateFields = [];
+    public List<MethodInfo> publicStaticMethods = [];
 }
 
 public class FieldInfo {
@@ -91,8 +92,9 @@ public class ParameterInfo {
 public class MethodInfo {
     public string name;
     public string returnType;
-    public List<ParameterInfo> parameters;
+    public List<ParameterInfo> parameters = [];
     public string javaDoc;
+    public List<string> annotations = [];
 }
 
 #endregion
