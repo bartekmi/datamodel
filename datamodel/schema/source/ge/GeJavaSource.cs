@@ -247,6 +247,8 @@ public class GeJavaSource : SchemaSource {
     }
 
     private static void SetModelProperties(ClassInfo entity, Model model) {
+        Dictionary<string, int> sourceToCount = [];
+
         foreach (FieldInfo field in entity.privateFields) {
             string type = field.type;
 
@@ -266,10 +268,35 @@ public class GeJavaSource : SchemaSource {
 
             property.AddLabels(labels);
 
+            labels.TryGetValue("type", out string labelType);
+            labels.TryGetValue("source", out string labelSource);
+
+            // Provide link to FHIR entity, if appropriate
+            if (labelType?.ToUpper() == "FHIR" && !string.IsNullOrEmpty(labelSource)) {
+                string fhirUrl = string.Format("https://www.hl7.org/fhir/{0}.html", labelSource.ToLower());
+                property.AddUrl("FHIR Link", fhirUrl);
+            }
+
+            // Tally up type.source strings to present at the Model level
+            if (!string.IsNullOrEmpty(labelType)) {
+                string[] components = [labelType, labelSource];
+                string combined = string.Join('.', components.Where(x => !string.IsNullOrEmpty(x)));
+                if (sourceToCount.TryGetValue(combined, out int count))
+                    sourceToCount[combined] = count + 1;
+                else
+                    sourceToCount[combined] = 1;
+            }
+
+
             if (field.annotations.Count > 0)
                 property.AddLabel("Annotations", string.Join("\n", field.annotations));
 
             model.AllProperties.Add(property);
+        }
+
+        if (sourceToCount.Count > 0) {
+            model.AddLabel("Sources", string.Join(", ", sourceToCount
+                .Select(x => string.Format("{0}: {1}", x.Key, x.Value))));
         }
     }
 
@@ -334,10 +361,11 @@ public class GeJavaSource : SchemaSource {
                 string left = line.Substring(0, index).Trim();
                 if (left.StartsWith('-'))
                     left = left.TrimStart('-').Trim();
-                string right = line.Substring(index + 1).Trim();
+                string right = line.Substring(index + 1).Trim().Trim('"');
 
-                if (left == "" || right == "")
+                if (string.IsNullOrEmpty(left) || string.IsNullOrEmpty(right) || right == "null")
                     continue;
+
                 result[left] = right;
             }
         }

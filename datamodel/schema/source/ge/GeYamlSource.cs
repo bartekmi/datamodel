@@ -154,7 +154,6 @@ public class GeYamlSource : SchemaSource {
     }
 
     private void ParseFields(Model owner, string ownerQualifiedName, Dictionary<string, GeField> fields) {
-        int scalarFieldCount = 0;
         Dictionary<string, int> sourceToCount = [];
 
         foreach (var kvp in fields) {
@@ -165,7 +164,6 @@ public class GeYamlSource : SchemaSource {
             if (type == "object" || type == "array" || type == "list")
                 ParseNestedField(owner, ownerQualifiedName, name, field, type);
             else {
-                scalarFieldCount++;
                 string source = ParseScalarField(owner, name, field);
                 if (source != null) {
                     if (sourceToCount.TryGetValue(source, out int count))
