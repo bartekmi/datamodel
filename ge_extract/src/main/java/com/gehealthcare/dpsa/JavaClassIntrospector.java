@@ -35,6 +35,7 @@ public class JavaClassIntrospector {
         }
 
         Path output = Path.of(args[1]).toAbsolutePath().normalize();
+        Files.createDirectories(output.getParent());
 
         Extraction extraction = parseDirectory(dir);
 
