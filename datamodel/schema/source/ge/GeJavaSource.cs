@@ -36,6 +36,7 @@ public class GeJavaSource : SchemaSource {
         ["bed"] = "BedsLocationMaster",
         ["bedid"] = "BedsLocationMaster",
 
+        ["hospitalpersonnelid"] = "HospitalPersonnel",
     };
 
     // These groupsing will do two things...
@@ -202,7 +203,7 @@ public class GeJavaSource : SchemaSource {
                 continue;
             }
 
-            // methods like getXbyX-id() are assumed toexist and not helpful
+            // methods like getXbyX-id() are assumed to exist and not contain any useful info
             if (paramModelName == returnModelName)
                 continue;
 
@@ -261,7 +262,7 @@ public class GeJavaSource : SchemaSource {
 
             Property property = new() {
                 Name = field.name,
-                Description = extraText,
+                Description = extraText ?? "Recommend bribing DPSA team member to provide description :)",
                 DataType = type,
                 CanBeEmpty = true,
             };

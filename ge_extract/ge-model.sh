@@ -20,4 +20,15 @@ pushd /tmp
 zip -r datamodel.zip datamodel
 popd
 
+mkdir -p $HOME/tmp
+mv /tmp/datamodel.zip $HOME/tmp
+
+
 # Copy the zip file to a location available to all
+
+# curl -u "email@example.com:API_TOKEN" \
+#      -X POST \
+#      -H "X-Atlassian-Token: no-check" \
+#      -F "file=@/path/to/yourfile.pdf" \
+#      "https://your-domain.atlassian.net/wiki/rest/api/content/{PAGE_ID}/child/attachment"
+
