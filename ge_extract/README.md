@@ -5,8 +5,8 @@ Extract information from Json model files in dpsa and store them in YAML format.
 To update the published Visualizer:
 1. Run extraction followed by Schema Visualization: ./ge-model-sh
 2. Edit file https://ge-hc.atlassian.net/wiki/spaces/CC2/pages/1504482727/CI4Ops+Data+Model+Visualizer+s
-3. Click on the zip link
-4. Drag datamodel.zip from Finder (in folder ~/tmp) into the page
+3. Drag datamodel.zip from Finder (in folder ~/tmp) on top of existing file
+4. Click "Update"
 
 # Build / Run Instructions
 ## IntelliJ Setup

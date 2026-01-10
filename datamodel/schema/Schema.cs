@@ -294,7 +294,17 @@ namespace datamodel.schema {
             if (LevelNames != null && level < LevelNames.Length)
                 return LevelNames[level];
 
+            // If there is only one level, displaying "Level 1" confuses users.
+            if (GetMaxLevelDepth() <= 1)
+                return "Category";
+
             return "Level " + (level + 1);
+        }
+
+        private int? maxLevelDepth;
+        private int GetMaxLevelDepth() {
+            maxLevelDepth ??= Models.Max(x => x.Levels.Length);
+            return maxLevelDepth.Value;
         }
 
         public bool IsInteresting(Property property) {
